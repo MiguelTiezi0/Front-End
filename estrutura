@@ -1,0 +1,45 @@
+prj/
+├── public/
+│   └── index.html
+├── src/
+│
+│   ├── assets/                 # Imagens, ícones, SVGs, etc.
+│
+│   ├── components/             # Componentes reutilizáveis
+│   │   ├── Button/
+│   │   │   ├── Button.jsx
+│   │   │   ├── Button.css
+│   │   │   └── index.js
+│   │   ├── InputField/
+│   │   │   ├── InputField.jsx
+│   │   │   ├── InputField.css
+│   │   │   └── index.js
+│   │   └── Header/             # Se houver um cabeçalho fixo
+│
+│   ├── pages/                  # Páginas principais do sistema
+│   │   ├── Home.jsx
+│   │   ├── produtos/
+│   │   │   ├── CadastroProduto.jsx
+│   │   │   ├── EditarProduto.jsx
+│   │   │   ├── DetalhesProduto.jsx
+│   │   │   ├── ListagemProduto.jsx
+│   │   │   └── Produto.css      # Estilos específicos da seção de produtos
+│   │   ├── categorias/
+│   │   │   ├── CadastroCategoria.jsx
+│   │   │   ├── EditarCategoria.jsx
+│   │   │   ├── ListagemCategoria.jsx
+│   │   │   └── Categoria.css    # Estilos da seção de categorias
+│
+│   ├── data/                   # Dados mockados para testes
+│   │   ├── produtos.js
+│   │   └── categorias.js
+│
+│   ├── hooks/                  # Hooks personalizados (se necessário)
+│   │   └── useProdutoForm.js
+│
+│   ├── App.jsx                 # Componente principal com rotas
+│   ├── routes.jsx              # Definições de rotas do projeto
+│   ├── index.css               # Estilos globais (reset, layout base, etc)
+│   └── index.js                # Entrada do React
+│
+└── package.json

@@ -1,0 +1,76 @@
+:root {
+  --yellow-primary-color: #fdda76;
+  --yellow-secondary-color: #f9c74f;
+  --black-primary-color: #252525;
+  --black: #000000;
+  --white-primary-color: #d9d9d9;
+  --white-secondary-color: #ebebeb;
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.nav-details {
+  cursor: pointer;
+}
+.nav-ul {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  height: 100%;
+}
+.nav-li {
+    height: 3rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    list-style: none;
+    background-color: var(--yellow-primary-color);
+    
+}
+
+.nav-a {
+  display: block;
+  padding: 1rem;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  color: inherit;
+  font-size: 20px;
+
+  text-decoration: none;
+}
+.nav-details summary {
+    width: 110px;
+  padding: 1rem;
+  cursor: pointer;
+  color: inherit;
+  position: relative;
+  font-size: 20px;
+}
+.nav-details summary:oppen {
+  display: none;
+}
+.nav-details .nav-ul {
+    position: absolute;
+  display: block;
+  
+}
+.nav-details .nav-li {
+  display: block;
+  align-items: center;
+  text-align: center;
+  list-style: none;
+  background-color: rgb(249, 199, 79, .7);
+  border-radius: 0.5rem;
+  margin: 0.5rem 0;
+
+}
+.nav-details .nav-a {
+    margin: 0.5rem 0;
+}
