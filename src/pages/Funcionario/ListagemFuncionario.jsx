@@ -3,6 +3,8 @@ import "./Funcionario.css";
 import lupa from "../../assets/icons/lupa.svg";
 import lixo from "../../assets/icons/lixo.svg";
 import edit from "../../assets/icons/edit.svg";
+import olhoFechado from "../../assets/icons/olhoFechado.svg";
+
 import { useNavigate } from "react-router-dom";
 import { linkFun } from "./linkFun";
 
@@ -70,6 +72,9 @@ export function ListagemFuncionario() {
       return;
     }
 
+ 
+
+
     const confirmDelete = window.confirm(
       `Tem certeza que deseja deletar o funcionário com ID ${funcionarioSelecionado}?`
     );
@@ -102,6 +107,13 @@ export function ListagemFuncionario() {
       console.error(error);
       alert("Erro ao deletar o funcionário");
     }
+  };
+   const handleDetalhar = () => {
+    if (!funcionarioSelecionado) {
+      alert("Selecione um produto para visualizar os detalhes.");
+      return;
+    }
+    navigate(`/Funcionario/DetalhesFuncionario/${funcionarioSelecionado}`);
   };
 
   const handleEditar = () => {
@@ -141,6 +153,14 @@ export function ListagemFuncionario() {
             onClick={handleDelete}
           >
             <img src={lixo} className="top-nav-img" alt="Lixo" />
+          </button>
+          
+          <button
+            type="button"
+            className="top-nav-button olhoFechado"
+            onClick={handleDetalhar}
+          >
+            <img src={olhoFechado} className="top-nav-img" alt="OlhoFechado" />
           </button>
 
           <button

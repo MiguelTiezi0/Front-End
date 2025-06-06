@@ -70,9 +70,9 @@ export function EditarCategoria() {
   };
 
   return (
-    <div className="EditarProduto">
+    <div className="EditarCategoria">
       <h1>Editar Categoria</h1>
-      <form className="divEditar" onSubmit={handleSubmit}>
+      <form className="divEditarCategoria" onSubmit={handleSubmit}>
         <input
           type="text"
           name="id"
@@ -80,24 +80,24 @@ export function EditarCategoria() {
           readOnly
           value={categoria.id || ""}
           placeholder="Id"
-          className="inputEditar"
+          className="inputEditarCategoria"
         />
         <input
           type="text"
           name="descricao"
           required
           placeholder="Descrição"
-          className="inputEditar"
+          className="inputEditarCategoria"
           value={categoria.descricao}
           onChange={handleChange}
         />
-        <div className="buttonsGroup">
-          <button type="button" className="btn btnVoltar">
+        <div className="buttonsGroupEditarCategoria">
+          <button type="button" className="btnCategoria btnVoltarCategoria">
             <Link to="/Categoria/ListagemCategoria" className="linkCadastro">
               Voltar
             </Link>
           </button>
-          <button type="submit" className="btn btnSalvar">
+          <button type="submit" className="btnCategoria btnSalvarCategoria">
             Salvar
           </button>
         </div>

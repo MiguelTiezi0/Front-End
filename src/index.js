@@ -21,11 +21,13 @@ import { CadastroCliente } from './pages/Cliente/CadastroCliente.jsx';
 import { ListagemCliente } from './pages/Cliente/ListagemCliente.jsx';
 import { DeletarCliente } from './pages/Cliente/DeletarCliente.jsx';
 import { EditarCliente } from './pages/Cliente/EditarCliente.jsx';
+import { DetalhesCliente } from './pages/Cliente/DetalhesCliente.jsx';
 
 import { CadastroFuncionario } from './pages/Funcionario/CadastroFuncionario.jsx';
 import { ListagemFuncionario } from './pages/Funcionario/ListagemFuncionario.jsx';
 import { DeletarFuncionario } from './pages/Funcionario/DeletarFuncionario.jsx';
 import { EditarFuncionario } from './pages/Funcionario/EditarFuncionario.jsx';
+import { DetalhesFuncionario } from './pages/Funcionario/DetalhesFuncionario.jsx';
 
 
 
@@ -56,12 +58,16 @@ root.render(
         <Route path="/Cliente/ListagemCliente" element={<ListagemCliente />} />
         <Route path="/Cliente/DeletarCliente" element={<DeletarCliente />} />
         <Route path="/Cliente/EditarCliente/:id" element={<EditarCliente />} />
+        <Route path="/Cliente/DetalhesCliente/:id" element={<DetalhesCliente />} />
+  
 
         {/* Funcionario */}
         <Route path="/Funcionario/CadastroFuncionario" element={<CadastroFuncionario />} />
         <Route path="/Funcionario/ListagemFuncionario" element={<ListagemFuncionario />} />
         <Route path="/Funcionario/DeletarFuncionario" element={<DeletarFuncionario />} />
         <Route path="/Funcionario/EditarFuncionario/:id" element={<EditarFuncionario />} />
+        <Route path="/Funcionario/DetalhesFuncionario/:id" element={<DetalhesFuncionario />} />
+
       </Routes>
 
 

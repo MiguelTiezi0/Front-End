@@ -6,6 +6,24 @@ import "./Cliente.css";
 import { linkCli } from "./linkCli";
 
 
+function validarCPF(cpf) {
+  cpf = cpf.replace(/[^\d]+/g, '');
+
+  if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
+
+  const calcularDV = (cpfArray, pesoInicial) => {
+    let soma = cpfArray.reduce((acc, num, idx) => acc + num * (pesoInicial - idx), 0);
+    let resto = soma % 11;
+    return resto < 2 ? 0 : 11 - resto;
+  };
+
+  const numeros = cpf.split('').map(Number);
+  const dv1 = calcularDV(numeros.slice(0, 9), 10);
+  const dv2 = calcularDV(numeros.slice(0, 10), 11);
+
+  return dv1 === numeros[9] && dv2 === numeros[10];
+}
+
 export function CadastroCliente() {
   document.title = "Cadastro de Clientes";
 
@@ -48,6 +66,11 @@ export function CadastroCliente() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!validarCPF(cpf)) {
+      alert("CPF inválido!");
+      return;
+    }
+
     const cliente = {
       id: parseInt(id),
       nome,
@@ -73,7 +96,7 @@ export function CadastroCliente() {
         throw new Error("Erro ao cadastrar o cliente");
       }
 
-      alert("Cliente cadastrado com sucesso!");
+
 
       // Atualiza o próximo ID
       const responseClientes = await fetch(linkCli, {
@@ -109,7 +132,7 @@ export function CadastroCliente() {
   return (
     <div className="CadastroCliente">
       <h1>Cadastro de Clientes</h1>
-      <form className="formCadastro" onSubmit={handleSubmit}>
+      <form className="formCadastroCliente" onSubmit={handleSubmit}>
         <input
           type="text"
           name="id"
@@ -117,13 +140,13 @@ export function CadastroCliente() {
           readOnly
           value={id}
           placeholder="Id"
-          className="inputCadastro inputId"
+          className="inputCadastroCliente inputId"
         />
         <input
           type="text"
           required
           placeholder="Nome"
-          className="inputCadastro"
+          className="inputCadastroCliente"
           value={nome}
           onChange={(e) => setNome(e.target.value)}
         />
@@ -131,7 +154,7 @@ export function CadastroCliente() {
           type="text"
           required
           placeholder="CPF"
-          className="inputCadastro"
+          className="inputCadastroCliente"
           value={cpf}
           onChange={(e) => setCpf(e.target.value)}
         />
@@ -139,7 +162,7 @@ export function CadastroCliente() {
           type="text"
           required
           placeholder="Endereço"
-          className="inputCadastro"
+          className="inputCadastroCliente"
           value={endereco}
           onChange={(e) => setEndereco(e.target.value)}
         />
@@ -147,7 +170,7 @@ export function CadastroCliente() {
           type="number"
           required
           placeholder="Número"
-          className="inputCadastro"
+          className="inputCadastroCliente"
           value={numero}
           onChange={(e) => setNumero(e.target.value)}
         />
@@ -155,7 +178,7 @@ export function CadastroCliente() {
           type="text"
           required
           placeholder="Telefone"
-          className="inputCadastro"
+          className="inputCadastroCliente"
           value={telefone}
           onChange={(e) => setTelefone(e.target.value)}
         />
@@ -163,7 +186,7 @@ export function CadastroCliente() {
           type="text"
           required
           placeholder="Bairro"
-          className="inputCadastro"
+          className="inputCadastroCliente"
           value={bairro}
           onChange={(e) => setBairro(e.target.value)}
         />
@@ -171,7 +194,7 @@ export function CadastroCliente() {
           type="date"
           required
           placeholder="Data de Nascimento"
-          className="inputCadastro"
+          className="inputCadastroCliente"
           value={dataNascimento}
           onChange={(e) => setDataNascimento(e.target.value)}
         />
@@ -179,17 +202,17 @@ export function CadastroCliente() {
           type="number"
           required
           placeholder="Limite de Crédito"
-          className="inputCadastro"
+          className="inputCadastroCliente"
           value={limiteDeCredito}
           onChange={(e) => setLimiteDeCredito(e.target.value)}
         />
-        <div className="buttonsGroup">
-          <button type="button" className="btn btnVoltar">
+        <div className="buttonsGroupCliente">
+          <button type="button" className="btnCliente btnVoltarCliente">
             <Link to="/" className="linkCadastro">
               Voltar
             </Link>
           </button>
-          <button type="submit" className="btn btnSalvar">
+          <button type="submit" className="btnCliente btnSalvarCliente">
             Salvar
           </button>
         </div>

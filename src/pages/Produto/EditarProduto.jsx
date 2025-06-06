@@ -138,7 +138,6 @@ export function EditarProduto() {
         throw new Error("Erro ao atualizar o produto");
       }
 
-      alert("Produto atualizado com sucesso!");
       navigate("/Produto/ListagemProduto");
     } catch (error) {
       console.error(error);
@@ -149,7 +148,7 @@ export function EditarProduto() {
   return (
     <div className="EditarProduto">
       <h1>Editar Produto</h1>
-      <form className="divEditar" onSubmit={handleSubmit}>
+      <form className="divEditarProduto" onSubmit={handleSubmit}>
         <input
           type="text"
           name="id"
@@ -157,14 +156,14 @@ export function EditarProduto() {
           readOnly
           value={produto.id || ""}
           placeholder="Id"
-          className="inputEditar"
+          className="inputEditarProduto"
         />
         <input
           type="text"
           name="descricao"
           required
           placeholder="Descrição"
-          className="inputEditar"
+          className="inputEditarProduto"
           value={produto.descricao}
           onChange={handleChange}
         />
@@ -173,7 +172,7 @@ export function EditarProduto() {
           name="fornecedorMarca"
           required
           placeholder="Fornecedor/Marca"
-          className="inputEditar"
+          className="inputEditarProduto"
           value={produto.fornecedorMarca}
           onChange={handleChange}
         />
@@ -182,7 +181,7 @@ export function EditarProduto() {
           name="preçoCusto"
           required
           placeholder="Preço Custo"
-          className="inputEditar"
+          className="inputEditarProduto"
           value={produto.preçoCusto}
           onChange={handleChange}
         />
@@ -191,7 +190,7 @@ export function EditarProduto() {
           name="preçoVenda"
           required
           placeholder="Preço Venda"
-          className="inputEditar"
+          className="inputEditarProduto"
           value={produto.preçoVenda}
           onChange={handleChange}
         />
@@ -200,7 +199,7 @@ export function EditarProduto() {
           name="tamanho"
           required
           placeholder="Tamanho"
-          className="inputEditar"
+          className="inputEditarProduto"
           value={produto.tamanho}
           onChange={handleChange}
         />
@@ -209,7 +208,7 @@ export function EditarProduto() {
           name="cor"
           required
           placeholder="Cor"
-          className="inputEditar"
+          className="inputEditarProduto"
           value={produto.cor}
           onChange={handleChange}
         />
@@ -218,7 +217,7 @@ export function EditarProduto() {
           name="quantidade"
           required
           placeholder="Quantidade"
-          className="inputEditar"
+          className="inputEditarProduto"
           value={produto.quantidade}
           onChange={handleChange}
         />
@@ -226,7 +225,7 @@ export function EditarProduto() {
         {!mostrarInputOutra ? (
           <select
             name="categoriaId"
-            className="inputEditar"
+            className="inputEditarProduto"
             value={produto.categoriaId}
             onChange={handleCategoriaChange}
             required
@@ -244,20 +243,20 @@ export function EditarProduto() {
             type="text"
             required
             placeholder="Digite a nova categoria"
-            className="inputEditar"
+            className="inputEditarProduto"
             value={outraCategoria}
             onChange={(e) => setOutraCategoria(e.target.value)}
             style={{ gridColumn: "1 / span 2" }}
           />
         )}
 
-        <div className="buttonsGroup">
-          <button type="button" className="btn btnVoltar">
+        <div className="buttonsGroupEditarProduto">
+          <button type="button" className="btnProduto btnVoltarProduto">
             <Link to="/Produto/ListagemProduto" className="linkCadastro">
               Voltar
             </Link>
           </button>
-          <button type="submit" className="btn btnSalvar">
+          <button type="submit" className="btnProduto btnSalvarProduto">
             Salvar
           </button>
         </div>

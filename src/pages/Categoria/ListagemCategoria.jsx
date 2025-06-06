@@ -5,7 +5,8 @@ import lixo from "../../assets/icons/lixo.svg";
 import edit from "../../assets/icons/edit.svg";
 import { useNavigate } from "react-router-dom";
 
-import {linkCat} from "./linkCat";
+import { linkCat } from "./linkCat";
+import { linkPro } from "../Produto/linkPro"; // Adicione este import se ainda não existir
 
 export function ListagemCategoria() {
   document.title = "Listagem de Categorias";
@@ -71,6 +72,36 @@ export function ListagemCategoria() {
       return;
     }
 
+    // Verifica se existe produto com essa categoria
+    try {
+      const responseProdutos = await fetch(linkPro, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!responseProdutos.ok) {
+        throw new Error("Erro ao buscar produtos");
+      }
+
+      const produtos = await responseProdutos.json();
+      const existeProduto = produtos.some(
+        (produto) => produto.categoriaId === categoriaSelecionada
+      );
+
+      if (existeProduto) {
+        alert(
+          "Não é possível deletar esta categoria pois existe um produto cadastrado nela."
+        );
+        return;
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Erro ao verificar produtos da categoria");
+      return;
+    }
+
     const confirmDelete = window.confirm(
       `Tem certeza que deseja deletar a categoria com ID ${categoriaSelecionada}?`
     );
@@ -114,7 +145,7 @@ export function ListagemCategoria() {
   };
 
   return (
-    <div className="ListagemProduto">
+    <div className="ListagemCategoria">
       <div className="top-nav">
         <h1>Listagem de Categorias</h1>
 
@@ -155,7 +186,7 @@ export function ListagemCategoria() {
       </div>
 
       <div className="scroll">
-        <table className="tableProduto">
+        <table className="tableCategoria">
           <thead>
             <tr>
               <th>Id</th>

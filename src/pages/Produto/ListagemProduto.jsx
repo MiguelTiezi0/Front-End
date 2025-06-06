@@ -166,6 +166,38 @@ export function ListagemProduto() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!produtoSelecionado) {
+      alert("Selecione um produto para deletar.");
+      return;
+    }
+    const confirmDelete = window.confirm("Tem certeza que deseja deletar este produto?");
+    if (!confirmDelete) return;
+
+    try {
+      const response = await fetch(`${linkPro}/${produtoSelecionado}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Erro ao deletar o produto");
+      }
+
+      alert("Produto deletado com sucesso!");
+
+      // Remove o produto da lista local
+      setProdutos((prev) => prev.filter((p) => p.id !== produtoSelecionado));
+      setProdutosFiltrados((prev) => prev.filter((p) => p.id !== produtoSelecionado));
+      setProdutoSelecionado(null);
+    } catch (error) {
+      console.error(error);
+      alert("Erro ao deletar o produto");
+    }
+  };
+
   return (
     <div className="ListagemProduto">
       <div className="top-nav">
@@ -192,7 +224,7 @@ export function ListagemProduto() {
           <button
             type="button"
             className="top-nav-button lixo"
-            onClick={handleDiminuirQuantidade}
+            onClick={handleDelete}
           >
             <img src={lixo} className="top-nav-img" alt="Lixo" />
           </button>

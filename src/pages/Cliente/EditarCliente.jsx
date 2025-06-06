@@ -1,10 +1,29 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import "./Cliente.css";
-
-
+import lixo from "../../assets/icons/lixo.svg";
+import olhoFechado from "../../assets/icons/olhoFechado.svg";
+import edit from "../../assets/icons/edit.svg";
 import { linkCli } from "./linkCli";
 
+// Função de validação de CPF
+function validarCPF(cpf) {
+  cpf = cpf.replace(/[^\d]+/g, '');
+
+  if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
+
+  const calcularDV = (cpfArray, pesoInicial) => {
+    let soma = cpfArray.reduce((acc, num, idx) => acc + num * (pesoInicial - idx), 0);
+    let resto = soma % 11;
+    return resto < 2 ? 0 : 11 - resto;
+  };
+
+  const numeros = cpf.split('').map(Number);
+  const dv1 = calcularDV(numeros.slice(0, 9), 10);
+  const dv2 = calcularDV(numeros.slice(0, 10), 11);
+
+  return dv1 === numeros[9] && dv2 === numeros[10];
+}
 
 export function EditarCliente() {
   document.title = "Editar Cliente";
@@ -57,6 +76,11 @@ export function EditarCliente() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!validarCPF(cliente.cpf)) {
+      alert("CPF inválido!");
+      return;
+    }
+
     try {
       const response = await fetch(`${linkCli}/${id}`, {
         method: "PUT",
@@ -74,7 +98,7 @@ export function EditarCliente() {
         throw new Error("Erro ao atualizar o cliente");
       }
 
-      alert("Cliente atualizado com sucesso!");
+   
       navigate("/Cliente/ListagemCliente");
     } catch (error) {
       console.error(error);
@@ -82,10 +106,72 @@ export function EditarCliente() {
     }
   };
 
+  // Navegação de botões
+  const handleVoltar = () => {
+    navigate("/Cliente/ListagemCliente");
+  };
+
+  const handleDetalhar = () => {
+    navigate(`/Cliente/DetalhesCliente/${id}`);
+  };
+
+  const handleEditar = () => {
+    alert("Você já está na tela de edição.");
+  };
+
+  const handleDelete = async () => {
+    const confirmDelete = window.confirm("Tem certeza que deseja deletar este cliente?");
+    if (!confirmDelete) return;
+
+    try {
+      const response = await fetch(`${linkCli}/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Erro ao deletar o cliente");
+      }
+
+      alert("Cliente deletado com sucesso!");
+      navigate("/Cliente/ListagemCliente");
+    } catch (error) {
+      console.error(error);
+      alert("Erro ao deletar o cliente");
+    }
+  };
+
   return (
     <div className="EditarCliente">
-      <h1>Editar Cliente</h1>
-      <form className="divEditar" onSubmit={handleSubmit}>
+      <div className="top-nav">
+        <h1>Editar Cliente: {cliente.nome}</h1>
+        <div className="top-nav-buttons">
+          <button
+            type="button"
+            className="top-nav-button lixo"
+            onClick={handleDelete}
+          >
+            <img src={lixo} className="top-nav-img" alt="Lixo" />
+          </button>
+          <button
+            type="button"
+            className="top-nav-button olhoFechado"
+            onClick={handleDetalhar}
+          >
+            <img src={olhoFechado} className="top-nav-img" alt="Detalhar" />
+          </button>
+          <button
+            type="button"
+            className="top-nav-button editar"
+            onClick={handleEditar}
+          >
+            <img src={edit} className="top-nav-img" alt="Editar" />
+          </button>
+        </div>
+      </div>
+      <form className="divEditarCliente" onSubmit={handleSubmit}>
         <input
           type="text"
           name="id"
@@ -93,14 +179,14 @@ export function EditarCliente() {
           readOnly
           value={cliente.id || ""}
           placeholder="Id"
-          className="inputEditar"
+          className="inputEditarCliente"
         />
         <input
           type="text"
           name="nome"
           required
           placeholder="Nome"
-          className="inputEditar"
+          className="inputEditarCliente"
           value={cliente.nome}
           onChange={handleChange}
         />
@@ -109,7 +195,7 @@ export function EditarCliente() {
           name="cpf"
           required
           placeholder="CPF"
-          className="inputEditar"
+          className="inputEditarCliente"
           value={cliente.cpf}
           onChange={handleChange}
         />
@@ -118,7 +204,7 @@ export function EditarCliente() {
           name="endereço"
           required
           placeholder="Endereço"
-          className="inputEditar"
+          className="inputEditarCliente"
           value={cliente.endereço}
           onChange={handleChange}
         />
@@ -127,7 +213,7 @@ export function EditarCliente() {
           name="número"
           required
           placeholder="Número"
-          className="inputEditar"
+          className="inputEditarCliente"
           value={cliente.número}
           onChange={handleChange}
         />
@@ -136,7 +222,7 @@ export function EditarCliente() {
           name="telefone"
           required
           placeholder="Telefone"
-          className="inputEditar"
+          className="inputEditarCliente"
           value={cliente.telefone}
           onChange={handleChange}
         />
@@ -145,7 +231,7 @@ export function EditarCliente() {
           name="bairro"
           required
           placeholder="Bairro"
-          className="inputEditar"
+          className="inputEditarCliente"
           value={cliente.bairro}
           onChange={handleChange}
         />
@@ -154,7 +240,7 @@ export function EditarCliente() {
           name="dataNascimento"
           required
           placeholder="Data de Nascimento"
-          className="inputEditar"
+          className="inputEditarCliente"
           value={cliente.dataNascimento ? cliente.dataNascimento.substring(0, 10) : ""}
           onChange={handleChange}
         />
@@ -163,17 +249,15 @@ export function EditarCliente() {
           name="limiteDeCrédito"
           required
           placeholder="Limite de Crédito"
-          className="inputEditar"
+          className="inputEditarCliente"
           value={cliente.limiteDeCrédito}
           onChange={handleChange}
         />
-        <div className="buttonsGroup">
-          <button type="button" className="btn btnVoltar">
-            <Link to="/Cliente/ListagemCliente" className="linkCadastro">
-              Voltar
-            </Link>
+        <div className="buttonsGroupCliente">
+          <button type="button" className="btnCliente btnVoltarCliente" onClick={handleVoltar}>
+            Voltar
           </button>
-          <button type="submit" className="btn btnSalvar">
+          <button type="submit" className="btnCliente btnSalvarCliente">
             Salvar
           </button>
         </div>

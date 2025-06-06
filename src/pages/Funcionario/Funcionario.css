@@ -15,21 +15,21 @@ body {
   max-height: 100vh;
 }
 
-/* Cadastro Categoria */
-.CadastroCategoria {
+/* Cadastro Funcionario */
+.CadastroFuncionario {
   padding: 0 10rem;
   overflow-y: auto;
   margin-left: 400px;
   margin-top: 80px;
 }
 
-.CadastroCategoria h1 {
+.CadastroFuncionario h1 {
   margin-bottom: 3rem;
   margin-left: 2rem;
   color: var(--white-secondary-color);
 }
 
-.formCadastro {
+.formCadastroFuncionario {
   padding: 2rem 2rem;
   width: 800px;
   height: 240px;
@@ -40,7 +40,7 @@ body {
   column-gap: 2rem;
 }
 
-.inputCadastro {
+.inputCadastroFuncionario {
   background-color: var(--white-secondary-color);
   border: none;
   border-radius: .5rem;
@@ -49,47 +49,47 @@ body {
 
 }
 
-.inputCadastro::placeholder {
+.inputCadastroFuncionario::placeholder {
   color: var(--black-primary-color);
   font-size: 1rem;
 }
 
 
 
-.buttonsGroup {
+.buttonsGroupFuncionario {
   display: flex;
   position: absolute;
   width: 500px;
   justify-content: space-around;
   margin-top: 2rem;
   gap: 2rem;
-  margin-left: 2rem;
+  margin-top: 20rem;
 }
 
-.btn {
+.btnFuncionario {
   border: none;
   color: var(--black-primary-color);
   text-align: center;
   font-size: 1rem;
   width: 200px;
-  height: 50px;
+  height: 55px;
   cursor: pointer;
   border-radius: .8rem;
 }
 
-.btnVoltar {
+.btnVoltarFuncionario {
   background-color: var(--red);
 }
 
-.btnSalvar, .btnEditar {
+.btnSalvarFuncionario, .btnEditarFuncionario {
   background-color: var(--green);
 }
 
-.btnEtiqueta {
+.btnEtiquetaFuncionario {
   background-color: var(--blue);
 }
 
-.btnClonar {
+.btnClonarFuncionario {
   background-color: var(--yellow-primary-color);
 }
 
@@ -160,7 +160,7 @@ body {
   height: 48px;
 }
 
-/* Listagem Categoria */
+/* Listagem Funcionario */
 .scroll {
   background-color: var(--white-primary-color);
   width: 1000px;
@@ -173,7 +173,7 @@ body {
   display: block;
 }
 
-.tableProduto {
+.tableFuncionario {
   background-color: var(--white-primary-color);
   width: 100%;
   color: var(--black-primary-color);
@@ -197,89 +197,6 @@ thead {
   font-size: 20px;
 }
 
-/* Editar Categoria */
-.EditarCategoria {
-  padding: 0 8rem;
-  overflow-y: auto;
-  margin-left: 400px;
-  margin-top: 20px;
-}
-
-.EditarCategoria h1 {
-  margin-bottom: 3rem;
-  margin-left: 2rem;
-  color: var(--white-secondary-color);
-}
-
-.divEditar {
-  display: inline-block;
-  padding: 1rem ;
-  width: 400px;
-  height: 300px;
-  display: grid;
-  grid-template-columns: repeat(2, 220px);
-  flex-direction: column;
-  row-gap: 1rem;
-  column-gap: 2rem;
-}
-
-.btnEditar {
-  border: none;
-  color: var(--black-primary-color);
-  text-align: center;
-  font-size: 1rem;
-  width: 200px;
-  height: 50px;
-  cursor: pointer;
-  border-radius: .8rem;
-}
-
-.buttonsGroupEditar {
-  display: flex;
-  width: 400px;
-  margin-left: 75px;
-  margin-top: 1rem;
-  justify-content: space-around;
-  gap: 2rem;
-}
-
-.inputEditar {
-  background-color: var(--white-secondary-color);
-  border: none;
-  border-radius: .5rem;
-  color: var(--black-primary-color);
-  font-size: 1rem;
-  padding: .8rem .4rem;
-}
-
-/* Deletar Categoria */
-.DeletarCategoria {
-  padding: 0 8rem;
-  overflow-y: auto;
-  margin-left: 400px;
-  margin-top: 20px;
-}
-
-.DeletarCategoria h1 {
-  margin-bottom: 3rem;
-  margin-left: 2rem;
-  color: var(--white-secondary-color);
-}
-
-/* Cadastro Funcionario */
-.CadastroFuncionario {
-  padding: 0 10rem;
-  overflow-y: auto;
-  margin-left: 400px;
-  margin-top: 80px;
-}
-
-.CadastroFuncionario h1 {
-  margin-bottom: 3rem;
-  margin-left: 2rem;
-  color: var(--white-secondary-color);
-}
-
 /* Editar Funcionario */
 .EditarFuncionario {
   padding: 0 8rem;
@@ -294,6 +211,47 @@ thead {
   color: var(--white-secondary-color);
 }
 
+.divEditarFuncionario {
+  display: inline-block;
+  padding: 1rem ;
+  width: 400px;
+  height: 300px;
+  display: grid;
+  grid-template-columns: repeat(2, 220px);
+  flex-direction: column;
+  row-gap: 1rem;
+  column-gap: 2rem;
+}
+
+.btnEditarFuncionario {
+  border: none;
+  color: var(--black-primary-color);
+  text-align: center;
+  font-size: 1rem;
+  width: 200px;
+  height: 50px;
+  cursor: pointer;
+  border-radius: .8rem;
+}
+
+.buttonsGroupEditarFuncionario {
+  display: flex;
+  width: 400px;
+  margin-left: 75px;
+  margin-top: 1rem;
+  justify-content: space-around;
+  gap: 2rem;
+}
+
+.inputEditarFuncionario {
+  background-color: var(--white-secondary-color);
+  border: none;
+  border-radius: .5rem;
+  color: var(--black-primary-color);
+  font-size: 1rem;
+  padding: .8rem .4rem;
+}
+
 /* Deletar Funcionario */
 .DeletarFuncionario {
   padding: 0 8rem;
@@ -306,4 +264,61 @@ thead {
   margin-bottom: 3rem;
   margin-left: 2rem;
   color: var(--white-secondary-color);
+}
+
+
+
+.DetalhesFuncionario {
+  padding: 0 6rem;
+  overflow-y: auto;
+
+}
+
+.DetalhesFuncionario h1 {
+  margin-bottom: 3rem;
+  color: var(--white-secondary-color);
+}
+
+.divDetalhesFuncionario {
+  display: inline-block;
+  padding: 1rem ;
+  width: 400px;
+  height: 300px;
+  display: grid;
+  grid-template-columns: repeat(2, 240px);
+  flex-direction: column;
+  row-gap: 1rem;
+  column-gap: 2rem;
+    margin-left: 300px;
+  margin-top: 20px;
+  /* background-color: var(--black-primary-color); */
+}
+  
+.btnDetalhesFuncionario{
+    border: none;
+    color: var(--black-primary-color);
+    text-align: center;
+    font-size: 1rem;
+    width: 200px;
+    height: 50px;
+    cursor: pointer;
+    border-radius: .8rem;
+}
+
+.buttonsGroupDetalhesFuncionario {
+  display: flex;
+  width: 400px;
+  margin-top: 1rem;
+  justify-content: space-around;
+  gap: 2rem;
+    margin-left: 375px;
+  margin-top: 20px;
+
+}
+.inputDetalhesFuncionario {
+  background-color: var(--white-secondary-color);
+  border: none;
+  border-radius: .5rem;
+  color: var(--black-primary-color);
+  font-size: 1rem;
 }

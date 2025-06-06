@@ -15,21 +15,21 @@ body {
   max-height: 100vh;
 }
 
-/* Cadastro Categoria */
-.CadastroCategoria {
+/* Cadastro Cliente */
+.CadastroCliente {
   padding: 0 10rem;
   overflow-y: auto;
   margin-left: 400px;
   margin-top: 80px;
 }
 
-.CadastroCategoria h1 {
+.CadastroCliente h1 {
   margin-bottom: 3rem;
   margin-left: 2rem;
   color: var(--white-secondary-color);
 }
 
-.formCadastro {
+.formCadastroCliente {
   padding: 2rem 2rem;
   width: 800px;
   height: 240px;
@@ -40,7 +40,7 @@ body {
   column-gap: 2rem;
 }
 
-.inputCadastro {
+.inputCadastroCliente {
   background-color: var(--white-secondary-color);
   border: none;
   border-radius: .5rem;
@@ -49,24 +49,24 @@ body {
 
 }
 
-.inputCadastro::placeholder {
+.inputCadastroCliente::placeholder {
   color: var(--black-primary-color);
   font-size: 1rem;
 }
 
 
 
-.buttonsGroup {
+.buttonsGroupCliente {
   display: flex;
   position: absolute;
   width: 500px;
   justify-content: space-around;
-  margin-top: 2rem;
+  margin-top: 20rem;
   gap: 2rem;
   margin-left: 2rem;
 }
 
-.btn {
+.btnCliente {
   border: none;
   color: var(--black-primary-color);
   text-align: center;
@@ -77,19 +77,19 @@ body {
   border-radius: .8rem;
 }
 
-.btnVoltar {
+.btnVoltarCliente {
   background-color: var(--red);
 }
 
-.btnSalvar, .btnEditar {
+.btnSalvarCliente, .btnEditarCliente {
   background-color: var(--green);
 }
 
-.btnEtiqueta {
+.btnEtiquetaCliente {
   background-color: var(--blue);
 }
 
-.btnClonar {
+.btnClonarCliente {
   background-color: var(--yellow-primary-color);
 }
 
@@ -160,7 +160,7 @@ body {
   height: 48px;
 }
 
-/* Listagem Categoria */
+/* Listagem Cliente */
 .scroll {
   background-color: var(--white-primary-color);
   width: 1000px;
@@ -173,7 +173,7 @@ body {
   display: block;
 }
 
-.tableProduto {
+.tableCliente {
   background-color: var(--white-primary-color);
   width: 100%;
   color: var(--black-primary-color);
@@ -197,21 +197,21 @@ thead {
   font-size: 20px;
 }
 
-/* Editar Categoria */
-.EditarCategoria {
+/* Editar Cliente */
+.EditarCliente {
   padding: 0 8rem;
   overflow-y: auto;
   margin-left: 400px;
   margin-top: 20px;
 }
 
-.EditarCategoria h1 {
+.EditarCliente h1 {
   margin-bottom: 3rem;
   margin-left: 2rem;
   color: var(--white-secondary-color);
 }
 
-.divEditar {
+.divEditarCliente {
   display: inline-block;
   padding: 1rem ;
   width: 400px;
@@ -223,7 +223,7 @@ thead {
   column-gap: 2rem;
 }
 
-.btnEditar {
+.btnEditarCliente {
   border: none;
   color: var(--black-primary-color);
   text-align: center;
@@ -234,7 +234,7 @@ thead {
   border-radius: .8rem;
 }
 
-.buttonsGroupEditar {
+.buttonsGroupEditarCliente {
   display: flex;
   width: 400px;
   margin-left: 75px;
@@ -243,7 +243,7 @@ thead {
   gap: 2rem;
 }
 
-.inputEditar {
+.inputEditarCliente {
   background-color: var(--white-secondary-color);
   border: none;
   border-radius: .5rem;
@@ -252,15 +252,15 @@ thead {
   padding: .8rem .4rem;
 }
 
-/* Deletar Categoria */
-.DeletarCategoria {
+/* Deletar Cliente */
+.DeletarCliente {
   padding: 0 8rem;
   overflow-y: auto;
   margin-left: 400px;
   margin-top: 20px;
 }
 
-.DeletarCategoria h1 {
+.DeletarCliente h1 {
   margin-bottom: 3rem;
   margin-left: 2rem;
   color: var(--white-secondary-color);
@@ -294,7 +294,7 @@ thead {
   color: var(--white-secondary-color);
 }
 
-.divEditar {
+.divEditarCliente {
   display: inline-block;
   padding: 1rem ;
   width: 400px;
@@ -306,7 +306,7 @@ thead {
   column-gap: 2rem;
 }
 
-.inputEditar {
+.inputEditarCliente {
   background-color: var(--white-secondary-color);
   border: none;
   border-radius: .5rem;
@@ -327,4 +327,62 @@ thead {
   margin-bottom: 3rem;
   margin-left: 2rem;
   color: var(--white-secondary-color);
+}
+
+
+
+
+.DetalhesCliente {
+  padding: 0 6rem;
+  overflow-y: auto;
+
+}
+
+.DetalhesCliente h1 {
+  margin-bottom: 3rem;
+  color: var(--white-secondary-color);
+}
+
+.divDetalhesCliente {
+  display: inline-block;
+  padding: 1rem ;
+  width: 400px;
+  height: 300px;
+  display: grid;
+  grid-template-columns: repeat(2, 240px);
+  flex-direction: column;
+  row-gap: 1rem;
+  column-gap: 2rem;
+    margin-left: 300px;
+  margin-top: 20px;
+  /* background-color: var(--black-primary-color); */
+}
+  
+.btnDetalhesCliente{
+    border: none;
+    color: var(--black-primary-color);
+    text-align: center;
+    font-size: 1rem;
+    width: 200px;
+    height: 50px;
+    cursor: pointer;
+    border-radius: .8rem;
+}
+
+.buttonsGroupDetalhesCliente {
+  display: flex;
+  width: 400px;
+  margin-top: 1rem;
+  justify-content: space-around;
+  gap: 2rem;
+    margin-left: 375px;
+  margin-top: 20px;
+
+}
+.inputDetalhesCliente {
+  background-color: var(--white-secondary-color);
+  border: none;
+  border-radius: .5rem;
+  color: var(--black-primary-color);
+  font-size: 1rem;
 }

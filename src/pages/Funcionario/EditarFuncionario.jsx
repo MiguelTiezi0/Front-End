@@ -2,6 +2,28 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import "./Funcionario.css";
 import { linkFun } from "./linkFun";
+import lixo from "../../assets/icons/lixo.svg";
+import olhoFechado from "../../assets/icons/olhoFechado.svg";
+import edit from "../../assets/icons/edit.svg";
+
+// Função de validação de CPF
+function validarCPF(cpf) {
+  cpf = cpf.replace(/[^\d]+/g, '');
+
+  if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
+
+  const calcularDV = (cpfArray, pesoInicial) => {
+    let soma = cpfArray.reduce((acc, num, idx) => acc + num * (pesoInicial - idx), 0);
+    let resto = soma % 11;
+    return resto < 2 ? 0 : 11 - resto;
+  };
+
+  const numeros = cpf.split('').map(Number);
+  const dv1 = calcularDV(numeros.slice(0, 9), 10);
+  const dv2 = calcularDV(numeros.slice(0, 10), 11);
+
+  return dv1 === numeros[9] && dv2 === numeros[10];
+}
 
 export function EditarFuncionario() {
   document.title = "Editar Funcionário";
@@ -54,6 +76,11 @@ export function EditarFuncionario() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!validarCPF(funcionario.cpf)) {
+      alert("CPF inválido!");
+      return;
+    }
+
     try {
       const response = await fetch(`${linkFun}/${id}`, {
         method: "PUT",
@@ -70,7 +97,6 @@ export function EditarFuncionario() {
         throw new Error("Erro ao atualizar o funcionário");
       }
 
-      alert("Funcionário atualizado com sucesso!");
       navigate("/Funcionario/ListagemFuncionario");
     } catch (error) {
       console.error(error);
@@ -78,10 +104,71 @@ export function EditarFuncionario() {
     }
   };
 
+  const handleVoltar = () => {
+    navigate("/Funcionario/ListagemFuncionario");
+  };
+
+  const handleDetalhar = () => {
+    navigate(`/Funcionario/DetalhesFuncionario/${id}`);
+  };
+
+  const handleEditar = () => {
+    alert("Você já está na tela de edição.");
+  };
+
+  const handleDelete = async () => {
+    const confirmDelete = window.confirm("Tem certeza que deseja deletar este funcionário?");
+    if (!confirmDelete) return;
+
+    try {
+      const response = await fetch(`${linkFun}/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Erro ao deletar o funcionário");
+      }
+
+      alert("Funcionário deletado com sucesso!");
+      navigate("/Funcionario/ListagemFuncionario");
+    } catch (error) {
+      console.error(error);
+      alert("Erro ao deletar o funcionário");
+    }
+  };
+
   return (
     <div className="EditarFuncionario">
-      <h1>Editar Funcionário</h1>
-      <form className="divEditar" onSubmit={handleSubmit}>
+      <div className="top-nav">
+        <h1>Editar Funcionário: {funcionario.nome}</h1>
+        <div className="top-nav-buttons">
+          <button
+            type="button"
+            className="top-nav-button lixo"
+            onClick={handleDelete}
+          >
+            <img src={lixo} className="top-nav-img" alt="Lixo" />
+          </button>
+          <button
+            type="button"
+            className="top-nav-button olhoFechado"
+            onClick={handleDetalhar}
+          >
+            <img src={olhoFechado} className="top-nav-img" alt="Detalhar" />
+          </button>
+          <button
+            type="button"
+            className="top-nav-button editar"
+            onClick={handleEditar}
+          >
+            <img src={edit} className="top-nav-img" alt="Editar" />
+          </button>
+        </div>
+      </div>
+      <form className="divEditarFuncionario" onSubmit={handleSubmit}>
         <input
           type="text"
           name="id"
@@ -89,14 +176,14 @@ export function EditarFuncionario() {
           readOnly
           value={funcionario.id || ""}
           placeholder="Id"
-          className="inputEditar"
+          className="inputEditarFuncionario"
         />
         <input
           type="text"
           name="nome"
           required
           placeholder="Nome"
-          className="inputEditar"
+          className="inputEditarFuncionario"
           value={funcionario.nome}
           onChange={handleChange}
         />
@@ -105,7 +192,7 @@ export function EditarFuncionario() {
           name="cpf"
           required
           placeholder="CPF"
-          className="inputEditar"
+          className="inputEditarFuncionario"
           value={funcionario.cpf}
           onChange={handleChange}
         />
@@ -114,7 +201,7 @@ export function EditarFuncionario() {
           name="endereço"
           required
           placeholder="Endereço"
-          className="inputEditar"
+          className="inputEditarFuncionario"
           value={funcionario.endereço}
           onChange={handleChange}
         />
@@ -123,7 +210,7 @@ export function EditarFuncionario() {
           name="dataContratação"
           required
           placeholder="Data de Contratação"
-          className="inputEditar"
+          className="inputEditarFuncionario"
           value={funcionario.dataContratação ? funcionario.dataContratação.substring(0, 10) : ""}
           onChange={handleChange}
         />
@@ -132,7 +219,7 @@ export function EditarFuncionario() {
           name="telefone"
           required
           placeholder="Telefone"
-          className="inputEditar"
+          className="inputEditarFuncionario"
           value={funcionario.telefone}
           onChange={handleChange}
         />
@@ -141,7 +228,7 @@ export function EditarFuncionario() {
           name="salário"
           required
           placeholder="Salário"
-          className="inputEditar"
+          className="inputEditarFuncionario"
           value={funcionario.salário}
           onChange={handleChange}
         />
@@ -150,7 +237,7 @@ export function EditarFuncionario() {
           name="dataDeNascimento"
           required
           placeholder="Data de Nascimento"
-          className="inputEditar"
+          className="inputEditarFuncionario"
           value={funcionario.dataDeNascimento ? funcionario.dataDeNascimento.substring(0, 10) : ""}
           onChange={handleChange}
         />
@@ -161,16 +248,13 @@ export function EditarFuncionario() {
             name="ativo"
             checked={funcionario.ativo}
             onChange={handleChange}
-            style={{ marginLeft: "10px" }}
-          />
+                      />
         </label>
-        <div className="buttonsGroup">
-          <button type="button" className="btn btnVoltar">
-            <Link to="/Funcionario/ListagemFuncionario" className="linkCadastro">
-              Voltar
-            </Link>
+        <div className="buttonsGroupFuncionario">
+          <button type="button" className="btnFuncionario btnVoltarFuncionario" onClick={handleVoltar}>
+            Voltar
           </button>
-          <button type="submit" className="btn btnSalvar">
+          <button type="submit" className="btnFuncionario btnSalvarFuncionario">
             Salvar
           </button>
         </div>

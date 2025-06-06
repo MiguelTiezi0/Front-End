@@ -139,7 +139,7 @@ export function CadastroProduto() {
         throw new Error("Erro ao cadastrar o produto");
       }
 
-      alert("Produto foi cadastrado com sucesso!");
+
 
       const responseProdutos = await fetch(linkPro, {
         method: "GET",
@@ -164,55 +164,12 @@ export function CadastroProduto() {
     }
   };
 
-  const handleClonar = async () => {
-    try {
-      const responseProdutos = await fetch(linkPro, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
 
-      if (!responseProdutos.ok) {
-        throw new Error("Erro ao buscar produtos para calcular o novo ID");
-      }
-
-      const produtos = await responseProdutos.json();
-      const maiorId = produtos.reduce((max, produto) => Math.max(max, produto.id), 0);
-      const novoId = maiorId + 1;
-
-      const novoProduto = {
-        id: novoId,
-        descricao,
-        fornecedorMarca,
-        preçoCusto: parseFloat(preçoCusto),
-        preçoVenda: parseFloat(preçoVenda),
-        tamanho,
-        cor,
-        quantidade: parseInt(quantidade),
-        categoriaId,
-      };
-
-      await fetch(linkPro, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(novoProduto),
-      });
-
-      alert("Produto clonado com sucesso!");
-      setId(novoId + 1);
-    } catch (error) {
-      console.error(error);
-      alert("Erro ao clonar o produto");
-    }
-  };
 
   return (
     <div className="CadastroProduto">
       <h1>Cadastro de Produtos</h1>
-      <form className="formCadastro" onSubmit={handleSubmit}>
+      <form className="formCadastroProduto" onSubmit={handleSubmit}>
         <input
           type="text"
           name="Id"
@@ -220,13 +177,13 @@ export function CadastroProduto() {
           readOnly
           value={Id}
           placeholder="Id"
-          className="inputCadastro inputId"
+          className="inputCadastroProduto inputId"
         />
         <input
           type="text"
           required
           placeholder="Descrição"
-          className="inputCadastro"
+          className="inputCadastroProduto"
           value={descricao}
           onChange={(e) => setDescricao(e.target.value)}
         />
@@ -234,7 +191,7 @@ export function CadastroProduto() {
           type="text"
           required
           placeholder="Fornecedor/Marca"
-          className="inputCadastro"
+          className="inputCadastroProduto"
           value={fornecedorMarca}
           onChange={(e) => setfornecedorMarca(e.target.value)}
         />
@@ -242,7 +199,7 @@ export function CadastroProduto() {
           type="text"
           required
           placeholder="Preço Custo"
-          className="inputCadastro"
+          className="inputCadastroProduto"
           value={preçoCusto}
           onChange={(e) => setPreçoCusto(e.target.value)}
         />
@@ -250,7 +207,7 @@ export function CadastroProduto() {
           type="text"
           required
           placeholder="Preço Venda"
-          className="inputCadastro"
+          className="inputCadastroProduto"
           value={preçoVenda}
           onChange={(e) => setPreçoVenda(e.target.value)}
         />
@@ -258,7 +215,7 @@ export function CadastroProduto() {
           type="text"
           required
           placeholder="Tamanho"
-          className="inputCadastro"
+          className="inputCadastroProduto"
           value={tamanho}
           onChange={(e) => setTamanho(e.target.value)}
         />
@@ -266,7 +223,7 @@ export function CadastroProduto() {
           type="text"
           required
           placeholder="Cor"
-          className="inputCadastro"
+          className="inputCadastroProduto"
           value={cor}
           onChange={(e) => setCor(e.target.value)}
         />
@@ -274,7 +231,7 @@ export function CadastroProduto() {
           type="text"
           required
           placeholder="Quantidade"
-          className="inputCadastro"
+          className="inputCadastroProduto"
           value={quantidade}
           onChange={(e) => setQuantidade(e.target.value)}
         />
@@ -282,7 +239,7 @@ export function CadastroProduto() {
         {/* Categoria: select OU input "Outra" */}
         {!mostrarInputOutra ? (
           <select
-            className="selectCadastro"
+            className="selectCadastroProduto"
             value={categoriaId}
             onChange={handleCategoriaChange}
           >
@@ -299,13 +256,13 @@ export function CadastroProduto() {
             type="text"
             required
             placeholder="Digite a nova categoria"
-            className="inputCadastro"
+            className="inputCadastroProduto"
             value={outraCategoria}
             onChange={(e) => setOutraCategoria(e.target.value)}
           />
         )}
 
-        <div className="buttonsGroup">
+        <div className="buttonsGroupProduto">
           <button type="button" className="btn btnVoltar">
             <Link to="/" className="linkCadastro">
               Voltar
@@ -317,9 +274,7 @@ export function CadastroProduto() {
           <button type="button" className="btn btnEtiqueta" onClick={() => alert("Gerar etiqueta")}>
             Etiqueta
           </button>
-          <button type="button" className="btn btnClonar" onClick={handleClonar}>
-            Clonar
-          </button>
+    
         </div>
       </form>
     </div>

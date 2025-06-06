@@ -16,29 +16,26 @@ body {
 }
 
 .CadastroProduto {
-  padding: 0 10rem;
+  width: 100%;
+  height: 100%;
   overflow-y: auto;
-  margin-left: 400px;
+  margin-left: 560px;
   margin-top: 80px;
 }
 
 .CadastroProduto h1 {
-  margin-bottom: 3rem;
+  margin-bottom: 3.5rem;
   margin-left: 2rem;
   color: var(--white-secondary-color);
 }
 
-.formCadastro {
+.formCadastroProduto {
   display: inline-block;
   padding: 2rem 2rem;
-  width: 400px;
-  height: 240px;
   display: grid;
   grid-template-columns: repeat(2, 180px);
-  flex-direction: column;
   row-gap: 1rem;
-  column-gap: 2rem;
-  /* background-color: var(--black-primary-color); */
+  column-gap: 3rem;
 }
 
 .inputId {
@@ -46,31 +43,35 @@ body {
   width: 75px;
   height: 45px;
   left: 593px;
-  top: 245px;
-}
+  top: 240px;
+} 
 
-.inputCadastro {
+.inputCadastroProduto {
   background-color: var(--white-secondary-color);
   border: none;
+  height: 60px;
   border-radius: .5rem;
+  width: 210px;
+
 }
 
-.inputCadastro::placeholder {
+.inputCadastroProduto::placeholder {
   color: var(--black-primary-color);
   font-size: 1rem;
 }
 
-inputDetalhes
-.selectCadastro {
+.selectCadastroProduto {
   border: none;
   background-color: var(--white-secondary-color);
   font-size: 1rem;
+  width: 210px;
   color: var(--black-primary-color);
   border-radius: .5rem;
+  height: 60px;
 
 }
 
-.buttonsGroup {
+.buttonsGroupProduto {
   display: flex;
   position: absolute;
   width: 500px;
@@ -80,13 +81,13 @@ inputDetalhes
   margin-left: 2rem;
 }
 
-.btn {
+.btnProduto {
   border: none;
   color: var(--black-primary-color);
   text-align: center;
   font-size: 1rem;
   width: 200px;
-  height: 50px;
+  height: 60px;
   cursor: pointer;
   border-radius: .8rem;
 }
@@ -295,11 +296,11 @@ thead {
   color: var(--white-secondary-color);
 }
 
-.divEditar {
+.divEditarProduto {
   display: inline-block;
   padding: 1rem ;
   width: 400px;
-  height: 300px;
+  height: auto;
   display: grid;
   grid-template-columns: repeat(2, 220px);
   flex-direction: column;
@@ -308,31 +309,40 @@ thead {
   /* background-color: var(--black-primary-color); */
 }
   
-.btnEditar{
+.btnEditarProduto{
     border: none;
     color: var(--black-primary-color);
     text-align: center;
     font-size: 1rem;
     width: 200px;
-    height: 50px;
     cursor: pointer;
     border-radius: .8rem;
 }
 
-.buttonsGroupEditar {
+.buttonsGroupEditarProduto {
   display: flex;
+  position: absolute;
   width: 400px;
-  margin-left: 75px;
-  margin-top: 1rem;
+;
+  margin-top: 25em;
   justify-content: space-around;
   gap: 2rem;
 
 }
-.inputEditar {
+.inputEditarProduto {
   background-color: var(--white-secondary-color);
   border: none;
   border-radius: .5rem;
   color: var(--black-primary-color);
-  font-size: 1rem;
+  font-size: 1.5rem;
   padding: .8rem .4rem;
+}
+
+.btnVoltarProduto {
+  background-color: var(--red);
+}
+
+.btnSalvarProduto {
+  background-color: var(--green);
+  
 }

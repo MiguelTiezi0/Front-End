@@ -59,7 +59,7 @@ export function CadastroCategoria() {
         throw new Error("Erro ao cadastrar a categoria");
       }
 
-      alert("Categoria cadastrada com sucesso!");
+ 
 
       // Atualiza o próximo ID
       const responseCategorias = await fetch(linkCat, {
@@ -85,7 +85,7 @@ export function CadastroCategoria() {
   return (
     <div className="CadastroCategoria">
       <h1>Cadastro de Categorias</h1>
-      <form className="formCadastro" onSubmit={handleSubmit}>
+      <form className="formCadastroCategoria" onSubmit={handleSubmit}>
         <input
           type="text"
           name="id"
@@ -93,23 +93,23 @@ export function CadastroCategoria() {
           readOnly
           value={id}
           placeholder="Id"
-          className="inputCadastro inputId"
+          className="inputCadastroCategoria"
         />
         <input
           type="text"
           required
           placeholder="Descrição"
-          className="inputCadastro"
+          className="inputCadastroCategoria"
           value={descricao}
           onChange={(e) => setDescricao(e.target.value)}
         />
-        <div className="buttonsGroup">
-          <button type="button" className="btn btnVoltar">
+        <div className="buttonsGroupCategoria">
+          <button type="button" className="btnCategoria btnVoltarCategoria">
             <Link to="/" className="linkCadastro">
               Voltar
             </Link>
           </button>
-          <button type="submit" className="btn btnSalvar">
+          <button type="submit" className="btnCategoria btnSalvarCategoria">
             Salvar
           </button>
         </div>

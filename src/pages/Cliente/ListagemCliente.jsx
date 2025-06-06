@@ -3,6 +3,7 @@ import "./Cliente.css";
 import lupa from "../../assets/icons/lupa.svg";
 import lixo from "../../assets/icons/lixo.svg";
 import edit from "../../assets/icons/edit.svg";
+import olhoFechado from "../../assets/icons/olhoFechado.svg";
 import { useNavigate } from "react-router-dom";
 
 import { linkCli } from "./linkCli";
@@ -77,15 +78,12 @@ export function ListagemCliente() {
     if (!confirmDelete) return;
 
     try {
-      const response = await fetch(
-        `${linkCli}/${clienteSelecionado}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await fetch(`${linkCli}/${clienteSelecionado}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
       if (!response.ok) {
         throw new Error("Erro ao deletar o cliente");
@@ -113,11 +111,18 @@ export function ListagemCliente() {
     navigate(`/Cliente/EditarCliente/${clienteSelecionado}`);
   };
 
+  const handleDetalhar = () => {
+    if (!clienteSelecionado) {
+      alert("Selecione um cliente para visualizar os detalhes.");
+      return;
+    }
+    navigate(`/Cliente/DetalhesCliente/${clienteSelecionado}`);
+  };
+
   return (
     <div className="ListagemCliente">
       <div className="top-nav">
         <h1>Listagem de Clientes</h1>
-
         <div className="top-nav-buttons">
           {btnVisivel && (
             <button
@@ -146,6 +151,14 @@ export function ListagemCliente() {
 
           <button
             type="button"
+            className="top-nav-button olhoFechado"
+            onClick={handleDetalhar}
+          >
+            <img src={olhoFechado} className="top-nav-img" alt="Detalhar" />
+          </button>
+
+          <button
+            type="button"
             className="top-nav-button editar"
             onClick={handleEditar}
           >
@@ -155,14 +168,14 @@ export function ListagemCliente() {
       </div>
 
       <div className="scroll">
-        <table className="tableProduto">
+        <table className="tableCliente">
           <thead>
             <tr>
               <th>Id</th>
               <th>Nome</th>
               <th>CPF</th>
               <th>Telefone</th>
-              <th>Bairro</th>
+              <th>Limite de Crédito</th>
             </tr>
           </thead>
           <tbody>
@@ -173,8 +186,7 @@ export function ListagemCliente() {
                 style={{
                   backgroundColor:
                     clienteSelecionado === cliente.id ? "blue" : "transparent",
-                  color:
-                    clienteSelecionado === cliente.id ? "white" : "black",
+                  color: clienteSelecionado === cliente.id ? "white" : "black",
                   cursor: "pointer",
                 }}
               >
@@ -182,7 +194,7 @@ export function ListagemCliente() {
                 <td>{cliente.nome}</td>
                 <td>{cliente.cpf}</td>
                 <td>{cliente.telefone}</td>
-                <td>{cliente.bairro}</td>
+                <td>{Number(cliente.limiteDeCrédito || 0).toFixed(2).toLocaleString("pt-BR")}</td>
               </tr>
             ))}
           </tbody>
