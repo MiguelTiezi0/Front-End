@@ -1,4 +1,4 @@
-import React  from "react";
+import React from "react";
 
 export function Home() {
   document.title = "Home";
@@ -7,6 +7,7 @@ export function Home() {
       <h1 className="">Sistema de Gestão MiguelTiera</h1>
       <p>Bem-vindo ao sistema de gestão!</p>
       <p>Selecione uma opção no menu para começar.</p>
+
     </div>
   );
 }

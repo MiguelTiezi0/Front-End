@@ -167,6 +167,8 @@ export function CadastroFuncionario() {
   };
 
   return (
+    <div className="centro">
+    
     <div className="CadastroFuncionario">
       <h1>Cadastro de Funcionários</h1>
       <form className="formCadastroFuncionario" onSubmit={handleSubmit}>
@@ -177,7 +179,7 @@ export function CadastroFuncionario() {
           readOnly
           value={id}
           placeholder="Id"
-          className="inputCadastroFuncionario inputId"
+          className="inputCadastroFuncionario inputIdFuncionario"
         />
         <input
           type="text"
@@ -216,7 +218,7 @@ export function CadastroFuncionario() {
         <input
           type="text"
           required
-          placeholder="Data de Contratação (dd/mm/aaaa)"
+          placeholder="Data de Contratação "
           className="inputCadastroFuncionario"
           value={dataContratacao}
           onChange={(e) => setDataContratacao(formatDateInput(e.target.value))}
@@ -227,7 +229,7 @@ export function CadastroFuncionario() {
         <input
           type="text"
           required
-          placeholder="Data de Nascimento (dd/mm/aaaa)"
+          placeholder="Data de Nascimento "
           className="inputCadastroFuncionario"
           value={dataDeNascimento}
           onChange={(e) => setDataDeNascimento(formatDateInput(e.target.value))}
@@ -264,6 +266,7 @@ export function CadastroFuncionario() {
           </button>
         </div>
       </form>
+    </div>
     </div>
   );
 }

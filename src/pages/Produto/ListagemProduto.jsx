@@ -106,16 +106,13 @@ export function ListagemProduto() {
     const novaQuantidade = produto.quantidade - 1;
 
     try {
-      const response = await fetch(
-        `${linkPro}/${produtoSelecionado}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ ...produto, quantidade: novaQuantidade }),
-        }
-      );
+      const response = await fetch(`${linkPro}/${produtoSelecionado}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ...produto, quantidade: novaQuantidade }),
+      });
 
       if (!response.ok) {
         throw new Error("Erro ao atualizar a quantidade do produto");
@@ -171,7 +168,9 @@ export function ListagemProduto() {
       alert("Selecione um produto para deletar.");
       return;
     }
-    const confirmDelete = window.confirm("Tem certeza que deseja deletar este produto?");
+    const confirmDelete = window.confirm(
+      "Tem certeza que deseja deletar este produto?"
+    );
     if (!confirmDelete) return;
 
     try {
@@ -190,7 +189,9 @@ export function ListagemProduto() {
 
       // Remove o produto da lista local
       setProdutos((prev) => prev.filter((p) => p.id !== produtoSelecionado));
-      setProdutosFiltrados((prev) => prev.filter((p) => p.id !== produtoSelecionado));
+      setProdutosFiltrados((prev) =>
+        prev.filter((p) => p.id !== produtoSelecionado)
+      );
       setProdutoSelecionado(null);
     } catch (error) {
       console.error(error);
@@ -199,10 +200,8 @@ export function ListagemProduto() {
   };
 
   return (
-    <div className="ListagemProduto">
+    <div className="centroListagemProduto">
       <div className="top-nav">
-        <h1>Listagem de Produtos</h1>
-
         <div className="top-nav-buttons">
           {btnVisivel && (
             <button
@@ -254,62 +253,60 @@ export function ListagemProduto() {
           </button>
         </div>
       </div>
-
-      <div className="scroll">
-        <table className="tableProduto">
-          <thead>
-            <tr>
-              <th>Id</th>
-              <th>Descrição</th>
-              <th>Quantidade</th>
-              <th>Preço</th>
-              <th>Categoria</th>
-              <th>Data Cadastro</th>
-            </tr>
-          </thead>
-          <tbody>
-            {produtosFiltrados.map((produto) => (
-              <tr
-                key={produto.id}
-                onClick={() => handleRowClick(produto.id)}
-                style={{
-                  backgroundColor:
-                    produtoSelecionado === produto.id
-                      ? "blue"
-                      : produto.quantidade <= 0
-                      ? "#b41111"
-                      : "transparent",
-                  color:
-                    produtoSelecionado === produto.id ||
-                    produto.quantidade <= 0
-                      ? "white"
-                      : "black",
-                  cursor: "pointer",
-                }}
-              >
-                <td>{produto.id}</td>
-                <td>{produto.descricao}</td>
-                <td>{produto.quantidade}</td>
-                <td>
-                  {produto.preçoVenda
-                    ? produto.preçoVenda.toFixed(2)
-                    : "N/A"}
-                </td>
-                <td>
-                  {
-                    categorias.find((cat) => cat.id === produto.categoriaId)
-                      ?.descricao || "N/A"
-                  }
-                </td>
-                <td>
-                  {produto.dataCadastro
-                    ? new Date(produto.dataCadastro).toLocaleString("pt-br")
-                    : "N/A"}
-                </td>
+      <div className="ListagemProduto">
+        <h1>Listagem de Produtos</h1>
+        <div className="scrollProduto">
+          <table className="tableProduto">
+            <thead>
+              <tr>
+                <th>Id</th>
+                <th>Descrição</th>
+                <th>Quantidade</th>
+                <th>Preço</th>
+                <th>Categoria</th>
+                <th>Data Cadastro</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {produtosFiltrados.map((produto) => (
+                <tr
+                  key={produto.id}
+                  onClick={() => handleRowClick(produto.id)}
+                  style={{
+                    backgroundColor:
+                      produtoSelecionado === produto.id
+                        ? "blue"
+                        : produto.quantidade <= 0
+                        ? "#b41111"
+                        : "transparent",
+                    color:
+                      produtoSelecionado === produto.id ||
+                      produto.quantidade <= 0
+                        ? "white"
+                        : "black",
+                    cursor: "pointer",
+                  }}
+                >
+                  <td>{produto.id}</td>
+                  <td>{produto.descricao}</td>
+                  <td>{produto.quantidade}</td>
+                  <td>
+                    {produto.preçoVenda ? produto.preçoVenda.toFixed(2) : "N/A"}
+                  </td>
+                  <td>
+                    {categorias.find((cat) => cat.id === produto.categoriaId)
+                      ?.descricao || "N/A"}
+                  </td>
+                  <td>
+                    {produto.dataCadastro
+                      ? new Date(produto.dataCadastro).toLocaleString("pt-br")
+                      : "N/A"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

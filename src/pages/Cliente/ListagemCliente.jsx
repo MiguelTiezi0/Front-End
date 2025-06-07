@@ -120,9 +120,8 @@ export function ListagemCliente() {
   };
 
   return (
-    <div className="ListagemCliente">
+    <div className="centroListagemCliente">
       <div className="top-nav">
-        <h1>Listagem de Clientes</h1>
         <div className="top-nav-buttons">
           {btnVisivel && (
             <button
@@ -167,7 +166,10 @@ export function ListagemCliente() {
         </div>
       </div>
 
-      <div className="scroll">
+    <div className="ListagemCliente">
+        <h1>Listagem de Clientes</h1>
+
+      <div className="scrollCliente">
         <table className="tableCliente">
           <thead>
             <tr>
@@ -200,6 +202,7 @@ export function ListagemCliente() {
           </tbody>
         </table>
       </div>
+    </div>
     </div>
   );
 }

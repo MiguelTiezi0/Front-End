@@ -6,7 +6,7 @@ import edit from "../../assets/icons/edit.svg";
 import { useNavigate } from "react-router-dom";
 
 import { linkCat } from "./linkCat";
-import { linkPro } from "../Produto/linkPro"; // Adicione este import se ainda não existir
+import { linkPro } from "../Produto/linkPro"; 
 
 export function ListagemCategoria() {
   document.title = "Listagem de Categorias";
@@ -145,9 +145,8 @@ export function ListagemCategoria() {
   };
 
   return (
-    <div className="ListagemCategoria">
+    <div className="centro">
       <div className="top-nav">
-        <h1>Listagem de Categorias</h1>
 
         <div className="top-nav-buttons">
           {btnVisivel && (
@@ -184,8 +183,10 @@ export function ListagemCategoria() {
           </button>
         </div>
       </div>
+    <div className="ListagemCategoria">
 
-      <div className="scroll">
+        <h1>Listagem de Categorias</h1>
+      <div className="scrollCategoria">
         <table className="tableCategoria">
           <thead>
             <tr>
@@ -213,6 +214,7 @@ export function ListagemCategoria() {
           </tbody>
         </table>
       </div>
+    </div>
     </div>
   );
 }

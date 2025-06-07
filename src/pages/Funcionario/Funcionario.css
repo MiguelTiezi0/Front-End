@@ -15,38 +15,44 @@ body {
   max-height: 100vh;
 }
 
-/* Cadastro Funcionario */
+.centroFuncionario {
+  height: calc(100vh - 80px);
+  width: 100%;
+}
+
 .CadastroFuncionario {
-  padding: 0 10rem;
+  width: 100%;
+  height: 100%;
   overflow-y: auto;
-  margin-left: 400px;
-  margin-top: 80px;
+  display: grid;
+  justify-content: center;
 }
 
 .CadastroFuncionario h1 {
-  margin-bottom: 3rem;
-  margin-left: 2rem;
+  font-size: 3rem;
   color: var(--white-secondary-color);
 }
 
 .formCadastroFuncionario {
-  padding: 2rem 2rem;
-  width: 800px;
-  height: 240px;
-  
   display: grid;
   grid-template-columns: repeat(2, 180px);
-  row-gap: 1rem;
-  column-gap: 2rem;
+  grid-template-rows: repeat(4, 80px);
+  row-gap: .1rem;
+  column-gap: 3rem;
 }
+
+ .inputIdFuncionario {
+  grid-column-start: 1;
+  grid-row-start: 1;
+  grid-column-end: -1;
+}  
 
 .inputCadastroFuncionario {
   background-color: var(--white-secondary-color);
   border: none;
-  border-radius: .5rem;
-    width: 200px;
-  height: 50px;
-
+  height: 60px;
+  border-radius: 0.5rem;
+  width: 210px;
 }
 
 .inputCadastroFuncionario::placeholder {
@@ -54,16 +60,21 @@ body {
   font-size: 1rem;
 }
 
-
+.selectCadastroFuncionario {
+  border: none;
+  background-color: var(--white-secondary-color);
+  font-size: 1rem;
+  width: 210px;
+  color: var(--black-primary-color);
+  border-radius: 0.5rem;
+  height: 60px;
+}
 
 .buttonsGroupFuncionario {
   display: flex;
-  position: absolute;
   width: 500px;
   justify-content: space-around;
-  margin-top: 2rem;
   gap: 2rem;
-  margin-top: 20rem;
 }
 
 .btnFuncionario {
@@ -72,16 +83,17 @@ body {
   text-align: center;
   font-size: 1rem;
   width: 200px;
-  height: 55px;
+  height: 60px;
   cursor: pointer;
-  border-radius: .8rem;
+  border-radius: 0.8rem;
 }
 
 .btnVoltarFuncionario {
   background-color: var(--red);
 }
 
-.btnSalvarFuncionario, .btnEditarFuncionario {
+.btnSalvarFuncionario,
+.btnEditarFuncionario {
   background-color: var(--green);
 }
 
@@ -99,8 +111,9 @@ body {
   font-size: 1rem;
 }
 
-/* Top Navigation */
 .top-nav {
+  position: absolute;
+  right: 40px;
   display: flex;
   justify-content: space-evenly;
   gap: 5rem;
@@ -117,7 +130,7 @@ body {
   cursor: pointer;
   width: 75px;
   height: 50px;
-  border-radius: .8rem;
+  border-radius: 0.8rem;
   align-items: center;
   border: none;
 }
@@ -135,6 +148,14 @@ body {
   background-color: var(--red);
 }
 
+.olhoFechado {
+  background-color: var(--blue);
+}
+
+.olhoAberto {
+  background-color: var(--blue);
+}
+
 .editar {
   background-color: var(--green);
 }
@@ -149,7 +170,7 @@ body {
   border: none;
   opacity: 0;
   width: 0;
-  transition: width .5s ease-out, opacity .5s ease-out;
+  transition: width 0.5s ease-out, opacity 0.5s ease-out;
   right: 740px;
   height: 48px;
 }
@@ -160,11 +181,24 @@ body {
   height: 48px;
 }
 
-/* Listagem Funcionario */
-.scroll {
+.ListagemFuncionario {
+  width: 100%;
+  height: calc(100vh - 80px);
+  overflow-y: auto;
+  display: grid;
+  justify-content: center;
+}	
+.ListagemFuncionario h1{
+  font-size: 3rem;
+  color: var(--white-secondary-color);
+  display: flex;
+
+  justify-content: center;
+}
+.scrollFuncionario {
   background-color: var(--white-primary-color);
   width: 1000px;
-  height: 600px;
+  height: calc(100vh - 280px);
   color: var(--black-primary-color);
   border: 1px solid var(--black-primary-color);
   margin: 2rem 16rem;
@@ -172,17 +206,17 @@ body {
   overflow-y: auto;
   display: block;
 }
-
 .tableFuncionario {
   background-color: var(--white-primary-color);
   width: 100%;
+  height: auto;
   color: var(--black-primary-color);
   border: 1px solid var(--black-primary-color);
   padding: 0;
   overflow-y: auto;
 }
-
-tbody, thead {
+tbody,
+thead {
   width: 100%;
 }
 th,
@@ -197,30 +231,148 @@ thead {
   font-size: 20px;
 }
 
-/* Editar Funcionario */
-.EditarFuncionario {
-  padding: 0 8rem;
+
+.centroDetalhesFuncionario {
+  height: calc(100vh - 80px);
+  width: 100%;
+}
+
+.DetalhesFuncionario {
+  width: 100%;
+  height: 100%;
   overflow-y: auto;
-  margin-left: 400px;
-  margin-top: 20px;
+  display: grid;
+  justify-content: center;
+}
+
+.DetalhesFuncionario h1 {
+  font-size: 2rem;
+  color: var(--white-secondary-color);
+}
+
+.divDetalhesFuncionario {
+  display: grid;
+  grid-template-columns: repeat(2, 180px);
+  grid-template-rows: repeat(5, 80px);
+  row-gap: .1rem;
+  column-gap: 3rem;
+}
+
+ .inputIdDetalhesFuncionario {
+  grid-column-start: 1;
+  grid-row-start: 1;
+  grid-column-end: -1;
+}  
+
+.inputDetalhesFuncionario {
+  background-color: var(--white-secondary-color);
+  border: none;
+  height: 60px;
+  border-radius: 0.5rem;
+  width: 210px;
+}
+
+.inputDetalhesFuncionario {
+  color: var(--black-primary-color);
+  font-size: 1.2rem;
+}
+
+.selectDetalhesFuncionario {
+  border: none;
+  background-color: var(--white-secondary-color);
+  font-size: 1rem;
+  width: 210px;
+  color: var(--black-primary-color);
+  border-radius: 0.5rem;
+  height: 60px;
+}
+
+.buttonsGroupDetalhesFuncionario {
+  display: flex;
+  width: 500px;
+  justify-content: space-around;
+  
+}
+
+.btnDetalhesFuncionario {
+  border: none;
+  color: var(--black-primary-color);
+  text-align: center;
+  font-size: 1rem;
+  width: 200px;
+  height: 60px;
+  cursor: pointer;
+  border-radius: 0.8rem;
+  margin: 0.5rem;
+}
+
+
+
+
+
+
+
+
+.centroEditarFuncionario {
+  height: calc(100vh - 80px);
+  width: 100%;
+}
+
+.EditarFuncionario {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  display: grid;
+  justify-content: center;
 }
 
 .EditarFuncionario h1 {
-  margin-bottom: 3rem;
-  margin-left: 2rem;
+  font-size: 3rem;
   color: var(--white-secondary-color);
 }
 
 .divEditarFuncionario {
-  display: inline-block;
-  padding: 1rem ;
-  width: 400px;
-  height: 300px;
   display: grid;
-  grid-template-columns: repeat(2, 220px);
-  flex-direction: column;
-  row-gap: 1rem;
-  column-gap: 2rem;
+  grid-template-columns: repeat(2, 180px);
+  grid-template-rows: repeat(5, 80px);
+  row-gap: .1rem;
+  column-gap: 3rem;
+}
+
+ .inputIdEditarFuncionario {
+  grid-column-start: 1;
+  grid-row-start: 1;
+  grid-column-end: -1;
+}  
+
+.inputEditarFuncionario {
+  background-color: var(--white-secondary-color);
+  border: none;
+  height: 60px;
+  border-radius: 0.5rem;
+  width: 210px;
+}
+
+.inputEditarFuncionario::placeholder {
+  color: var(--black-primary-color);
+  font-size: 1rem;
+}
+
+.selectEditarFuncionario {
+  border: none;
+  background-color: var(--white-secondary-color);
+  font-size: 1rem;
+  width: 210px;
+  color: var(--black-primary-color);
+  border-radius: 0.5rem;
+  height: 60px;
+}
+
+.buttonsGroupEditarFuncionario {
+  display: flex;
+  width: 500px;
+  justify-content: space-around;
+  gap: 2rem;
 }
 
 .btnEditarFuncionario {
@@ -229,96 +381,8 @@ thead {
   text-align: center;
   font-size: 1rem;
   width: 200px;
-  height: 50px;
+  height: 60px;
   cursor: pointer;
-  border-radius: .8rem;
+  border-radius: 0.8rem;
 }
 
-.buttonsGroupEditarFuncionario {
-  display: flex;
-  width: 400px;
-  margin-left: 75px;
-  margin-top: 1rem;
-  justify-content: space-around;
-  gap: 2rem;
-}
-
-.inputEditarFuncionario {
-  background-color: var(--white-secondary-color);
-  border: none;
-  border-radius: .5rem;
-  color: var(--black-primary-color);
-  font-size: 1rem;
-  padding: .8rem .4rem;
-}
-
-/* Deletar Funcionario */
-.DeletarFuncionario {
-  padding: 0 8rem;
-  overflow-y: auto;
-  margin-left: 400px;
-  margin-top: 20px;
-}
-
-.DeletarFuncionario h1 {
-  margin-bottom: 3rem;
-  margin-left: 2rem;
-  color: var(--white-secondary-color);
-}
-
-
-
-.DetalhesFuncionario {
-  padding: 0 6rem;
-  overflow-y: auto;
-
-}
-
-.DetalhesFuncionario h1 {
-  margin-bottom: 3rem;
-  color: var(--white-secondary-color);
-}
-
-.divDetalhesFuncionario {
-  display: inline-block;
-  padding: 1rem ;
-  width: 400px;
-  height: 300px;
-  display: grid;
-  grid-template-columns: repeat(2, 240px);
-  flex-direction: column;
-  row-gap: 1rem;
-  column-gap: 2rem;
-    margin-left: 300px;
-  margin-top: 20px;
-  /* background-color: var(--black-primary-color); */
-}
-  
-.btnDetalhesFuncionario{
-    border: none;
-    color: var(--black-primary-color);
-    text-align: center;
-    font-size: 1rem;
-    width: 200px;
-    height: 50px;
-    cursor: pointer;
-    border-radius: .8rem;
-}
-
-.buttonsGroupDetalhesFuncionario {
-  display: flex;
-  width: 400px;
-  margin-top: 1rem;
-  justify-content: space-around;
-  gap: 2rem;
-    margin-left: 375px;
-  margin-top: 20px;
-
-}
-.inputDetalhesFuncionario {
-  background-color: var(--white-secondary-color);
-  border: none;
-  border-radius: .5rem;
-  color: var(--black-primary-color);
-  font-size: 1rem;
-}

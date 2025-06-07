@@ -125,9 +125,8 @@ export function ListagemFuncionario() {
   };
 
   return (
-    <div className="ListagemFuncionario">
+    <div className="centroListagemFunciona">
       <div className="top-nav">
-        <h1>Listagem de Funcionários</h1>
 
         <div className="top-nav-buttons">
           {btnVisivel && (
@@ -172,8 +171,10 @@ export function ListagemFuncionario() {
           </button>
         </div>
       </div>
+    <div className="ListagemFuncionario">
+        <h1>Listagem de Funcionários</h1>
 
-      <div className="scroll">
+      <div className="scrollFuncionario">
         <table className="tableProduto">
           <thead>
             <tr>
@@ -222,6 +223,7 @@ export function ListagemFuncionario() {
           </tbody>
         </table>
       </div>
+    </div>
     </div>
   );
 }

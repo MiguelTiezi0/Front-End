@@ -123,9 +123,8 @@ export function DetalhesProduto() {
     navigate("/Produto/ListagemProduto");
   };
   return (
-    <div className="DetalhesProduto">
+    <div className="centroDetalhesProduto">
       <div className="top-nav">
-        <h1>Detalhes do Produto: {produto.descricao}</h1>
         <div className="top-nav-buttons">
           <button
             type="button"
@@ -159,49 +158,52 @@ export function DetalhesProduto() {
             <img src={clonar} className="top-nav-img" alt="Clonar" />
           </button>
         </div>
+    
       </div>
+    <div className="DetalhesProduto">
+          <h1>Detalhes do Produto: {produto.descricao}</h1>
+      <div className="divDetalhesProduto">
 
-      <div className="divDetalhes">
         <input
           type="text"
           disabled
           placeholder="ID"
-          className="inputDetalhes"
+          className="inputDetalhesProduto inputIdDetalhesProduto"
           value={`ID: ${produto.id}`}
         />
         <input
           type="text"
           disabled
           placeholder="Descrição"
-          className="inputDetalhes"
+          className="inputDetalhesProduto"
           value={`Descrição: ${produto.descricao}`}
         />
         <input
           type="text"
           disabled
           placeholder="Fornecedor/Marca"
-          className="inputDetalhes"
+          className="inputDetalhesProduto"
           value={`Fornecedor/Marca: ${produto.fornecedorMarca}`}
         />
         <input
           type="text"
           disabled
           placeholder="Tamanho"
-          className="inputDetalhes"
+          className="inputDetalhesProduto"
           value={`Tamanho: ${produto.tamanho}`}
         />
         <input
           type="text"
           disabled
           placeholder="Preço Custo"
-          className="inputDetalhes"
+          className="inputDetalhesProduto"
           value={`Preço de Custo: ${produto.preçoCusto}`}
         />
         <input
           type="text"
           disabled
           placeholder="Preço Venda"
-          className="inputDetalhes"
+          className="inputDetalhesProduto"
           value={`Preço de Venda: ${produto.preçoVenda}`}
         />
 
@@ -209,42 +211,42 @@ export function DetalhesProduto() {
           type="text"
           disabled
           placeholder="Cor"
-          className="inputDetalhes"
+          className="inputDetalhesProduto"
           value={`Cor: ${produto.cor}`}
         />
         <input
           type="text"
           disabled
           placeholder="Quantidade"
-          className="inputDetalhes"
+          className="inputDetalhesProduto"
           value={`Quantidade: ${produto.quantidade}`}
         />
         <input
           type="text"
           disabled
           placeholder="Data Cadastro"
-          className="inputDetalhes"
+          className="inputDetalhesProduto"
           value={`Data Cadastro: ${dataCadastroLocal}`}
         />
         <input
           type="text"
           disabled
           placeholder="Categoria"
-          className="inputDetalhes"
+          className="inputDetalhesProduto"
           value={`Categoria: ${categoriaDescricao}`}
         />
       </div>
       <div className="buttonsGroupDetalhes">
         <button
           type="button"
-          className="btnDetalhes btnVoltar"
+          className="btnDetalhesProduto btnVoltarProduto"
           onClick={handleVoltar}
         >
           <Link to="/Produto/ListagemProduto" className="linkCadastro">
             Voltar
           </Link>
         </button>
-        <button type="submit" className="btnDetalhes btnEditar">
+        <button type="submit" className="btnDetalhesProduto btnEditarProduto">
           <Link
             to={`/Produto/EditarProduto/${produto.id}`}
             className="linkCadastro"
@@ -253,6 +255,7 @@ export function DetalhesProduto() {
           </Link>
         </button>
       </div>
+    </div>
     </div>
   );
 }

@@ -141,9 +141,9 @@ export function EditarFuncionario() {
   };
 
   return (
-    <div className="EditarFuncionario">
+    <div className="centroFuncionario">
+
       <div className="top-nav">
-        <h1>Editar Funcionário: {funcionario.nome}</h1>
         <div className="top-nav-buttons">
           <button
             type="button"
@@ -168,6 +168,10 @@ export function EditarFuncionario() {
           </button>
         </div>
       </div>
+   
+    <div className="EditarFuncionario">
+        <h1>Editar Funcionário: {funcionario.nome}</h1>
+
       <form className="divEditarFuncionario" onSubmit={handleSubmit}>
         <input
           type="text"
@@ -176,7 +180,7 @@ export function EditarFuncionario() {
           readOnly
           value={funcionario.id || ""}
           placeholder="Id"
-          className="inputEditarFuncionario"
+          className="inputEditarFuncionario inputIdEditarFuncionario"
         />
         <input
           type="text"
@@ -260,5 +264,6 @@ export function EditarFuncionario() {
         </div>
       </form>
     </div>
+     </div>
   );
 }

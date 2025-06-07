@@ -146,6 +146,7 @@ export function EditarProduto() {
   };
 
   return (
+    <div className="centroEditarPro">
     <div className="EditarProduto">
       <h1>Editar Produto</h1>
       <form className="divEditarProduto" onSubmit={handleSubmit}>
@@ -156,7 +157,7 @@ export function EditarProduto() {
           readOnly
           value={produto.id || ""}
           placeholder="Id"
-          className="inputEditarProduto"
+          className="inputEditarProduto inputIdEditarProduto"
         />
         <input
           type="text"
@@ -261,6 +262,7 @@ export function EditarProduto() {
           </button>
         </div>
       </form>
+    </div>
     </div>
   );
 }

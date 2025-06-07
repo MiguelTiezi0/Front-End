@@ -79,9 +79,8 @@ export function DetalhesCliente() {
   };
 
   return (
-    <div className="DetalhesCliente">
+    <div className="centroDetalhesCliente">
       <div className="top-nav">
-        <h1>Detalhes do Cliente: {cliente.nome}</h1>
         <div className="top-nav-buttons">
           <button
             type="button"
@@ -107,12 +106,15 @@ export function DetalhesCliente() {
         </div>
       </div>
 
+    <div className="DetalhesCliente">
+        <h1>Detalhes do Cliente: {cliente.nome}</h1>
+
       <div className="divDetalhesCliente">
         <input
           type="text"
           disabled
           placeholder="ID"
-          className="inputDetalhesCliente"
+          className="inputDetalhesCliente inputIdDetalhesCliente"
           value={`ID: ${cliente.id}`}
         />
         <input
@@ -202,6 +204,7 @@ export function DetalhesCliente() {
           </Link>
         </button>
       </div>
+    </div>
     </div>
   );
 }

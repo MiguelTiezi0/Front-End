@@ -81,9 +81,8 @@ export function DetalhesFuncionario() {
   };
 
   return (
-    <div className="DetalhesFuncionario">
+    <div className="centroDetalhesFuncionario">
       <div className="top-nav">
-        <h1>Detalhes do Funcionário: {funcionario.nome}</h1>
         <div className="top-nav-buttons">
           <button
             type="button"
@@ -108,13 +107,15 @@ export function DetalhesFuncionario() {
           </button>
         </div>
       </div>
+    <div className="DetalhesFuncionario">
+        <h1>Detalhes do Funcionário: {funcionario.nome}</h1>
 
       <div className="divDetalhesFuncionario">
         <input
           type="text"
           disabled
           placeholder="ID"
-          className="inputDetalhesFuncionario"
+          className="inputDetalhesFuncionario inputIdDetalhesFuncionario"
           value={`ID: ${funcionario.id}`}
         />
         <input
@@ -210,6 +211,7 @@ export function DetalhesFuncionario() {
             Editar
           </Link>
         </button>
+      </div>
       </div>
     </div>
   );

@@ -42,7 +42,7 @@ export function CadastroProduto() {
         setId(maiorId + 1);
       } catch (error) {
         console.error(error);
-        alert("Erro ao carregar os produtos");
+         alert("Erro ao carregar os produtos");
       }
     };
 
@@ -63,7 +63,7 @@ export function CadastroProduto() {
         setCategorias(categoriasData);
       } catch (error) {
         console.error(error);
-        alert("Erro ao carregar as categorias");
+         alert("Erro ao carregar as categorias");
       }
     };
 
@@ -110,7 +110,7 @@ export function CadastroProduto() {
         setCategorias((prev) => [...prev, novaCategoria]);
       } catch (error) {
         console.error(error);
-        alert("Erro ao cadastrar a nova categoria");
+         alert("Erro ao cadastrar a nova categoria");
         return;
       }
     }
@@ -160,13 +160,16 @@ export function CadastroProduto() {
       setMostrarInputOutra(false);
     } catch (error) {
       console.error(error);
-      alert("Erro ao cadastrar o produto");
+       alert("Erro ao cadastrar o produto");
     }
   };
 
 
 
   return (
+    <div className="centro">
+
+    
     <div className="CadastroProduto">
       <h1>Cadastro de Produtos</h1>
       <form className="formCadastroProduto" onSubmit={handleSubmit}>
@@ -263,20 +266,21 @@ export function CadastroProduto() {
         )}
 
         <div className="buttonsGroupProduto">
-          <button type="button" className="btn btnVoltar">
+          <button type="button" className="btnProduto btnVoltarProduto">
             <Link to="/" className="linkCadastro">
               Voltar
             </Link>
           </button>
-          <button type="submit" className="btn btnSalvar">
+          <button type="submit" className="btnProduto btnSalvarProduto">
             Salvar
           </button>
-          <button type="button" className="btn btnEtiqueta" onClick={() => alert("Gerar etiqueta")}>
+          <button type="button" className="btnProduto btnEtiquetaProduto" onClick={() => alert("Gerar etiqueta")}>
             Etiqueta
           </button>
     
         </div>
       </form>
+    </div>
     </div>
   );
 }

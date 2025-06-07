@@ -15,38 +15,44 @@ body {
   max-height: 100vh;
 }
 
-/* Cadastro Cliente */
+.centroCliente {
+  height: calc(100vh - 80px);
+  width: 100%;
+}
+
 .CadastroCliente {
-  padding: 0 10rem;
+  width: 100%;
+  height: 100%;
   overflow-y: auto;
-  margin-left: 400px;
-  margin-top: 80px;
+  display: grid;
+  justify-content: center;
 }
 
 .CadastroCliente h1 {
-  margin-bottom: 3rem;
-  margin-left: 2rem;
+  font-size: 3rem;
   color: var(--white-secondary-color);
 }
 
 .formCadastroCliente {
-  padding: 2rem 2rem;
-  width: 800px;
-  height: 240px;
-  
   display: grid;
   grid-template-columns: repeat(2, 180px);
-  row-gap: 1rem;
-  column-gap: 2rem;
+  grid-template-rows: repeat(4, 80px);
+  row-gap: .1rem;
+  column-gap: 3rem;
 }
+
+ .inputIdCliente {
+  grid-column-start: 1;
+  grid-row-start: 1;
+  grid-column-end: -1;
+}  
 
 .inputCadastroCliente {
   background-color: var(--white-secondary-color);
   border: none;
-  border-radius: .5rem;
-    width: 200px;
-  height: 50px;
-
+  height: 60px;
+  border-radius: 0.5rem;
+  width: 210px;
 }
 
 .inputCadastroCliente::placeholder {
@@ -54,16 +60,21 @@ body {
   font-size: 1rem;
 }
 
-
+.selectCadastroCliente {
+  border: none;
+  background-color: var(--white-secondary-color);
+  font-size: 1rem;
+  width: 210px;
+  color: var(--black-primary-color);
+  border-radius: 0.5rem;
+  height: 60px;
+}
 
 .buttonsGroupCliente {
   display: flex;
-  position: absolute;
   width: 500px;
   justify-content: space-around;
-  margin-top: 20rem;
   gap: 2rem;
-  margin-left: 2rem;
 }
 
 .btnCliente {
@@ -72,16 +83,17 @@ body {
   text-align: center;
   font-size: 1rem;
   width: 200px;
-  height: 50px;
+  height: 60px;
   cursor: pointer;
-  border-radius: .8rem;
+  border-radius: 0.8rem;
 }
 
 .btnVoltarCliente {
   background-color: var(--red);
 }
 
-.btnSalvarCliente, .btnEditarCliente {
+.btnSalvarCliente,
+.btnEditarCliente {
   background-color: var(--green);
 }
 
@@ -99,8 +111,9 @@ body {
   font-size: 1rem;
 }
 
-/* Top Navigation */
 .top-nav {
+  position: absolute;
+  right: 40px;
   display: flex;
   justify-content: space-evenly;
   gap: 5rem;
@@ -117,7 +130,7 @@ body {
   cursor: pointer;
   width: 75px;
   height: 50px;
-  border-radius: .8rem;
+  border-radius: 0.8rem;
   align-items: center;
   border: none;
 }
@@ -135,6 +148,14 @@ body {
   background-color: var(--red);
 }
 
+.olhoFechado {
+  background-color: var(--blue);
+}
+
+.olhoAberto {
+  background-color: var(--blue);
+}
+
 .editar {
   background-color: var(--green);
 }
@@ -143,13 +164,14 @@ body {
   background-color: var(--yellow-primary-color);
 }
 
+
 .inputPesquisar {
   background-color: var(--white-secondary-color);
   border-radius: 0.8rem;
   border: none;
   opacity: 0;
   width: 0;
-  transition: width .5s ease-out, opacity .5s ease-out;
+  transition: width 0.5s ease-out, opacity 0.5s ease-out;
   right: 740px;
   height: 48px;
 }
@@ -160,11 +182,28 @@ body {
   height: 48px;
 }
 
-/* Listagem Cliente */
-.scroll {
+.centroListagemCliente {
+  height: calc(100vh - 80px);
+  width: 100%;
+}
+.ListagemCliente {
+  width: 100%;
+  height: calc(100vh - 80px);
+  overflow-y: auto;
+  display: grid;
+  justify-content: center;
+}	
+.ListagemCliente h1{
+  font-size: 3rem;
+  color: var(--white-secondary-color);
+  display: flex;
+
+  justify-content: center;
+}
+.scrollCliente {
   background-color: var(--white-primary-color);
   width: 1000px;
-  height: 600px;
+  height: calc(100vh - 280px);
   color: var(--black-primary-color);
   border: 1px solid var(--black-primary-color);
   margin: 2rem 16rem;
@@ -172,17 +211,17 @@ body {
   overflow-y: auto;
   display: block;
 }
-
 .tableCliente {
   background-color: var(--white-primary-color);
   width: 100%;
+  height: auto;
   color: var(--black-primary-color);
   border: 1px solid var(--black-primary-color);
   padding: 0;
   overflow-y: auto;
 }
-
-tbody, thead {
+tbody,
+thead {
   width: 100%;
 }
 th,
@@ -197,30 +236,148 @@ thead {
   font-size: 20px;
 }
 
-/* Editar Cliente */
-.EditarCliente {
-  padding: 0 8rem;
+
+.centroDetalhesCliente {
+  height: calc(100vh - 80px);
+  width: 100%;
+}
+
+.DetalhesCliente {
+  width: 100%;
+  height: 100%;
   overflow-y: auto;
-  margin-left: 400px;
-  margin-top: 20px;
+  display: grid;
+  justify-content: center;
+}
+
+.DetalhesCliente h1 {
+  font-size: 2rem;
+  color: var(--white-secondary-color);
+}
+
+.divDetalhesCliente {
+  display: grid;
+  grid-template-columns: repeat(2, 180px);
+  grid-template-rows: repeat(5, 80px);
+  row-gap: .1rem;
+  column-gap: 3rem;
+}
+
+ .inputIdDetalhesCliente {
+  grid-column-start: 1;
+  grid-row-start: 1;
+  grid-column-end: -1;
+}  
+
+.inputDetalhesCliente {
+  background-color: var(--white-secondary-color);
+  border: none;
+  height: 60px;
+  border-radius: 0.5rem;
+  width: 210px;
+}
+
+.inputDetalhesCliente {
+  color: var(--black-primary-color);
+  font-size: 1.2rem;
+}
+
+.selectDetalhesCliente {
+  border: none;
+  background-color: var(--white-secondary-color);
+  font-size: 1rem;
+  width: 210px;
+  color: var(--black-primary-color);
+  border-radius: 0.5rem;
+  height: 60px;
+}
+
+.buttonsGroupDetalhesCliente {
+  display: flex;
+  width: 500px;
+  justify-content: space-around;
+  
+}
+
+.btnDetalhesCliente {
+  border: none;
+  color: var(--black-primary-color);
+  text-align: center;
+  font-size: 1rem;
+  width: 200px;
+  height: 60px;
+  cursor: pointer;
+  border-radius: 0.8rem;
+  margin: 0.5rem;
+}
+
+
+
+
+
+
+
+
+.centroEditarCliente {
+  height: calc(100vh - 80px);
+  width: 100%;
+}
+
+.EditarCliente {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  display: grid;
+  justify-content: center;
 }
 
 .EditarCliente h1 {
-  margin-bottom: 3rem;
-  margin-left: 2rem;
+  font-size: 3rem;
   color: var(--white-secondary-color);
 }
 
 .divEditarCliente {
-  display: inline-block;
-  padding: 1rem ;
-  width: 400px;
-  height: 300px;
   display: grid;
-  grid-template-columns: repeat(2, 220px);
-  flex-direction: column;
-  row-gap: 1rem;
-  column-gap: 2rem;
+  grid-template-columns: repeat(2, 180px);
+  grid-template-rows: repeat(5, 80px);
+  row-gap: .1rem;
+  column-gap: 3rem;
+}
+
+ .inputIdEditarCliente {
+  grid-column-start: 1;
+  grid-row-start: 1;
+  grid-column-end: -1;
+}  
+
+.inputEditarCliente {
+  background-color: var(--white-secondary-color);
+  border: none;
+  height: 60px;
+  border-radius: 0.5rem;
+  width: 210px;
+}
+
+.inputEditarCliente::placeholder {
+  color: var(--black-primary-color);
+  font-size: 1rem;
+}
+
+.selectEditarCliente {
+  border: none;
+  background-color: var(--white-secondary-color);
+  font-size: 1rem;
+  width: 210px;
+  color: var(--black-primary-color);
+  border-radius: 0.5rem;
+  height: 60px;
+}
+
+.buttonsGroupEditarCliente {
+  display: flex;
+  width: 500px;
+  justify-content: space-around;
+  gap: 2rem;
 }
 
 .btnEditarCliente {
@@ -229,160 +386,8 @@ thead {
   text-align: center;
   font-size: 1rem;
   width: 200px;
-  height: 50px;
+  height: 60px;
   cursor: pointer;
-  border-radius: .8rem;
+  border-radius: 0.8rem;
 }
 
-.buttonsGroupEditarCliente {
-  display: flex;
-  width: 400px;
-  margin-left: 75px;
-  margin-top: 1rem;
-  justify-content: space-around;
-  gap: 2rem;
-}
-
-.inputEditarCliente {
-  background-color: var(--white-secondary-color);
-  border: none;
-  border-radius: .5rem;
-  color: var(--black-primary-color);
-  font-size: 1rem;
-  padding: .8rem .4rem;
-}
-
-/* Deletar Cliente */
-.DeletarCliente {
-  padding: 0 8rem;
-  overflow-y: auto;
-  margin-left: 400px;
-  margin-top: 20px;
-}
-
-.DeletarCliente h1 {
-  margin-bottom: 3rem;
-  margin-left: 2rem;
-  color: var(--white-secondary-color);
-}
-
-/* Cadastro Cliente */
-.CadastroCliente {
-  padding: 0 10rem;
-  overflow-y: auto;
-  margin-left: 400px;
-  margin-top: 80px;
-}
-
-.CadastroCliente h1 {
-  margin-bottom: 3rem;
-  margin-left: 2rem;
-  color: var(--white-secondary-color);
-}
-
-/* Editar Cliente */
-.EditarCliente {
-  padding: 0 8rem;
-  overflow-y: auto;
-  margin-left: 400px;
-  margin-top: 20px;
-}
-
-.EditarCliente h1 {
-  margin-bottom: 3rem;
-  margin-left: 2rem;
-  color: var(--white-secondary-color);
-}
-
-.divEditarCliente {
-  display: inline-block;
-  padding: 1rem ;
-  width: 400px;
-  height: 300px;
-  display: grid;
-  grid-template-columns: repeat(2, 220px);
-  flex-direction: column;
-  row-gap: 1rem;
-  column-gap: 2rem;
-}
-
-.inputEditarCliente {
-  background-color: var(--white-secondary-color);
-  border: none;
-  border-radius: .5rem;
-  color: var(--black-primary-color);
-  font-size: 1rem;
-  padding: .8rem .4rem;
-}
-
-/* Deletar Cliente */
-.DeletarCliente {
-  padding: 0 8rem;
-  overflow-y: auto;
-  margin-left: 400px;
-  margin-top: 20px;
-}
-
-.DeletarCliente h1 {
-  margin-bottom: 3rem;
-  margin-left: 2rem;
-  color: var(--white-secondary-color);
-}
-
-
-
-
-.DetalhesCliente {
-  padding: 0 6rem;
-  overflow-y: auto;
-
-}
-
-.DetalhesCliente h1 {
-  margin-bottom: 3rem;
-  color: var(--white-secondary-color);
-}
-
-.divDetalhesCliente {
-  display: inline-block;
-  padding: 1rem ;
-  width: 400px;
-  height: 300px;
-  display: grid;
-  grid-template-columns: repeat(2, 240px);
-  flex-direction: column;
-  row-gap: 1rem;
-  column-gap: 2rem;
-    margin-left: 300px;
-  margin-top: 20px;
-  /* background-color: var(--black-primary-color); */
-}
-  
-.btnDetalhesCliente{
-    border: none;
-    color: var(--black-primary-color);
-    text-align: center;
-    font-size: 1rem;
-    width: 200px;
-    height: 50px;
-    cursor: pointer;
-    border-radius: .8rem;
-}
-
-.buttonsGroupDetalhesCliente {
-  display: flex;
-  width: 400px;
-  margin-top: 1rem;
-  justify-content: space-around;
-  gap: 2rem;
-    margin-left: 375px;
-  margin-top: 20px;
-
-}
-.inputDetalhesCliente {
-  background-color: var(--white-secondary-color);
-  border: none;
-  border-radius: .5rem;
-  color: var(--black-primary-color);
-  font-size: 1rem;
-}

@@ -83,6 +83,7 @@ export function CadastroCategoria() {
   };
 
   return (
+    <div className="centro">
     <div className="CadastroCategoria">
       <h1>Cadastro de Categorias</h1>
       <form className="formCadastroCategoria" onSubmit={handleSubmit}>
@@ -114,6 +115,7 @@ export function CadastroCategoria() {
           </button>
         </div>
       </form>
+    </div>
     </div>
   );
 }

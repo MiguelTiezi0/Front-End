@@ -130,6 +130,7 @@ export function CadastroCliente() {
   };
 
   return (
+    <div className="centroCliente">
     <div className="CadastroCliente">
       <h1>Cadastro de Clientes</h1>
       <form className="formCadastroCliente" onSubmit={handleSubmit}>
@@ -140,7 +141,7 @@ export function CadastroCliente() {
           readOnly
           value={id}
           placeholder="Id"
-          className="inputCadastroCliente inputId"
+          className="inputCadastroCliente inputIdCliente"
         />
         <input
           type="text"
@@ -217,6 +218,7 @@ export function CadastroCliente() {
           </button>
         </div>
       </form>
+    </div>
     </div>
   );
 }
