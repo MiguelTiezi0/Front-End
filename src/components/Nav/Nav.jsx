@@ -4,14 +4,13 @@ import "./Nav.css";
 
 export const Nav = () => {
   const detailsRefs = useRef([]);
-  const location = useLocation(); 
+  const location = useLocation();
 
   useEffect(() => {
-
     detailsRefs.current.forEach((details) => {
       if (details) details.removeAttribute("open");
     });
-  }, [location]); 
+  }, [location]);
 
   return (
     <nav className="nav">
@@ -89,31 +88,18 @@ export const Nav = () => {
             <summary className="nav-summary">Relatorios</summary>
             <ul className="nav-ul">
               <li className="nav-li">
-                <a className="nav-a" href="../pages/">
-                  Produto
-                </a>
-              </li>
-              <li className="nav-li">
-                <a className="nav-a" href="../pages/">
-                  Cliente
-                </a>
-              </li>
-              <li className="nav-li">
-                <a className="nav-a" href="../pages/">
-                  Funcionario
-                </a>
-              </li>
-              <li className="nav-li">
-                <a className="nav-a" href="../pages/">
-                  Categoria
-                </a>
+                <Link to="/Venda/ListagemVenda" className="nav-a">
+                  Venda
+                </Link>
               </li>
             </ul>
           </details>
         </li>
         <li className="nav-li">
           <a className="nav-a" href="/">
-            Vender
+            <Link to="/Venda/CadastroVenda" className="nav-a">
+              Vender
+            </Link>
           </a>
         </li>
       </ul>

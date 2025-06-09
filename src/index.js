@@ -30,6 +30,13 @@ import { EditarFuncionario } from './pages/Funcionario/EditarFuncionario.jsx';
 import { DetalhesFuncionario } from './pages/Funcionario/DetalhesFuncionario.jsx';
 
 
+import { CadastroVenda } from './pages/Venda/CadastroVenda.jsx';
+import { ListagemVenda } from './pages/Venda/ListagemVenda.jsx';
+import { DeletarVenda } from './pages/Venda/DeletarVenda.jsx';
+import { EditarVenda } from './pages/Venda/EditarVenda.jsx';
+import { DetalhesVenda } from './pages/Venda/DetalhesVenda.jsx';
+
+
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -67,6 +74,13 @@ root.render(
         <Route path="/Funcionario/DeletarFuncionario" element={<DeletarFuncionario />} />
         <Route path="/Funcionario/EditarFuncionario/:id" element={<EditarFuncionario />} />
         <Route path="/Funcionario/DetalhesFuncionario/:id" element={<DetalhesFuncionario />} />
+
+        {/* Venda */}
+        <Route path="/Venda/CadastroVenda" element={<CadastroVenda />} />
+        <Route path="/Venda/ListagemVenda" element={<ListagemVenda />} />
+        <Route path="/Venda/DeletarVenda" element={<DeletarVenda />} />
+        <Route path="/Venda/EditarVenda/:id" element={<EditarVenda />} />
+        <Route path="/Venda/DetalhesVenda/:id" element={<DetalhesVenda />} />
 
       </Routes>
 

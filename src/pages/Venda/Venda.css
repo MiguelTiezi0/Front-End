@@ -1,0 +1,507 @@
+:root {
+  --yellow-primary-color: #fdda76;
+  --yellow-secondary-color: #f9c74f;
+  --black-primary-color: #252525;
+  --black: #000000;
+  --white-primary-color: #d9d9d9;
+  --white-secondary-color: #ebebeb;
+  --red: #b41111;
+  --blue: #2974d7;
+  --green: #39862f;
+}
+
+html,
+body {
+  max-height: 100vh;
+}
+:root {
+  --yellow-primary-color: #fdda76;
+  --yellow-secondary-color: #f9c74f;
+  --black-primary-color: #252525;
+  --black: #000000;
+  --white-primary-color: #d9d9d9;
+  --white-secondary-color: #ebebeb;
+  --red: #b41111;
+  --blue: #2974d7;
+  --green: #39862f;
+}
+
+html,
+body {
+  max-height: 100vh;
+}
+.CadastroVenda {
+  max-width: 600px;
+  margin: 40px auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.10);
+  padding: 32px 28px;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.CadastroVenda h1 {
+  text-align: center;
+  margin-bottom: 28px;
+  color: #222;
+  font-size: 2rem;
+  letter-spacing: 1px;
+}
+
+.formCadastroVenda label {
+  display: block;
+  margin-bottom: 18px;
+  color: #333;
+  font-weight: 500;
+}
+
+.formCadastroVenda select,
+.formCadastroVenda input[type="text"],
+.formCadastroVenda input[type="number"],
+.formCadastroVenda input[type="datetime-local"] {
+  width: 100%;
+  padding: 8px 10px;
+  margin-top: 6px;
+  border: 1px solid #bbb;
+  border-radius: 6px;
+  font-size: 1rem;
+  background: #f8f8f8;
+  transition: border 0.2s;
+}
+
+.formCadastroVenda select:focus,
+.formCadastroVenda input:focus {
+  border: 1.5px solid #f9c74f;
+  outline: none;
+}
+
+.formCadastroVenda hr {
+  margin: 24px 0 18px 0;
+  border: none;
+  border-top: 1.5px solid #eee;
+}
+
+.formCadastroVenda h3 {
+  margin-bottom: 12px;
+  color: #444;
+  font-size: 1.1rem;
+}
+
+.formCadastroVenda > div {
+  margin-bottom: 12px;
+}
+
+.formCadastroVenda button[type="button"] {
+  background: #f9c74f;
+  color: #222;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 18px;
+  margin-left: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.formCadastroVenda button[type="button"]:hover {
+  background: #f9844a;
+  color: #fff;
+}
+
+.formCadastroVenda button[type="submit"] {
+  background: #43aa8b;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 28px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 18px;
+  cursor: pointer;
+  display: block;
+  width: 100%;
+  transition: background 0.2s;
+}
+
+.formCadastroVenda button[type="submit"]:hover {
+  background: #277c5a;
+}
+
+.formCadastroVenda ul {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 18px 0;
+}
+
+.formCadastroVenda li {
+  background: #f1f1f1;
+  border-radius: 5px;
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.formCadastroVenda li button {
+  background: #e63946;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 10px;
+  margin-left: 16px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.formCadastroVenda li button:hover {
+  background: #b71c1c;
+}
+
+.formCadastroVenda strong {
+  color: #222;
+  font-weight: 600;
+}
+
+.btnVoltarVenda {
+  background-color: var(--red);
+}
+
+.btnSalvarVenda,
+.btnEditarVenda {
+  background-color: var(--green);
+}
+
+.btnEtiquetaVenda {
+  background-color: var(--blue);
+}
+
+.btnClonarVenda {
+  background-color: var(--yellow-primary-color);
+}
+
+.linkCadastro {
+  text-decoration: none;
+  color: var(--black-primary-color);
+  font-size: 1rem;
+}
+
+.top-nav {
+  position: absolute;
+  right: 40px;
+  display: flex;
+  justify-content: space-evenly;
+  gap: 5rem;
+  margin: 2rem 0;
+  box-sizing: border-box;
+}
+
+.top-nav-buttons {
+  display: flex;
+  gap: 0.7rem;
+}
+
+.top-nav-button {
+  cursor: pointer;
+  width: 75px;
+  height: 50px;
+  border-radius: 0.8rem;
+  align-items: center;
+  border: none;
+}
+
+.top-nav-img {
+  width: 100%;
+  height: 100%;
+}
+
+.lupa {
+  background-color: var(--white-secondary-color);
+}
+
+.lixo {
+  background-color: var(--red);
+}
+
+.olhoFechado {
+  background-color: var(--blue);
+}
+
+.olhoAberto {
+  background-color: var(--blue);
+}
+
+.editar {
+  background-color: var(--green);
+}
+
+.clonar {
+  background-color: var(--yellow-primary-color);
+}
+
+.inputPesquisar {
+  background-color: var(--white-secondary-color);
+  border-radius: 0.8rem;
+  border: none;
+  opacity: 0;
+  width: 0;
+  transition: width 0.5s ease-out, opacity 0.5s ease-out;
+  right: 740px;
+  height: 48px;
+}
+
+.inputPesquisar.visivel {
+  opacity: 1;
+  width: 160px;
+  height: 48px;
+}
+
+.ListagemVenda {
+  width: 100%;
+  height: calc(100vh - 80px);
+  overflow-y: auto;
+  display: grid;
+  justify-content: center;
+}	
+.ListagemVenda h1{
+  font-size: 3rem;
+  color: var(--white-secondary-color);
+  display: flex;
+
+  justify-content: center;
+}
+.scrollVenda {
+  background-color: var(--white-primary-color);
+  width: 1000px;
+  height: calc(100vh - 280px);
+  color: var(--black-primary-color);
+  border: 1px solid var(--black-primary-color);
+  margin: 2rem 16rem;
+  padding: 0;
+  overflow-y: auto;
+  display: block;
+}
+.tableVenda {
+  background-color: var(--white-primary-color);
+  width: 100%;
+  height: auto;
+  color: var(--black-primary-color);
+  border: 1px solid var(--black-primary-color);
+  padding: 0;
+  overflow-y: auto;
+}
+tbody,
+thead {
+  width: 100%;
+}
+th,
+tr,
+td,
+tbody,
+thead {
+  border: 1px solid var(--black-primary-color);
+  margin: 0;
+  gap: 0;
+  padding: 3px;
+  font-size: 20px;
+}
+
+/* DetalhesVenda layout */
+.detalhesVendaContainer {
+  background: #232323;
+  color: #fff;
+  padding: 32px 24px;
+  border-radius: 12px;
+  max-width: 1100px;
+  margin: 40px auto;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.detalhesVendaTitulo {
+  font-size: 1.7rem;
+  margin-bottom: 18px;
+  color: #fff;
+}
+
+.detalhesVendaContent {
+  display: flex;
+  gap: 32px;
+}
+
+.detalhesVendaInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 260px;
+}
+
+.detalhesVendaInfo label {
+  background: #333;
+  color: #fff;
+  border-radius: 7px;
+  padding: 6px 18px;
+  margin-bottom: 4px;
+  display: inline-block;
+  font-size: 1rem;
+}
+
+.detalhesVendaInfo input {
+  background: #eaeaea;
+  color: #222;
+  border: none;
+  border-radius: 7px;
+  padding: 7px 12px;
+  font-size: 1rem;
+  margin-bottom: 8px;
+  width: 100%;
+}
+
+.detalhesVendaTabelaWrapper {
+  flex: 1;
+  background: #eaeaea;
+  border-radius: 8px;
+  padding: 18px 12px;
+  overflow-x: auto;
+}
+
+.detalhesVendaTabela {
+  width: 100%;
+  border-collapse: collapse;
+  background: #eaeaea;
+  color: #222;
+}
+
+.detalhesVendaTabela th, .detalhesVendaTabela td {
+  border: 1px solid #bbb;
+  padding: 8px 12px;
+  text-align: center;
+}
+
+.detalhesVendaTabela th {
+  background: #f9c74f;
+  color: #222;
+  font-weight: 600;
+}
+
+.btnVoltarVenda {
+  margin-top: 24px;
+  background: #f9c74f;
+  color: #222;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 28px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btnVoltarVenda:hover {
+  background: #f9844a;
+  color: #fff;
+}
+
+
+
+
+
+
+
+.centroEditarVenda {
+  height: calc(100vh - 80px);
+  width: 100%;
+}
+
+.EditarVenda {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  display: grid;
+  justify-content: center;
+}
+
+.EditarVenda h1 {
+  font-size: 3rem;
+  color: var(--white-secondary-color);
+}
+
+.divEditarVenda {
+  display: grid;
+  grid-template-columns: repeat(2, 180px);
+  grid-template-rows: repeat(5, 80px);
+  row-gap: .1rem;
+  column-gap: 3rem;
+}
+
+ .inputIdEditarVenda {
+  grid-column-start: 1;
+  grid-row-start: 1;
+  grid-column-end: -1;
+}  
+
+.inputEditarVenda {
+  background-color: var(--white-secondary-color);
+  border: none;
+  height: 60px;
+  border-radius: 0.5rem;
+  width: 210px;
+}
+
+.inputEditarVenda::placeholder {
+  color: var(--black-primary-color);
+  font-size: 1rem;
+}
+
+.selectEditarVenda {
+  border: none;
+  background-color: var(--white-secondary-color);
+  font-size: 1rem;
+  width: 210px;
+  color: var(--black-primary-color);
+  border-radius: 0.5rem;
+  height: 60px;
+}
+
+.buttonsGroupEditarVenda {
+  display: flex;
+  width: 500px;
+  justify-content: space-around;
+  gap: 2rem;
+}
+
+.btnEditarVenda {
+  border: none;
+  color: var(--black-primary-color);
+  text-align: center;
+  font-size: 1rem;
+  width: 200px;
+  height: 60px;
+  cursor: pointer;
+  border-radius: 0.8rem;
+}
+
+.inputEditarVenda, .inputCadastroVenda {
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #888;
+  margin-bottom: 8px;
+  background: #333;
+  color: #fff;
+}
+.btnAddItem, .btnCancelarItem, .btnSalvarVenda, .btnVoltarVenda {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  background: #ffb300;
+  color: #222;
+  font-weight: bold;
+  cursor: pointer;
+  margin-left: 4px;
+}
+.btnAddItem:hover, .btnCancelarItem:hover, .btnSalvarVenda:hover, .btnVoltarVenda:hover {
+  background: #ffd54f;
+}
+fieldset {
+  margin-bottom: 20px;
+}
