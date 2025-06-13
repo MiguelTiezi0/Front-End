@@ -81,6 +81,7 @@ export const Nav = () => {
           </details>
         </li>
         <li className="nav-li">
+          
           <details
             className="nav-details"
             ref={(el) => (detailsRefs.current[2] = el)}
@@ -95,13 +96,13 @@ export const Nav = () => {
             </ul>
           </details>
         </li>
-        <li className="nav-li">
-          <a className="nav-a" href="/">
-            <Link to="/Venda/CadastroVenda" className="nav-a">
+          <li className="nav-li">
+               <Link to="/Venda/CadastroVenda" className="nav-a">
               Vender
             </Link>
-          </a>
-        </li>
+              </li>
+              
+       
       </ul>
     </nav>
   );

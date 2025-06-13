@@ -155,26 +155,26 @@ export function EditarVenda() {
     "Dinheiro",
     "Cartão",
     "Pix",
-    "Boleto",
     "Crediário",
     "Consignação",
   ];
 
   return (
-    <div className="centroEditarVen" style={{ display: "flex", justifyContent: "center", marginTop: 32 }}>
-      <div className="EditarVenda" style={{ background: "#222", padding: 32, borderRadius: 12, minWidth: 420, maxWidth: 700, color: "#fff" }}>
-        <h1 style={{ textAlign: "center", marginBottom: 24 }}>Editar Venda</h1>
-        <form className="divEditarVenda" onSubmit={handleSubmit}>
-          <fieldset style={{ border: "1px solid #444", borderRadius: 8, padding: 16, marginBottom: 24 }}>
-            <legend style={{ padding: "0 8px" }}>Dados da Venda</legend>
-            <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
+    <div className="centroEditarVen" >
+      <div className="EditarVenda" >
+        <h1 className="EditarVendaTitulo" >Editar Venda</h1>
+        <form className="formEditarVenda" onSubmit={handleSubmit}>
+        <div className="divEditarVenda">
+          <fieldset className="DadosEditarVenda">
+            <legend >Dados da Venda</legend>
+            <div >
               <input
                 type="text"
                 name="id"
                 readOnly
                 value={id}
                 className="inputEditarVenda inputIdEditarVenda"
-                style={{ flex: 1 }}
+              
               />
               <input
                 type="datetime-local"
@@ -183,17 +183,17 @@ export function EditarVenda() {
                 className="inputEditarVenda"
                 value={venda.dataVenda}
                 onChange={handleChange}
-                style={{ flex: 2 }}
+              
               />
             </div>
-            <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
+            <div >
               <select
                 name="funcionarioId"
                 className="inputEditarVenda"
                 required
                 value={venda.funcionarioId}
                 onChange={handleChange}
-                style={{ flex: 1 }}
+               
               >
                 <option value="">Funcionário</option>
                 {funcionarios.map(f => (
@@ -206,7 +206,7 @@ export function EditarVenda() {
                 required
                 value={venda.clienteId}
                 onChange={handleChange}
-                style={{ flex: 1 }}
+              
               >
                 <option value="">Cliente</option>
                 {clientes.map(c => (
@@ -214,7 +214,7 @@ export function EditarVenda() {
                 ))}
               </select>
             </div>
-            <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
+            <div>
               <input
                 type="number"
                 name="totalDeItens"
@@ -223,7 +223,7 @@ export function EditarVenda() {
                 className="inputEditarVenda"
                 value={venda.totalDeItens}
                 readOnly
-                style={{ flex: 1 }}
+        
               />
               <input
                 type="number"
@@ -233,7 +233,7 @@ export function EditarVenda() {
                 className="inputEditarVenda"
                 value={venda.valorTotal}
                 readOnly
-                style={{ flex: 1 }}
+          
               />
             </div>
             <select
@@ -241,7 +241,7 @@ export function EditarVenda() {
               multiple
               value={venda.formaDePagamento}
               onChange={handleFormaPagamentoChange}
-              style={{ width: "100%", marginBottom: 0 }}
+            
             >
               {formasPagamento.map(fp => (
                 <option key={fp} value={fp}>{fp}</option>
@@ -249,15 +249,15 @@ export function EditarVenda() {
             </select>
           </fieldset>
 
-          <fieldset style={{ border: "1px solid #444", borderRadius: 8, padding: 16, marginBottom: 24 }}>
-            <legend style={{ padding: "0 8px" }}>Adicionar Item</legend>
-            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <fieldset className="EditarVendaAdicionarItem" >
+            <legend >Adicionar Item</legend>
+            <div >
               <select
                 name="produtoId"
                 className="inputCadastroVenda"
                 value={novoItem.produtoId}
                 onChange={handleNovoItemChange}
-                style={{ flex: 2 }}
+               
               >
                 <option value="">Produto</option>
                 {produtos.map(p => (
@@ -273,22 +273,22 @@ export function EditarVenda() {
                 value={novoItem.quantidade}
                 onChange={handleNovoItemChange}
                 placeholder="Qtd"
-                style={{ width: 70, flex: 1 }}
+              
               />
-              <span style={{ minWidth: 110, textAlign: "center", flex: 1 }}>
+              <span >
                 {novoItem.valorDoItem
                   ? `R$ ${Number(novoItem.valorDoItem).toFixed(2)}`
                   : ""}
               </span>
-              <button type="button" className="btnAddItem" onClick={handleAdicionarItem} style={{ flex: 1 }}>
+              <button type="button" className="btnAddItem" onClick={handleAdicionarItem} >
                 Adicionar Item
               </button>
             </div>
           </fieldset>
 
-          <fieldset style={{ border: "1px solid #444", borderRadius: 8, padding: 16, marginBottom: 24 }}>
-            <legend style={{ padding: "0 8px" }}>Itens da Venda</legend>
-            <table className="detalhesVendaTabela" style={{ width: "100%", background: "#fff", color: "#222", borderRadius: 6 }}>
+          <fieldset className="EditarVendaItensVenda">
+            <legend>Itens da Venda</legend>
+            <table className="EditardetalhesVendaTabela">
               <thead>
                 <tr>
                   <th>ID</th>
@@ -323,10 +323,11 @@ export function EditarVenda() {
               </tbody>
             </table>
           </fieldset>
+          </div>
 
-          <div className="buttonsGroupEditarVenda" style={{ display: "flex", justifyContent: "space-between", marginTop: 24 }}>
+          <div className="buttonsGroupEditarVenda" >
             <Link to="/Venda/ListagemVenda" className="linkCadastro">
-              <button type="button" className="btnVenda btnVoltarVenda">
+              <button type="button" className="btnVenda btnVoltarEditarVenda">
                 Voltar
               </button>
             </Link>

@@ -14,6 +14,7 @@
 }
 .nav-details {
   cursor: pointer;
+  position: relative; /* Adicione esta linha */
 }
 .nav-ul {
   display: flex;
@@ -25,6 +26,8 @@
   height: 100%;
 }
 .nav-li {
+  z-index: 3;
+  min-width: 120px;
     height: 3rem;
     display: flex;
     justify-content: center;

@@ -105,7 +105,7 @@ export function DetalhesVenda() {
           </table>
         </div>
       </div>
-       <button className="btnVoltarVenda" onClick={() => navigate("/Venda/ListagemVenda")}>V</button>
+       <button className="btnVoltarVenda" onClick={() => navigate("/Venda/ListagemVenda")}>Voltar</button>
       <Link to={`/Venda/EditarVenda/${id}`}>
         <button className="btnVoltarVenda" type="button">
           Editar
