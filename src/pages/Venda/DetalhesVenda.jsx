@@ -49,28 +49,22 @@ export function DetalhesVenda() {
       <div className="detalhesVendaContent">
         <div className="detalhesVendaInfo">
           <div>
-            <label>Funcionário</label>
-            <input type="text" disabled value={funcionario.nome} />
+            <input type="text" className="inputDetalhes" disabled value={`Funcionário: ${funcionario.nome}`} />
           </div>
           <div>
-            <label>CPF</label>
-            <input type="text" disabled value={funcionario.cpf || ""} />
+            <input type="text" className="inputDetalhes" disabled value={`Nome Cliente: ${cliente.nome}`} />
           </div>
           <div>
-            <label>Cliente</label>
-            <input type="text" disabled value={cliente.nome} />
+            <input type="text" className="inputDetalhes" disabled value={`Cpf cliente: ${cliente.cpf || ""}`} />
           </div>
           <div>
-            <label>Data da venda</label>
-            <input type="text" disabled value={new Date(venda.dataVenda).toLocaleString("pt-BR")} />
+            <input type="text" className="inputDetalhes" disabled value={`Data: ${new Date(venda.dataVenda).toLocaleString("pt-BR")}`} />
           </div>
           <div>
-            <label>Valor total</label>
-            <input type="text" disabled value={`R$ ${Number(venda.valorTotal).toFixed(2)}`} />
+            <input type="text" className="inputDetalhes" disabled value={`Valor total: R$ ${Number(venda.valorTotal).toFixed(2)}`} />
           </div>
           <div>
-            <label>Forma de pagamento</label>
-            <input type="text" disabled value={Array.isArray(venda.formaDePagamento) ? venda.formaDePagamento.join(", ") : venda.formaDePagamento} />
+            <input type="text" className="inputDetalhes" disabled value={`Forma de Pagamento: ${Array.isArray(venda.formaDePagamento) ? venda.formaDePagamento.join(", ") : venda.formaDePagamento}`} />
           </div>
         </div>
         <div className="detalhesVendaTabelaWrapper">
@@ -105,9 +99,9 @@ export function DetalhesVenda() {
           </table>
         </div>
       </div>
-       <button className="btnVoltarVenda" onClick={() => navigate("/Venda/ListagemVenda")}>Voltar</button>
+       <button className="btnVoltarVenda btnDetalhesVoltar" onClick={() => navigate("/Venda/ListagemVenda")}>Voltar</button>
       <Link to={`/Venda/EditarVenda/${id}`}>
-        <button className="btnVoltarVenda" type="button">
+        <button className="btnVoltarVenda btnDetalhesEditar" type="button">
           Editar
         </button>
       </Link>

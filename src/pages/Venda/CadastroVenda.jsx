@@ -163,13 +163,7 @@ export function CadastroVenda() {
     fetch(linkPro).then(r => r.json()).then(setProdutos);
   };
 
-  const formasPagamento = [
-    "Dinheiro",
-    "Cartão",
-    "Pix",
-    "Crediário",
-    "Consignação",
-  ];
+  const formasPagamento =  ["Dinheiro", "Débito", "Pix", "Crédito", "Crediário", "Consignação"];
 
   return (
     <div className="centroCadastroVendas">

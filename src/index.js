@@ -37,10 +37,11 @@ import { EditarVenda } from './pages/Venda/EditarVenda.jsx';
 import { DetalhesVenda } from './pages/Venda/DetalhesVenda.jsx';
 
 
-
+import { AlertProvider } from './hooks/Alerta/useAlerta.jsx';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
+  <AlertProvider>
     <BrowserRouter>
       <Header />
 
@@ -90,5 +91,7 @@ root.render(
         <p>&copy; 2025 Sistema de Gestão MiguelTiera. Todos os direitos reservados.</p>
       </footer> */}
     </BrowserRouter>
+  </AlertProvider>
   </React.StrictMode>
+  
 );

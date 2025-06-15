@@ -114,6 +114,7 @@ body {
 .top-nav {
   position: absolute;
   right: 40px;
+  top: 100px;
   display: flex;
   justify-content: space-evenly;
   gap: 5rem;
@@ -237,79 +238,7 @@ thead {
 }
 
 
-.centroDetalhesCliente {
-  height: calc(100vh - 80px);
-  width: 100%;
-}
 
-.DetalhesCliente {
-  width: 100%;
-  height: 100%;
-  overflow-y: auto;
-  display: grid;
-  justify-content: center;
-}
-
-.DetalhesCliente h1 {
-  font-size: 2rem;
-  color: var(--white-secondary-color);
-}
-
-.divDetalhesCliente {
-  display: grid;
-  grid-template-columns: repeat(2, 180px);
-  grid-template-rows: repeat(5, 80px);
-  row-gap: .1rem;
-  column-gap: 3rem;
-}
-
- .inputIdDetalhesCliente {
-  grid-column-start: 1;
-  grid-row-start: 1;
-  grid-column-end: -1;
-}  
-
-.inputDetalhesCliente {
-  background-color: var(--white-secondary-color);
-  border: none;
-  height: 60px;
-  border-radius: 0.5rem;
-  width: 210px;
-}
-
-.inputDetalhesCliente {
-  color: var(--black-primary-color);
-  font-size: 1.2rem;
-}
-
-.selectDetalhesCliente {
-  border: none;
-  background-color: var(--white-secondary-color);
-  font-size: 1rem;
-  width: 210px;
-  color: var(--black-primary-color);
-  border-radius: 0.5rem;
-  height: 60px;
-}
-
-.buttonsGroupDetalhesCliente {
-  display: flex;
-  width: 500px;
-  justify-content: space-around;
-  
-}
-
-.btnDetalhesCliente {
-  border: none;
-  color: var(--black-primary-color);
-  text-align: center;
-  font-size: 1rem;
-  width: 200px;
-  height: 60px;
-  cursor: pointer;
-  border-radius: 0.8rem;
-  margin: 0.5rem;
-}
 
 
 
@@ -391,3 +320,150 @@ thead {
   border-radius: 0.8rem;
 }
 
+
+
+
+
+.centroDetalhesCliente {
+  height: calc(100vh - 80px);
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.DetalhesCliente {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  display: grid;
+  justify-content: center;
+}
+
+.DetalhesCliente h1 {
+  font-size: 2rem;
+  color: var(--white-secondary-color);
+}
+
+.divDetalhesCliente {
+  display: grid;
+  grid-template-columns: repeat(2, 180px);
+  grid-template-rows: repeat(5, 80px);
+  row-gap: .1rem;
+  column-gap: 3rem;
+}
+
+ .inputIdDetalhesCliente {
+  grid-column-start: 1;
+  grid-row-start: 1;
+  grid-column-end: -1;
+}  
+
+.inputDetalhesCliente {
+  background-color: var(--white-secondary-color);
+  border: none;
+  height: 60px;
+  border-radius: 0.5rem;
+  width: 210px;
+}
+
+.inputDetalhesCliente {
+  color: var(--black-primary-color);
+  font-size: 1.2rem;
+}
+
+.selectDetalhesCliente {
+  border: none;
+  background-color: var(--white-secondary-color);
+  font-size: 1rem;
+  width: 210px;
+  color: var(--black-primary-color);
+  border-radius: 0.5rem;
+  height: 60px;
+}
+
+.buttonsGroupDetalhesCliente {
+  display: flex;
+  width: 500px;
+  justify-content: space-around;
+  
+}
+
+.btnDetalhesCliente {
+  border: none;
+  color: var(--black-primary-color);
+  text-align: center;
+  font-size: 1rem;
+  width: 200px;
+  height: 60px;
+  cursor: pointer;
+  border-radius: 0.8rem;
+  margin: 0.5rem;
+}
+.contentDetalhesCliente {
+  width: 90%;
+  display: flex;
+justify-content: space-between;
+
+}
+.detalhesClienteTabela {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  max-height: 500px;
+  width: 800px;
+  overflow-y: auto;
+  display: block; /* Necessário para tabelas */
+  background-color: var(--white-primary-color);
+}
+
+.detalhesClienteTabela th,
+.detalhesClienteTabela td {
+  border: 1px solid #ccc;
+  font-size: 1.5rem;
+  width: 200px;
+  padding: 8px 10px;
+  text-align: center;
+  color: var(--black-primary-color);
+}
+.detalhesClienteTabela th {
+  background: #fdda76;
+}
+.detalhesClienteTotal th,
+.detalhesClienteTotal td {
+  color: var(--black-primary-color);
+  text-align: center;
+  font-size: .9rem;
+}
+
+
+.btnDetalharVendaCliente{
+  background-color: var(--yellow-secondary-color);
+  border: none;
+  border-radius: 0.8rem;
+  width: 180px;
+  height: 40px;
+  cursor: pointer;
+  font-size: 1.4rem;
+
+}
+.btnDetalharVendaClienteLink{
+    text-decoration: none;
+  color: var(--white-primary-color);
+  color: var(--black-primary-color-);
+}
+.PagarDetalhesCliente{
+  background-color: var(--yellow-secondary-color);
+  border: none;
+  border-radius: 0.8rem;
+  width: 100px;
+  height: 40px;
+  cursor: pointer;
+  font-size: 1.4rem;
+}
+.PagarDetalhesClienteLink {
+  text-decoration: none;
+  color: var(--white-primary-color);
+  color: var(--black-primary-color-);
+
+} 

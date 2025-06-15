@@ -3,7 +3,6 @@ import "./Venda.css";
 import lupa from "../../assets/icons/lupa.svg";
 import lixo from "../../assets/icons/lixo.svg";
 import olhoFechado from "../../assets/icons/olhoFechado.svg";
-import clonar from "../../assets/icons/clonar.svg";
 import edit from "../../assets/icons/edit.svg";
 import { useNavigate } from "react-router-dom";
 import { linkVen } from "./linkVen";
@@ -184,13 +183,7 @@ export function ListagemVenda() {
             <img src={edit} className="top-nav-img" alt="Editar" />
           </button>
 
-          <button
-            type="button"
-            className="top-nav-button clonar"
-            onClick={handleClonar}
-          >
-            <img src={clonar} className="top-nav-img" alt="Clonar" />
-          </button>
+        
         </div>
       </div>
       <div className="ListagemVenda">

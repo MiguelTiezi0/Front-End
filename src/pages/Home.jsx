@@ -9,5 +9,6 @@ export function Home() {
       <p>Selecione uma opção no menu para começar.</p>
 
     </div>
+    
   );
 }

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useAlerta } from "../../hooks/Alerta/useAlerta";
+
 import "./Produto.css";
 
 import { linkPro } from "./linkPro";
@@ -9,6 +11,7 @@ export function CadastroProduto() {
   document.title = "Cadastro de Produtos";
   const location = useLocation();
   const produtoClonado = location.state?.produto || null;
+  const alerta = useAlerta();
 
   const [Id, setId] = useState("");
   const [descricao, setDescricao] = useState(produtoClonado?.descricao || "");
@@ -106,13 +109,14 @@ export function CadastroProduto() {
 
         const novaCategoria = await responseCategoria.json();
         categoriaParaUsar = novaCategoria.id;
-        // Atualiza lista de categorias
+   ;
         setCategorias((prev) => [...prev, novaCategoria]);
       } catch (error) {
         console.error(error);
          alert("Erro ao cadastrar a nova categoria");
         return;
       }
+       
     }
 
     const produto = {
@@ -138,7 +142,7 @@ export function CadastroProduto() {
       if (!response.ok) {
         throw new Error("Erro ao cadastrar o produto");
       }
-
+  
 
 
       const responseProdutos = await fetch(linkPro, {
@@ -152,18 +156,24 @@ export function CadastroProduto() {
         throw new Error("Erro ao buscar produtos para calcular o próximo ID");
       }
 
+
       const produtos = await responseProdutos.json();
       const maiorId = produtos.reduce((max, produto) => Math.max(max, produto.id), 0);
       setId(maiorId + 1);
       // Limpa campo de outra categoria após cadastro
       setOutraCategoria("");
       setMostrarInputOutra(false);
+      
     } catch (error) {
       console.error(error);
        alert("Erro ao cadastrar o produto");
-    }
-  };
+       
+    
 
+  };
+    alerta("Produto cadastrado com sucesso!", "success");
+
+  }
 
 
   return (
