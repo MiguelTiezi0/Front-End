@@ -404,10 +404,10 @@ legend {
   padding: 1rem;
   border-radius: 10px;
   width: 600px;
-  height: 400px;
+  height: 500px;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  grid-template-rows: repeat(6, 1fr);
+  grid-template-rows: repeat(7, 1fr);
   gap: 10px;
 }
 

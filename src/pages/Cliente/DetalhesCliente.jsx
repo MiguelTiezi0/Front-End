@@ -12,6 +12,8 @@ export function DetalhesCliente() {
   const [cliente, setCliente] = useState(null);
   const [vendas, setVendas] = useState([]);
   const [totalGasto, setTotalGasto] = useState(0);
+  const [totalPago, setTotalPago] = useState(0);
+  const [totalDevido, setTotalDevido] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -57,6 +59,18 @@ export function DetalhesCliente() {
         setTotalGasto(
           vendasDoCliente.reduce(
             (acc, v) => acc + Number(v.valorTotal ?? v.ValorTotal),
+            0
+          )
+        );
+        setTotalPago(
+          vendasDoCliente.reduce(
+            (acc, v) => acc + Number(v.valorPago ?? v.ValorPago),
+            0
+          )
+        );
+        setTotalDevido(
+          vendasDoCliente.reduce(
+            (acc, v) => acc + Number(v.valorDevido ?? v.ValorDevido),
             0
           )
         );
@@ -113,6 +127,38 @@ export function DetalhesCliente() {
       alert("Erro ao deletar o cliente");
     }
   };
+
+  const vendasDoCliente = vendas.filter(
+    (v) => Number(v.clienteId ?? v.ClienteId) === Number(cliente.id)
+  );
+
+  const totalPagoCliente = vendasDoCliente.reduce(
+    (acc, v) => acc + Number(v.totalPago ?? v.TotalPago ?? 0),
+    0
+  );
+
+  const totalDevidoCliente = vendasDoCliente.reduce(
+    (acc, v) =>
+      acc +
+      (Number(v.valorTotal ?? v.ValorTotal ?? 0) -
+        Number(v.totalPago ?? v.TotalPago ?? 0)),
+    0
+  );
+
+  const pago = Number(cliente.totalPago ?? 0);
+  const devido = Number(cliente.totalDevido ?? 0);
+  const gasto = Number(cliente.totalGasto ?? 0);
+
+  function getRowColor(venda) {
+    const total = Number(venda.valorTotal ?? venda.ValorTotal ?? 0);
+    const pago = Number(venda.totalPago ?? venda.TotalPago ?? 0);
+
+    if (pago === total && total > 0) return "#ccffcc"; // Verde: totalmente paga
+    if (pago < total && pago > 0) return "#fff7b2"; // Amarelo: parcialmente paga
+    if (pago < total && pago === 0) return "#ffcccc"; // Vermelho: não paga
+
+    return ""; // Sem cor se não se encaixar em nenhum caso
+  }
 
   return (
     <div className="centroDetalhesCliente">
@@ -262,20 +308,31 @@ export function DetalhesCliente() {
                   </td>
                 </tr>
               ) : (
-                vendas.map((v) => (
-                  <tr key={v.id}>
-                    <td>{v.id}</td>
-                    <td>R$ {(v.valorTotal ?? v.ValorTotal).toFixed(2)}</td>
-                    <td>{(v.dataVenda ?? v.DataVenda)?.slice(0, 10)}</td>
-                    <td><button className="btnDetalharVendaCliente"><Link className="btnDetalharVendaClienteLink">Detalhar venda</Link></button></td>
-                  </tr>
-                ))
+                <>
+                  {vendas.map((v) => (
+                    <tr key={v.id} style={{ background: getRowColor(v) }}>
+                      <td>{v.id}</td>
+                      <td>
+                        R$ {Number(v.valorTotal ?? v.ValorTotal).toFixed(2)}
+                      </td>
+                      <td>{(v.dataVenda ?? v.DataVenda)?.slice(0, 10)}</td>
+                      <td>
+                        <button className="btnDetalharVendaCliente">
+                          <Link
+                            to={`/Venda/DetalhesVenda/${v.id}`}
+                            className="btnDetalharVendaClienteLink"
+                          >
+                            Detalhar venda
+                          </Link>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </>
               )}
-       
             </tbody>
             <td></td>
             <tfoot className="detalhesClienteTotal">
-              
               <tr>
                 <th>Total Gasto</th>
                 <th>Total Pago</th>
@@ -284,15 +341,28 @@ export function DetalhesCliente() {
               </tr>
               <tr>
                 <td>
-                  Total Gasto: <strong>R$ {totalGasto.toFixed(2)}</strong>
+                  Total Gasto:{" "}
+                  <strong>
+                    R$ {Number(cliente.totalGasto ?? 0).toFixed(2)}
+                  </strong>
                 </td>
                 <td>
-                  Total Pago: <strong>R$ {totalGasto.toFixed(2)}</strong>
+                  Total Pago:{" "}
+                  <strong>
+                    R$ {Number(cliente.totalPago ?? 0).toFixed(2)}
+                  </strong>
                 </td>
                 <td>
-                  Total Devido: <strong>R$ {totalGasto.toFixed(2)}</strong>
+                  Total Devido:{" "}
+                  <strong>
+                    R$ {Number(cliente.totalDevido ?? 0).toFixed(2)}
+                  </strong>
                 </td>
-                <td><button className="PagarDetalhesCliente"><Link className="PagarDetalhesClienteLink">Pagar</Link></button></td>
+                <td>
+                  <button className="PagarDetalhesCliente">
+                    <Link className="PagarDetalhesClienteLink">Pagar</Link>
+                  </button>
+                </td>
               </tr>
             </tfoot>
           </table>

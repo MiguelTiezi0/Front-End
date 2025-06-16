@@ -24,6 +24,26 @@ function validarCPF(cpf) {
   return dv1 === numeros[9] && dv2 === numeros[10];
 }
 
+
+
+function formatDateInput(value) {
+  let v = value.replace(/\D/g, "");
+  if (v.length > 8) v = v.slice(0, 8);
+  if (v.length > 4) {
+    return v.replace(/(\d{2})(\d{2})(\d{1,4})/, "$1/$2/$3");
+  } else if (v.length > 2) {
+    return v.replace(/(\d{2})(\d{1,2})/, "$1/$2");
+  }
+  return v;
+}
+
+function toISODate(dateStr) {
+  if (!dateStr) return "";
+  const [dd, mm, yyyy] = dateStr.split("/");
+  if (!dd || !mm || !yyyy) return dateStr;
+  return `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
+}
+
 export function CadastroCliente() {
   document.title = "Cadastro de Clientes";
 
@@ -79,7 +99,7 @@ export function CadastroCliente() {
       número: parseInt(numero),
       telefone,
       bairro,
-      dataNascimento,
+      dataNascimento: toISODate(dataNascimento),
       limiteDeCrédito: parseFloat(limiteDeCredito),
     };
 
@@ -192,13 +212,17 @@ export function CadastroCliente() {
           onChange={(e) => setBairro(e.target.value)}
         />
         <input
-          type="date"
+          type="text"
           required
           placeholder="Data de Nascimento"
           className="inputCadastroCliente"
           value={dataNascimento}
-          onChange={(e) => setDataNascimento(e.target.value)}
+          onChange={e => setDataNascimento(formatDateInput(e.target.value))}
+          maxLength={10}
+          data-mask="date"
+
         />
+
         <input
           type="number"
           required
