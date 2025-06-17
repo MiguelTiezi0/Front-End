@@ -36,8 +36,15 @@ import { DeletarVenda } from './pages/Venda/DeletarVenda.jsx';
 import { EditarVenda } from './pages/Venda/EditarVenda.jsx';
 import { DetalhesVenda } from './pages/Venda/DetalhesVenda.jsx';
 
+import { CadastroPagamento } from './pages/Pagamento/CadastroPagamento.jsx';
+import { ListagemPagamento } from './pages/Pagamento/ListagemPagamento.jsx';
+import { DeletarPagamento } from './pages/Pagamento/DeletarPagamento.jsx';
+import { EditarPagamento } from './pages/Pagamento/EditarPagamento.jsx';
+import { DetalhesPagamento } from './pages/Pagamento/DetalhesPagamento.jsx';
+
 
 import { AlertProvider } from './hooks/Alerta/useAlerta.jsx';
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
@@ -82,6 +89,13 @@ root.render(
         <Route path="/Venda/DeletarVenda" element={<DeletarVenda />} />
         <Route path="/Venda/EditarVenda/:id" element={<EditarVenda />} />
         <Route path="/Venda/DetalhesVenda/:id" element={<DetalhesVenda />} />
+
+        {/* Pagamento */}
+        <Route path="/Pagamento/Pagamento" element={<CadastroPagamento />} />
+        <Route path="/Pagamento/ListagemPagamento" element={<ListagemPagamento />} />
+        <Route path="/Pagamento/DeletarPagamento" element={<DeletarPagamento />} />
+        <Route path="/Pagamento/EditarPagamento/:id" element={<EditarPagamento />} />
+        <Route path="/Pagamento/DetalhesPagamento/:id" element={<DetalhesPagamento />} />
 
       </Routes>
 

@@ -93,12 +93,23 @@ export const Nav = () => {
                   Venda
                 </Link>
               </li>
+              <li className="nav-li">
+                <Link to="/Pagamento/ListagemPagamento" className="nav-a">
+                  Pagamento
+                </Link>
+              </li>
             </ul>
           </details>
         </li>
           <li className="nav-li">
                <Link to="/Venda/CadastroVenda" className="nav-a">
               Vender
+            </Link>
+              </li>
+              
+          <li className="nav-li">
+               <Link to="/Pagamento/Pagamento" className="nav-a">
+              Pagar
             </Link>
               </li>
               

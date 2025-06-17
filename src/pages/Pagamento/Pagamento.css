@@ -1,0 +1,16 @@
+:root {
+  --yellow-primary-color: #fdda76;
+  --yellow-secondary-color: #f9c74f;
+  --black-primary-color: #252525;
+  --black: #000000;
+  --white-primary-color: #d9d9d9;
+  --white-secondary-color: #ebebeb;
+  --red: #b41111;
+  --blue: #2974d7;
+  --green: #39862f;
+}
+
+option {
+  color: var(--black-primary-color);
+width: 100px;
+}
