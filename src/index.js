@@ -91,7 +91,7 @@ root.render(
         <Route path="/Venda/DetalhesVenda/:id" element={<DetalhesVenda />} />
 
         {/* Pagamento */}
-        <Route path="/Pagamento/Pagamento" element={<CadastroPagamento />} />
+        <Route path="/Pagamento/CadastroPagamento" element={<CadastroPagamento />} />
         <Route path="/Pagamento/ListagemPagamento" element={<ListagemPagamento />} />
         <Route path="/Pagamento/DeletarPagamento" element={<DeletarPagamento />} />
         <Route path="/Pagamento/EditarPagamento/:id" element={<EditarPagamento />} />

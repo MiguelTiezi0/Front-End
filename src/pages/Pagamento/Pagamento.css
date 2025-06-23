@@ -10,7 +10,356 @@
   --green: #39862f;
 }
 
-option {
+html,
+body {
+  max-height: 100vh;
+}
+
+
+
+.linhaSelecionadaPagamento {
+  background-color: blue !important;
+  color: white !important;
+}
+
+
+
+
+.centroCadastroPagamento{
+  height: auto;
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+}
+.CadastroPagamento{
+  padding: 0.5rem;
+  max-height: 80vh;
+}
+.cadastroPagamentoTitulo{
+  width: 100%;
+  min-width: 540px;
+  text-align: center;
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--white-primary-color);
+  margin-bottom: 20px;
+}
+.cadastroPagamentoForm{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 500px;
+  max-height: 60vh;
+  padding: 20px;
+  background-color: var(--white-primary-color);
+  border-radius: 10px;
+  box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+
+}
+.inputCadastroPagamento {
+  min-width: 400px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid var(--black-primary-color);
+  border-radius: 5px;
+  font-size: 16px;
+  background-color: var(--white-primary-color);
+}
+select.inputCadastroPagamento {
+  height: 42px; /* ajuste para bater com o input, se necessário */
+  line-height: 1.2;
+}
+.btnPagar{
+  width: 100%;
+  min-width: 200px;
+
+  padding: 10px;
+  margin: 10px 0;
+  background-color: var(--yellow-primary-color);
   color: var(--black-primary-color);
-width: 100px;
+  border: none;
+  border-radius: 16px;
+  font-size: 20px;
+  cursor: pointer;
+
+}
+
+
+
+/* Adicione ao Pagamento.css */
+
+.centroListagemPagamento {
+  min-height: 100vh;
+  width: 100vw;
+  background: #222;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+
+.top-nav-pagamento {
+  position: absolute;
+  right: 40px;
+  display: flex;
+  justify-content: space-evenly;
+  gap: 5rem;
+  margin: 2rem 0;
+  box-sizing: border-box;
+}
+
+.top-nav-buttons-pagamento {
+  display: flex;
+  gap: 0.7rem;
+}
+
+.top-nav-button-pagamento {
+  cursor: pointer;
+  width: 100px;
+  height: 50px;
+  border-radius: 0.8rem;
+  align-items: center;
+  font-size: 16px;
+  border: none;
+}
+
+.top-nav-img-pagamento {
+  width: 100%;
+  height: 100%;
+}
+.newPagamento{
+  background: var(--yellow-primary-color);
+  color: var(--black-primary-color);
+}
+.editarPagamentoBtn {
+  background: var(--green);
+  color: var(--black-primary-color);
+  }
+.detalhesPagamentoBtn {
+  background: var(--blue);
+  color: var(--black-primary-color);
+  
+}
+.top-nav-button-pagamento:hover {
+  background: var(--yellow-secondary-color);
+}
+
+.tituloListagemPagamento {
+  text-align: center;
+  font-size: 3rem;
+  font-weight: bold;
+  color: #fff;
+  margin: 32px 0 24px 0;
+}
+
+.ListagemPagamento {
+  width: 100%;
+  height: calc(100vh - 80px);
+  overflow-y: auto;
+  display: grid;
+  justify-content: center;
+}
+
+.ListagemPagamento h1 {
+  font-size: 3rem;
+  color: var(--white-secondary-color);
+  display: flex;
+
+  justify-content: center;
+}
+
+.scrollPagamento {
+  background-color: var(--white-primary-color);
+  width: 1000px;
+  height: calc(100vh - 280px);
+  color: var(--black-primary-color);
+  border: 1px solid var(--black-primary-color);
+  margin: 2rem 16rem;
+  padding: 0;
+  overflow-y: auto;
+  display: block;
+}
+
+.tablePagamento {
+  background-color: var(--white-primary-color);
+  width: 100%;
+  height: auto;
+  color: var(--black-primary-color);
+  border: 1px solid var(--black-primary-color);
+  padding: 0;
+  overflow-y: auto;
+}
+
+
+
+
+/* DetalhesPagamento estilização */
+
+.detalhesPagamentoContainer {
+  min-height: 100vh;
+  width: 100vw;
+  background: #222;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.detalhesPagamentoCard {
+  background: var(--white-primary-color);
+  border-radius: 16px;
+  box-shadow: 0 0 16px rgba(0,0,0,0.12);
+  padding: 40px 32px 32px 32px;
+  min-width: 400px;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.detalhesPagamentoTitulo {
+  font-size: 2.2rem;
+  font-weight: bold;
+  color: var(--black-primary-color);
+  margin-bottom: 32px;
+  text-align: center;
+  
+}
+
+.detalhesPagamentoInfo {
+  width: 100%;
+  max-width: 300px;
+  margin-bottom: 32px;
+}
+
+.detalhesPagamentoInfo > div {
+  font-size: 1.15rem;
+  margin-bottom: 12px;
+  color: var(--black-primary-color);
+  display: flex;
+  gap: 8px;
+  
+}
+
+.detalhesPagamentoLabel {
+  font-weight: bold;
+  color: var(--black-primary-color);
+  min-width: 160px;
+  display: inline-block;
+  text-align: left;
+
+
+}
+.divDetalhesPagamentoLabel{
+  display: flex;
+  justify-content: space-between;
+  text-align: left;
+} 
+
+.detalhesPagamentoBtnVoltar {
+  background: var(--red);
+  color: var(--black-primary-color);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 32px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.detalhesPagamentoBtnEditar{
+    background: var(--green);
+  color: var(--black-primary-color);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 32px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-left:10px ;
+}
+.detalhesPagamentoBtnVoltar:hover {
+  background: var(--yellow-secondary-color);
+}
+
+.detalhesPagamentoCarregando {
+  color: #fff;
+  font-size: 1.3rem;
+  text-align: center;
+  margin-top: 80px;
+}
+
+
+
+.centroEditarPagamento {
+  min-height: 88vh;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #222;
+}
+
+.olhoFechado {
+  background-color: var(--blue);
+}
+
+.olhoAberto {
+  background-color: var(--blue);
+}
+.EditarPagamento {
+  background: var(--white-primary-color);
+  border-radius: 16px;
+  box-shadow: 0 0 16px rgba(0,0,0,0.12);
+  padding: 40px 32px 32px 32px;
+  min-width: 400px;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.editarPagamentoTitulo {
+  font-size: 2.2rem;
+  font-weight: bold;
+  color: var(--black-primary-color);
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.editarPagamentoForm {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.inputEditarPagamento {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--black-primary-color);
+  border-radius: 5px;
+  font-size: 16px;
+  margin-bottom: 0;
+  box-sizing: border-box;
+}
+
+.btnEditarPagamentoSalvar {
+  background: var(--green);
+  color: var(--white-secondary-color);
+  border: none;
+  width: 100%;
+  border-radius: 8px;
+  padding: 10px 32px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btnEditarPagamentoSalvar:hover {
+  background: #003366;
 }

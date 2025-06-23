@@ -34,7 +34,6 @@ export function DetalhesVenda() {
     fetch(linkVenItens)
       .then((r) => r.json())
       .then((data) => {
-        // Aceita tanto vendaId quanto VendaId
         setItens(
           data.filter((i) => Number(i.vendaId ?? i.VendaId) === Number(id))
         );
@@ -119,6 +118,14 @@ export function DetalhesVenda() {
               type="text"
               className="inputDetalhes"
               disabled
+              value={`Desconto: R$ ${Number(venda.desconto ?? 0).toFixed(2)}`}
+            />
+          </div>
+          <div>
+            <input
+              type="text"
+              className="inputDetalhes"
+              disabled
               value={`Total Pago: R$ ${Number(venda.totalPago).toFixed(2)}`}
             />
           </div>
@@ -127,7 +134,7 @@ export function DetalhesVenda() {
               type="text"
               className="inputDetalhes"
               disabled
-              value={`Total Restante: R$ ${(Number(venda.valorTotal).toFixed(2) - Number(venda.totalPago).toFixed(2)).toFixed(2)}`}
+              value={`Total Restante: R$ ${(Number(venda.valorTotal) - Number(venda.totalPago)).toFixed(2)}`}
             />
           </div>
         </div>
@@ -163,10 +170,7 @@ export function DetalhesVenda() {
                           : item.produtoId ?? item.ProdutoId}
                       </td>
                       <td>
-                        R${" "}
-                        {Number(item.valorDoItem ?? item.ValorDoItem).toFixed(
-                          2
-                        )}
+                        R$ {Number(item.valorDoItem ?? item.ValorDoItem).toFixed(2)}
                       </td>
                     </tr>
                   );
@@ -190,3 +194,4 @@ export function DetalhesVenda() {
     </div>
   );
 }
+

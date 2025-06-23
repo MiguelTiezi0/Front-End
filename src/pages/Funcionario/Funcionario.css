@@ -235,9 +235,20 @@ thead {
 .centroDetalhesFuncionario {
   height: calc(100vh - 80px);
   width: 100%;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.contentDetalhesFuncionario {
+  width: 90%;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
 }
 
 .DetalhesFuncionario {
+  
   width: 100%;
   height: 100%;
   overflow-y: auto;
@@ -245,9 +256,10 @@ thead {
   justify-content: center;
 }
 
-.DetalhesFuncionario h1 {
+.DetalhesFuncTitulo {
   font-size: 2rem;
   color: var(--white-secondary-color);
+  margin-bottom: 1rem;
 }
 
 .divDetalhesFuncionario {
@@ -258,11 +270,11 @@ thead {
   column-gap: 3rem;
 }
 
- .inputIdDetalhesFuncionario {
+.inputIdDetalhesFuncionario {
   grid-column-start: 1;
   grid-row-start: 1;
   grid-column-end: -1;
-}  
+}
 
 .inputDetalhesFuncionario {
   background-color: var(--white-secondary-color);
@@ -270,28 +282,14 @@ thead {
   height: 60px;
   border-radius: 0.5rem;
   width: 210px;
-}
-
-.inputDetalhesFuncionario {
   color: var(--black-primary-color);
   font-size: 1.2rem;
-}
-
-.selectDetalhesFuncionario {
-  border: none;
-  background-color: var(--white-secondary-color);
-  font-size: 1rem;
-  width: 210px;
-  color: var(--black-primary-color);
-  border-radius: 0.5rem;
-  height: 60px;
 }
 
 .buttonsGroupDetalhesFuncionario {
   display: flex;
   width: 500px;
   justify-content: space-around;
-  
 }
 
 .btnDetalhesFuncionario {
@@ -306,83 +304,64 @@ thead {
   margin: 0.5rem;
 }
 
-
-
-
-
-
-
-
-.centroEditarFuncionario {
-  height: calc(100vh - 80px);
-  width: 100%;
-}
-
-.EditarFuncionario {
-  width: 100%;
-  height: 100%;
-  overflow-y: auto;
-  display: grid;
-  justify-content: center;
-}
-
-.EditarFuncionario h1 {
-  font-size: 3rem;
-  color: var(--white-secondary-color);
-}
-
-.divEditarFuncionario {
-  display: grid;
-  grid-template-columns: repeat(2, 180px);
-  grid-template-rows: repeat(5, 80px);
-  row-gap: .1rem;
-  column-gap: 3rem;
-}
-
- .inputIdEditarFuncionario {
-  grid-column-start: 1;
-  grid-row-start: 1;
-  grid-column-end: -1;
-}  
-
-.inputEditarFuncionario {
-  background-color: var(--white-secondary-color);
-  border: none;
-  height: 60px;
-  border-radius: 0.5rem;
-  width: 210px;
-}
-
-.inputEditarFuncionario::placeholder {
-  color: var(--black-primary-color);
-  font-size: 1rem;
-}
-
-.selectEditarFuncionario {
-  border: none;
-  background-color: var(--white-secondary-color);
-  font-size: 1rem;
-  width: 210px;
-  color: var(--black-primary-color);
-  border-radius: 0.5rem;
-  height: 60px;
-}
-
-.buttonsGroupEditarFuncionario {
+.VendasFuncionario {
+  width: 800px;
+  margin-left: 2rem;
   display: flex;
-  width: 500px;
-  justify-content: space-around;
-  gap: 2rem;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
-.btnEditarFuncionario {
-  border: none;
+.detalhesFuncionarioTabela {
+  
+  width: 100%;
+  min-width: 750px;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  max-height: 500px;
+  overflow-y: auto;
+  display: block;
+  background-color: var(--white-primary-color);
+  
+}
+
+.detalhesFuncionarioTabela th,
+.detalhesFuncionarioTabela td {
+  border: 1px solid #ccc;
+  font-size: 1.5rem;
+  width: 200px;
+  padding: 8px 10px;
+  text-align: center;
+  color: var(--black-primary-color);
+}
+
+.detalhesFuncionarioTabela th {
+  background: #fdda76;
+}
+
+.detalhesFuncionarioTotal th,
+.detalhesFuncionarioTotal td {
   color: var(--black-primary-color);
   text-align: center;
-  font-size: 1rem;
-  width: 200px;
-  height: 60px;
-  cursor: pointer;
+  font-size: 1.5rem;
+
+}
+.detalhesFuncionarioTotal th{
+  grid-template-areas: span 2;
+}
+.btnDetalharVendaFuncionario {
+  background-color: var(--yellow-secondary-color);
+  border: none;
   border-radius: 0.8rem;
+  width: 180px;
+  height: 40px;
+  cursor: pointer;
+  font-size: 1.4rem;
+  margin: 0 4px;
+}
+
+.btnDetalharVendaFuncionarioLink {
+  text-decoration: none;
+  color: var(--black-primary-color);
 }
 

@@ -108,7 +108,7 @@ export const Nav = () => {
               </li>
               
           <li className="nav-li">
-               <Link to="/Pagamento/Pagamento" className="nav-a">
+               <Link to="/Pagamento/CadastroPagamento" className="nav-a">
               Pagar
             </Link>
               </li>

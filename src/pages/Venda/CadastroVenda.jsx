@@ -6,6 +6,7 @@ import { linkFun } from "../Funcionario/linkFun";
 import { linkCli } from "../Cliente/linkCli";
 import { linkPro } from "../Produto/linkPro";
 import { linkVenItens } from "../ItensVenda/linkVenItens";
+import { linkPag } from "../Pagamento/linkPag";
 
 import "./Venda.css";
 
@@ -18,6 +19,9 @@ export function CadastroVenda() {
   const [produtos, setProdutos] = useState([]);
   const [itens, setItens] = useState([]);
   const [qtdParcelas, setQtdParcelas] = useState(1);
+  const [formaDePagamento, setFormaDePagamento] = useState("");
+  const [descontoTipo, setDescontoTipo] = useState("");
+  const [descontoValor, setDescontoValor] = useState("");
   const [totalPago, setTotalPago] = useState(0);
 
   const [venda, setVenda] = useState({
@@ -31,40 +35,41 @@ export function CadastroVenda() {
     dataVenda: new Date().toISOString().slice(0, 16),
   });
 
-  useEffect(() => {
-    fetch(linkFun).then((r) => r.json()).then(setFuncionarios);
-    fetch(linkCli).then((r) => r.json()).then(setClientes);
-    fetch(linkPro).then((r) => r.json()).then(setProdutos);
-  }, []);
-
-  useEffect(() => {
-    setVenda((v) => ({
-      ...v,
-      totalDeItens: itens.reduce((acc, i) => acc + Number(i.quantidade), 0),
-      valorTotal: itens.reduce((acc, i) => acc + Number(i.valorDoItem) * Number(i.quantidade), 0),
-    }));
-  }, [itens]);
-
-  useEffect(() => {
-    if (!id) return;
-
-    fetch(`${linkVen}/${id}`)
-      .then((r) => r.json())
-      .then((data) => {
-        setVenda(data);
-        setItens(data.itens || []);
-        setQtdParcelas(data.totalDeVezes || 1);
-        setTotalPago(data.totalPago || 0);
-      });
-  }, [id]);
-
   const [item, setItem] = useState({
     produtoId: "",
     valorDoItem: "",
     quantidade: 1,
   });
 
-  // Atualize o handleProdutoChange:
+  useEffect(() => {
+    fetch(linkFun)
+      .then((r) => r.json())
+      .then(setFuncionarios);
+    fetch(linkCli)
+      .then((r) => r.json())
+      .then(setClientes);
+    fetch(linkPro)
+      .then((r) => r.json())
+      .then(setProdutos);
+  }, []);
+
+  useEffect(() => {
+    setVenda((v) => ({
+      ...v,
+      totalDeItens: itens.reduce((acc, i) => acc + Number(i.quantidade), 0),
+    }));
+  }, [itens]);
+
+  useEffect(() => {
+    if (!id) return;
+    fetch(`${linkVen}/${id}`)
+      .then((r) => r.json())
+      .then((data) => {
+        setVenda(data);
+        setItens(data.itens || []);
+        setQtdParcelas(data.totalDeVezes || 1);
+      });
+  }, [id]);
 
   const handleProdutoChange = (e) => {
     const produtoId = Number(e.target.value);
@@ -76,7 +81,6 @@ export function CadastroVenda() {
     });
   };
 
-
   const handleQuantidadeChange = (e) => {
     setItem((i) => ({ ...i, quantidade: Number(e.target.value) }));
   };
@@ -84,7 +88,6 @@ export function CadastroVenda() {
   const handleAddItem = () => {
     const produtoId = Number(item.produtoId);
     if (!produtoId || !item.valorDoItem || !item.quantidade) {
-      console.log(produtoId, item.valorDoItem, item.quantidade)
       alert("Selecione um produto, quantidade e valor válidos.");
       return;
     }
@@ -97,7 +100,10 @@ export function CadastroVenda() {
       return;
     }
 
-    setItens([...itens, { ...item, produtoId, tempId: Date.now() + Math.random() }]);
+    setItens([
+      ...itens,
+      { ...item, produtoId, tempId: Date.now() + Math.random() },
+    ]);
     setItem({ produtoId: "", valorDoItem: "", quantidade: 1 });
   };
 
@@ -106,11 +112,14 @@ export function CadastroVenda() {
   };
 
   const handleFormaPagamento = (e) => {
-    const valor = e.target.value;
-    setVenda((v) => ({ ...v, formaDePagamento: [valor] }));
+    const value = e.target.value;
+    setFormaDePagamento(value);
+    setDescontoTipo("");
+    setDescontoValor("");
+    setVenda((v) => ({ ...v, formaDePagamento: [value] }));
 
     const parcelasDiv = document.getElementById("QtdParcelas");
-    if (valor === "Crédito" || valor === "Débito") {
+    if (value === "Crédito" || value === "Débito") {
       parcelasDiv.style.display = "block";
     } else {
       parcelasDiv.style.display = "none";
@@ -118,26 +127,72 @@ export function CadastroVenda() {
     }
   };
 
+  // Cálculo do valor com desconto aplicado
+  useEffect(() => {
+    const valorProdutos = itens.reduce(
+      (acc, i) => acc + Number(i.valorDoItem) * Number(i.quantidade),
+      0
+    );
+
+    let desconto = 0;
+    const valor = Number(descontoValor);
+
+    if (descontoTipo === "porcentagem" && !isNaN(valor)) {
+      desconto = valorProdutos * (valor / 100);
+    } else if (descontoTipo === "decimal" && !isNaN(valor)) {
+      desconto = valor;
+    }
+
+    const final = Math.max(0, valorProdutos - desconto);
+
+    setVenda((v) => ({
+      ...v,
+      valorTotal: final,
+      totalDeItens: itens.reduce((acc, i) => acc + Number(i.quantidade), 0),
+    }));
+  }, [itens, descontoTipo, descontoValor]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!venda.funcionarioId || !venda.clienteId || itens.length === 0) {
-      alert("Preencha todos os campos obrigatórios e adicione pelo menos um item.");
+      alert(
+        "Preencha todos os campos obrigatórios e adicione pelo menos um item."
+      );
       return;
     }
 
-    const isCartao = venda.formaDePagamento.includes("Crédito") || venda.formaDePagamento.includes("Débito");
+    const isCartao =
+      venda.formaDePagamento.includes("Crédito") ||
+      venda.formaDePagamento.includes("Débito");
     const totalDeVezes = isCartao ? qtdParcelas : 1;
-    const totalPago = isCartao ? parseFloat((venda.valorTotal / qtdParcelas).toFixed(2)) : venda.valorTotal;
+    const totalPagoNumber = Number(totalPago);
+
+    const valorProdutos = itens.reduce(
+      (acc, i) => acc + Number(i.valorDoItem) * Number(i.quantidade),
+      0
+    );
+
+    const valor = Number(descontoValor);
+    let desconto = 0;
+
+    if (descontoTipo === "porcentagem" && !isNaN(valor)) {
+      desconto = valorProdutos * (valor / 100);
+    } else if (descontoTipo === "decimal" && !isNaN(valor)) {
+      desconto = valor;
+    }
+
+    const valorFinal = valorProdutos - desconto;
 
     const vendaBody = {
       funcionarioId: Number(venda.funcionarioId),
       clienteId: Number(venda.clienteId),
       totalDeItens: venda.totalDeItens,
       valorTotal: venda.valorTotal,
-      totalPago: Number(totalPago),
+      totalPago: totalPagoNumber,
       formaDePagamento: venda.formaDePagamento,
       totalDeVezes: totalDeVezes,
       dataVenda: new Date(venda.dataVenda).toISOString(),
+      desconto: desconto,
     };
 
     const resVenda = await fetch(linkVen, {
@@ -152,6 +207,28 @@ export function CadastroVenda() {
     }
 
     const vendaSalva = await resVenda.json();
+
+    // Cria o pagamento automaticamente se totalPago > 0
+    if (totalPagoNumber > 0) {
+      const pagamentoBody = {
+        FuncionarioId: Number(venda.funcionarioId),
+        ClienteId: Number(venda.clienteId),
+        VendaId: vendaSalva.id,
+        TotalPago: totalPagoNumber,
+        Desconto: desconto,
+        FormaDePagamento: Array.isArray(venda.formaDePagamento)
+          ? venda.formaDePagamento
+          : [venda.formaDePagamento],
+        ToTalDeVezes: totalDeVezes,
+        DataPagamento: new Date().toISOString(),
+      };
+
+      await fetch(linkPag, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(pagamentoBody),
+      });
+    }
 
     for (const i of itens) {
       await fetch(linkVenItens, {
@@ -178,38 +255,6 @@ export function CadastroVenda() {
       }
     }
 
-    const clienteRes = await fetch(`${linkCli}/${venda.clienteId}`);
-    if (clienteRes.ok) {
-      const cliente = await clienteRes.json();
-      const vendasRes = await fetch(linkVen);
-      if (vendasRes.ok) {
-        const vendas = await vendasRes.json();
-        const vendasDoCliente = vendas.filter(
-          v => Number(v.clienteId ?? v.ClienteId) === Number(venda.clienteId)
-        );
-        const totalPagoCliente = vendasDoCliente.reduce(
-          (acc, v) => acc + Number(v.TotalPago ?? 0),
-          0
-        );
-        const totalGastoCliente = vendasDoCliente.reduce(
-          (acc, v) => acc + Number(v.ValorTotal ?? 0),
-          0
-        );
-        const totalDevidoCliente = totalGastoCliente - totalPagoCliente;
-
-        await fetch(`${linkCli}/${venda.clienteId}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...cliente,
-            totalPago: totalPagoCliente,
-            totalDevido: totalDevidoCliente,
-            totalGasto: totalGastoCliente,
-          }),
-        });
-      }
-    }
-
     alert("Venda cadastrada com sucesso!");
     navigate("../Venda/ListagemVenda");
     setItens([]);
@@ -224,10 +269,20 @@ export function CadastroVenda() {
       totalDeVezes: 1,
       dataVenda: new Date().toISOString().slice(0, 16),
     });
-    fetch(linkPro).then((r) => r.json()).then(setProdutos);
+    setTotalPago(0);
+    fetch(linkPro)
+      .then((r) => r.json())
+      .then(setProdutos);
   };
 
-  const formasPagamento = ["Dinheiro", "Débito", "Pix", "Crédito", "Crediário", "Consignação"];
+  const formasPagamento = [
+    "Dinheiro",
+    "Débito",
+    "Pix",
+    "Crédito",
+    "Crediário",
+    "Consignação",
+  ];
 
   return (
     <div className="centroCadastroVendas">
@@ -240,7 +295,9 @@ export function CadastroVenda() {
                 className="cadastroVendaInput"
                 required
                 value={venda.clienteId}
-                onChange={(e) => setVenda((v) => ({ ...v, clienteId: e.target.value }))}
+                onChange={(e) =>
+                  setVenda((v) => ({ ...v, clienteId: e.target.value }))
+                }
               >
                 <option value="">Cliente</option>
                 {clientes.map((c) => (
@@ -255,16 +312,22 @@ export function CadastroVenda() {
                 className="cadastroVendaInput"
                 type="text"
                 placeholder="CPF do Cliente"
-                value={clientes.find((c) => c.id === Number(venda.clienteId))?.cpf || ""}
+                value={
+                  clientes.find((c) => c.id === Number(venda.clienteId))?.cpf ||
+                  ""
+                }
                 disabled
               />
             </div>
+
             <div className="dividirInputVenda">
               <select
                 className="cadastroVendaInput"
                 required
                 value={venda.funcionarioId}
-                onChange={(e) => setVenda((v) => ({ ...v, funcionarioId: e.target.value }))}
+                onChange={(e) =>
+                  setVenda((v) => ({ ...v, funcionarioId: e.target.value }))
+                }
               >
                 <option value="">Funcionário</option>
                 {funcionarios.map((f) => (
@@ -280,7 +343,7 @@ export function CadastroVenda() {
                 className="cadastroVendaInput"
                 required
                 id="formaDePagamento"
-                value={venda.formaDePagamento}
+                value={formaDePagamento}
                 onChange={handleFormaPagamento}
               >
                 <option value="">Forma de pagamento</option>
@@ -294,8 +357,8 @@ export function CadastroVenda() {
 
             <div
               className="dividirInputVenda"
-              style={{ display: "none" }}
               id="QtdParcelas"
+              style={{ display: "none" }}
             >
               <select
                 className="cadastroVendaInput"
@@ -310,14 +373,59 @@ export function CadastroVenda() {
               </select>
             </div>
 
+            {(formaDePagamento === "Pix" ||
+              formaDePagamento === "Dinheiro") && (
+              <>
+                {!descontoTipo && (
+                  <div className="dividirInputVenda">
+                    <label>
+                      <input
+                        type="checkbox"
+                        onChange={() => setDescontoTipo("porcentagem")}
+                      />{" "}
+                      Porcentagem
+                    </label>
+                    <label>
+                      <input
+                        type="checkbox"
+                        onChange={() => setDescontoTipo("decimal")}
+                      />{" "}
+                      Reais
+                    </label>
+                  </div>
+                )}
+                {descontoTipo && (
+                  <div className="dividirInputVenda">
+                    <input
+                      className="cadastroVendaInput"
+                      type="number"
+                      min={0}
+                      max={
+                        descontoTipo === "porcentagem"
+                          ? 100
+                          : venda.valorTotal || 0
+                      }
+                      value={descontoValor}
+                      onChange={(e) => setDescontoValor(e.target.value)}
+                      placeholder={
+                        descontoTipo === "porcentagem"
+                          ? "Desconto em %"
+                          : "Desconto em reais"
+                      }
+                    />
+                  </div>
+                )}
+              </>
+            )}
             <div className="dividirInputVenda">
               <input
-                type="text"
+                type="number"
                 className="cadastroVendaInput"
                 value={totalPago}
+                min={0}
+                max={venda.valorTotal}
                 onChange={(e) => setTotalPago(e.target.value)}
                 placeholder="Total Pago"
-                min={0}
               />
             </div>
 
@@ -344,7 +452,8 @@ export function CadastroVenda() {
                 value={item.quantidade}
                 max={
                   item.produtoId
-                    ? produtos.find((p) => p.id === Number(item.produtoId))?.quantidade || 1
+                    ? produtos.find((p) => p.id === Number(item.produtoId))
+                        ?.quantidade || 1
                     : 1
                 }
                 onChange={handleQuantidadeChange}
@@ -394,7 +503,8 @@ export function CadastroVenda() {
                     <tr key={i.tempId}>
                       <td>{i.produtoId}</td>
                       <td>
-                        {produtos.find((p) => p.id === Number(i.produtoId))?.descricao || ""}
+                        {produtos.find((p) => p.id === Number(i.produtoId))
+                          ?.descricao || ""}
                       </td>
                       <td>{i.quantidade}</td>
                       <td>R$ {Number(i.valorDoItem).toFixed(2)}</td>
@@ -405,6 +515,15 @@ export function CadastroVenda() {
             </table>
             <div className="cadastroVendaValorTotalTabela">
               Valor total: <strong>R$ {venda.valorTotal.toFixed(2)}</strong>
+              {descontoTipo && descontoValor && (
+                <span style={{ marginLeft: 16, color: "#2d7a2d" }}>
+                  (Desconto:{" "}
+                  {descontoTipo === "porcentagem"
+                    ? `${descontoValor}%`
+                    : `R$ ${Number(descontoValor).toFixed(2)}`}
+                  )
+                </span>
+              )}
             </div>
           </div>
         </div>

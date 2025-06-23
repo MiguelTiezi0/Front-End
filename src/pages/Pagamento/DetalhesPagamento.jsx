@@ -4,6 +4,7 @@ import { linkPag } from "./linkPag";
 import { linkFun } from "../Funcionario/linkFun";
 import { linkCli } from "../Cliente/linkCli";
 import { linkVen } from "../Venda/linkVen";
+import "./Pagamento.css";
 
 export function DetalhesPagamento() {
   const { id } = useParams();
@@ -16,53 +17,78 @@ export function DetalhesPagamento() {
 
   useEffect(() => {
     fetch(`${linkPag}/${id}`)
-      .then(r => r.json())
-      .then(data => {
+      .then((r) => r.json())
+      .then((data) => {
         setPagamento(data);
         fetch(`${linkFun}/${data.funcionarioId ?? data.FuncionarioId}`)
-          .then(r => r.json())
+          .then((r) => r.json())
           .then(setFuncionario);
         fetch(`${linkCli}/${data.clienteId ?? data.ClienteId}`)
-          .then(r => r.json())
+          .then((r) => r.json())
           .then(setCliente);
         fetch(`${linkVen}/${data.vendaId ?? data.VendaId}`)
-          .then(r => r.json())
+          .then((r) => r.json())
           .then(setVenda);
       });
   }, [id]);
 
   if (!pagamento || !funcionario || !cliente || !venda) {
-    return <div>Carregando detalhes do pagamento...</div>;
+    return (
+      <div className="detalhesPagamentoCarregando">
+        Carregando detalhes do pagamento...
+      </div>
+    );
   }
+  console.log("Detalhes do Pagamento:", pagamento);
 
   return (
-    <div className="detalhesPagamento">
-      <h1>Detalhes do Pagamento</h1>
-      <div>
-        <strong>ID:</strong> {pagamento.id}
+    <div className="detalhesPagamentoContainer">
+      <div className="detalhesPagamentoCard">
+        <h1 className="detalhesPagamentoTitulo">Detalhes do Pagamento</h1>
+        <div className="detalhesPagamentoInfo">
+          <div className="divDetalhesPagamentoLabel">
+            <span className="detalhesPagamentoLabel">ID:</span> {pagamento.id}
+          </div>
+          <div className="divDetalhesPagamentoLabel">
+            <span className="detalhesPagamentoLabel">Funcionário:</span>{" "}
+            {funcionario.nome}
+          </div>
+          <div className="divDetalhesPagamentoLabel">
+            <span className="detalhesPagamentoLabel">Cliente:</span>{" "}
+            {cliente.nome}
+          </div>
+          <div className="divDetalhesPagamentoLabel">
+            <span className="detalhesPagamentoLabel">Forma de Pagamento:</span>{" "}
+            {pagamento.formaDePagamento ?? pagamento.FormaDePagamento}
+          </div>
+          <div className="divDetalhesPagamentoLabel">
+            <span className="detalhesPagamentoLabel">Total Pago:</span> R${" "}
+            {Number(pagamento.totalPago ?? pagamento.TotalPago).toFixed(2)}
+          </div>
+          <div className="divDetalhesPagamentoLabel">
+            <span className="detalhesPagamentoLabel">Total de Vezes:</span>{" "}
+            {pagamento.toTalDeVezes ?? pagamento.ToTalDeVezes}
+          </div>
+          <div className="divDetalhesPagamentoLabel">
+            <span className="detalhesPagamentoLabel">Data do Pagamento:</span>{" "}
+            {(pagamento.dataPagamento ?? pagamento.DataPagamento)?.slice(0, 10)}
+          </div>
+        </div>
+        <div className="detalhesPagamentoBtns">
+          <button
+            className="detalhesPagamentoBtnVoltar"
+            onClick={() => navigate(-1)}
+          >
+            Voltar
+          </button>
+          <button
+            className="detalhesPagamentoBtnEditar"
+            onClick={() => navigate(`/Pagamento/EditarPagamento/${pagamento.id}`)}
+          >
+            Editar
+          </button>
+        </div>
       </div>
-      <div>
-        <strong>Funcionário:</strong> {funcionario.nome}
-      </div>
-      <div>
-        <strong>Cliente:</strong> {cliente.nome}
-      </div>
-      <div>
-        <strong>Venda:</strong> {venda.id} - Total: R$ {Number(venda.valorTotal ?? venda.ValorTotal).toFixed(2)}
-      </div>
-      <div>
-        <strong>Forma de Pagamento:</strong> {pagamento.formaDePagamento ?? pagamento.FormaDePagamento}
-      </div>
-      <div>
-        <strong>Total Pago:</strong> R$ {Number(pagamento.totalPago ?? pagamento.TotalPago).toFixed(2)}
-      </div>
-      <div>
-        <strong>Total de Vezes:</strong> {pagamento.toTalDeVezes ?? pagamento.ToTalDeVezes}
-      </div>
-      <div>
-        <strong>Data do Pagamento:</strong> {(pagamento.dataPagamento ?? pagamento.DataPagamento)?.slice(0, 10)}
-      </div>
-      <button onClick={() => navigate(-1)}>Voltar</button>
     </div>
   );
 }

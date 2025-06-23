@@ -7,6 +7,7 @@ import { linkFun } from "../Funcionario/linkFun";
 import { linkCli } from "../Cliente/linkCli";
 import { linkVenItens } from "../ItensVenda/linkVenItens";
 import { linkPro } from "../Produto/linkPro";
+import { linkPag } from "../Pagamento/linkPag"; // IMPORTANTE
 
 export function EditarVenda() {
   const { id } = useParams();
@@ -34,6 +35,10 @@ export function EditarVenda() {
   const [qtdParcelas, setQtdParcelas] = useState(1);
   const [totalPago, setTotalPago] = useState(0);
 
+  // Desconto
+  const [descontoTipo, setDescontoTipo] = useState("");
+  const [descontoValor, setDescontoValor] = useState("");
+
   useEffect(() => {
     fetch(`${linkVen}/${id}`)
       .then((r) => r.json())
@@ -48,6 +53,12 @@ export function EditarVenda() {
         });
         setQtdParcelas(data.totalDeVezes || 1);
         setTotalPago(data.totalPago || 0);
+
+        // Se vier desconto do backend, tente deduzir tipo
+        if (data.desconto) {
+          setDescontoValor(data.desconto);
+          // O tipo não é salvo, então deixe o usuário escolher ao editar
+        }
       });
     fetch(linkFun)
       .then((r) => r.json())
@@ -69,19 +80,25 @@ export function EditarVenda() {
       .then(setProdutos);
   }, [id]);
 
+  // Recalcula valor total com desconto
   useEffect(() => {
+    const valorProdutos = itensEditados.reduce(
+      (acc, i) => acc + Number(i.valorDoItem) * Number(i.quantidade),
+      0
+    );
+    let desconto = 0;
+    const valor = Number(descontoValor);
+    if (descontoTipo === "porcentagem" && !isNaN(valor)) {
+      desconto = valorProdutos * (valor / 100);
+    } else if (descontoTipo === "decimal" && !isNaN(valor)) {
+      desconto = valor;
+    }
     setVenda((v) => ({
       ...v,
-      totalDeItens: itensEditados.reduce(
-        (acc, i) => acc + Number(i.quantidade),
-        0
-      ),
-      valorTotal: itensEditados.reduce(
-        (acc, i) => acc + Number(i.valorDoItem) * Number(i.quantidade),
-        0
-      ),
+      valorTotal: Math.max(0, valorProdutos - desconto),
+      totalDeItens: itensEditados.reduce((acc, i) => acc + Number(i.quantidade), 0),
     }));
-  }, [itensEditados]);
+  }, [itensEditados, descontoTipo, descontoValor]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -144,16 +161,32 @@ export function EditarVenda() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Calcule o desconto para enviar ao backend
+    const valorProdutos = itensEditados.reduce(
+      (acc, i) => acc + Number(i.valorDoItem) * Number(i.quantidade),
+      0
+    );
+    const valor = Number(descontoValor);
+    let desconto = 0;
+    if (descontoTipo === "porcentagem" && !isNaN(valor)) {
+      desconto = valorProdutos * (valor / 100);
+    } else if (descontoTipo === "decimal" && !isNaN(valor)) {
+      desconto = valor;
+    }
+
     const vendaBody = {
       Id: Number(id),
       FuncionarioId: Number(venda.funcionarioId),
       ClienteId: Number(venda.clienteId),
       TotalDeItens: Number(venda.totalDeItens),
-      ValorTotal: Number(venda.valorTotal),
+      ValorTotal: Number(valorProdutos - desconto),
       TotalPago: Number(totalPago),
-      FormaDePagamento: venda.formaDePagamento,
+      FormaDePagamento: Array.isArray(venda.formaDePagamento)
+        ? venda.formaDePagamento
+        : [venda.formaDePagamento],
       TotalDeVezes: Number(qtdParcelas),
       DataVenda: new Date(venda.dataVenda).toISOString(),
+      desconto: desconto,
     };
 
     const response = await fetch(`${linkVen}/${id}`, {
@@ -191,6 +224,30 @@ export function EditarVenda() {
             ProdutoId: Number(item.produtoId),
             ValorDoItem: Number(item.valorDoItem),
             quantidade: Number(item.quantidade),
+          }),
+        });
+      }
+    }
+
+    // Atualizar pagamento relacionado, se existir
+    const pagamentosRes = await fetch(linkPag);
+    if (pagamentosRes.ok) {
+      const pagamentos = await pagamentosRes.json();
+      const pagamento = pagamentos.find(
+        (p) => Number(p.vendaId ?? p.VendaId) === Number(id)
+      );
+      if (pagamento) {
+        await fetch(`${linkPag}/${pagamento.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...pagamento,
+            TotalPago: Number(totalPago),
+            ToTalDeVezes: Number(qtdParcelas),
+            FormaDePagamento: Array.isArray(venda.formaDePagamento)
+              ? venda.formaDePagamento
+              : [venda.formaDePagamento],
+            DataPagamento: new Date().toISOString(),
           }),
         });
       }
@@ -234,10 +291,6 @@ export function EditarVenda() {
       }
     }
 
-    navigate("/Venda/ListagemVenda");
-  };
-
-  const handleVoltar = () => {
     navigate("/Venda/ListagemVenda");
   };
 
@@ -331,12 +384,63 @@ export function EditarVenda() {
               ))}
             </select>
           </div>
+
+          {/* Desconto igual ao CadastroVenda */}
+          {(venda.formaDePagamento.includes("Pix") ||
+            venda.formaDePagamento.includes("Dinheiro")) && (
+            <>
+              {!descontoTipo && (
+                <div className="editarVendaDividirInput">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={descontoTipo === "porcentagem"}
+                      onChange={() => setDescontoTipo("porcentagem")}
+                      disabled={descontoTipo === "decimal"}
+                    />{" "}
+                    Porcentagem
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={descontoTipo === "decimal"}
+                      onChange={() => setDescontoTipo("decimal")}
+                      disabled={descontoTipo === "porcentagem"}
+                    />{" "}
+                    Reais
+                  </label>
+                </div>
+              )}
+              {descontoTipo && (
+                <div className="editarVendaDividirInput">
+                  <input
+                    className="editarVendaInput"
+                    type="number"
+                    min={0}
+                    max={
+                      descontoTipo === "porcentagem"
+                        ? 100
+                        : venda.valorTotal || 0
+                    }
+                    value={descontoValor}
+                    onChange={(e) => setDescontoValor(e.target.value)}
+                    placeholder={
+                      descontoTipo === "porcentagem"
+                        ? "Desconto em %"
+                        : "Desconto em reais"
+                    }
+                  />
+                </div>
+              )}
+            </>
+          )}
+
           {(venda.formaDePagamento.includes("Débito") ||
             venda.formaDePagamento.includes("Crédito")) && (
             <div className="editarVendaDividirInput">
               <select
                 className="editarVendaInput"
-                value={venda.totalDeVezes}
+                value={qtdParcelas}
                 onChange={(e) => setQtdParcelas(Number(e.target.value))}
               >
                 {[...Array(10)].map((_, i) => (
@@ -350,7 +454,7 @@ export function EditarVenda() {
 
           <div className="editarVendaDividirInput">
             <input
-              type="text"
+              type="number"
               className="editarVendaInput"
               value={totalPago}
               onChange={(e) => setTotalPago(e.target.value)}
@@ -462,6 +566,15 @@ export function EditarVenda() {
 
           <div className="editarVendaValorTotalTabela">
             Valor total: <strong>R$ {venda.valorTotal.toFixed(2)}</strong>
+            {descontoTipo && descontoValor && (
+              <span style={{ marginLeft: 16, color: "#2d7a2d" }}>
+                (Desconto:{" "}
+                {descontoTipo === "porcentagem"
+                  ? `${descontoValor}%`
+                  : `R$ ${Number(descontoValor).toFixed(2)}`}
+                )
+              </span>
+            )}
           </div>
         </div>
       </div>
