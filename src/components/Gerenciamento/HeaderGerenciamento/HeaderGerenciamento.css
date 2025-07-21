@@ -1,0 +1,29 @@
+:root{
+    --yellow-primary-color: #FDDA76;
+    --yellow-secondary-color: #F9C74F;
+    --black-primary-color: #252525;
+    --black: #000000;
+    --white-primary-color: #D9D9D9;
+    --white-secondary-color: #EBEBEB; 
+
+
+
+}
+.Header{
+    box-sizing: border-box;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    text-align: center;
+    padding: 0 1rem;
+    height: 5rem;
+    background-color: var(--yellow-primary-color);
+    color: var(--black-primary-color);
+    padding: 0 10rem;
+}
+.Header .Header-logo{
+   width: 175px;
+border-radius: 1rem;
+
+   
+}

@@ -1,0 +1,26 @@
+
+.homeNavBar {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 32px;
+}
+
+.homeNavBtn {
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 16px 32px;
+  font-size: 1.3rem;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.2s;
+}
+
+.homeNavBtn:hover {
+  background: var(--green);
+}
+
+.homeContent {
+  text-align: center;
+}

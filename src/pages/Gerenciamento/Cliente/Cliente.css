@@ -1,0 +1,491 @@
+:root {
+  --yellow-primary-color: #fdda76;
+  --yellow-secondary-color: #f9c74f;
+  --black-primary-color: #252525;
+  --black: #000000;
+  --white-primary-color: #d9d9d9;
+  --white-secondary-color: #ebebeb;
+  --red: #b41111;
+  --blue: #2974d7;
+  --green: #39862f;
+}
+
+html,
+body {
+  max-height: 100vh;
+}
+
+.centroCliente {
+  height: calc(100vh - 80px);
+  width: 100%;
+}
+
+.CadastroCliente {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  display: grid;
+  justify-content: center;
+}
+
+.CadastroCliente h1 {
+  font-size: 3rem;
+  color: var(--white-secondary-color);
+}
+
+.formCadastroCliente {
+  display: grid;
+  grid-template-columns: repeat(2, 180px);
+  grid-template-rows: repeat(4, 80px);
+  row-gap: .1rem;
+  column-gap: 3rem;
+}
+
+ .inputIdCliente {
+  grid-column-start: 1;
+  grid-row-start: 1;
+  grid-column-end: -1;
+}  
+
+.inputCadastroCliente {
+  background-color: var(--white-secondary-color);
+  border: none;
+  height: 60px;
+  border-radius: 0.5rem;
+  width: 210px;
+  font-size: 1.5rem;
+
+}
+
+.inputCadastroCliente::placeholder {
+  color: var(--black-primary-color);
+  font-size: 1.5rem;
+
+}
+
+.selectCadastroCliente {
+  border: none;
+  background-color: var(--white-secondary-color);
+  font-size: 1rem;
+  width: 210px;
+  color: var(--black-primary-color);
+  border-radius: 0.5rem;
+  height: 60px;
+}
+
+.buttonsGroupCliente {
+  display: flex;
+  width: 500px;
+  justify-content: space-around;
+  gap: 2rem;
+}
+
+.btnCliente {
+  border: none;
+  color: var(--black-primary-color);
+  text-align: center;
+  font-size: 1rem;
+  width: 200px;
+  height: 60px;
+  cursor: pointer;
+  border-radius: 0.8rem;
+}
+
+.btnVoltarCliente {
+  background-color: var(--red);
+}
+
+.btnSalvarCliente,
+.btnEditarCliente {
+  background-color: var(--green);
+}
+
+.btnEtiquetaCliente {
+  background-color: var(--blue);
+}
+
+.btnClonarCliente {
+  background-color: var(--yellow-primary-color);
+}
+
+.linkCadastro {
+  text-decoration: none;
+  color: var(--black-primary-color);
+  font-size: 1rem;
+}
+
+.top-nav {
+  position: absolute;
+  right: 40px;
+  top: 100px;
+  display: flex;
+  justify-content: space-evenly;
+  gap: 5rem;
+  margin: 2rem 0;
+  box-sizing: border-box;
+}
+
+.top-nav-buttons {
+  display: flex;
+  gap: 0.7rem;
+}
+
+.top-nav-button {
+  cursor: pointer;
+  width: 75px;
+  height: 50px;
+  border-radius: 0.8rem;
+  align-items: center;
+  border: none;
+}
+
+.top-nav-img {
+  width: 100%;
+  height: 100%;
+}
+
+.lupa {
+  background-color: var(--white-secondary-color);
+}
+
+.lixo {
+  background-color: var(--red);
+}
+
+.olhoFechado {
+  background-color: var(--blue);
+}
+
+.olhoAberto {
+  background-color: var(--blue);
+}
+
+.editar {
+  background-color: var(--green);
+}
+
+.clonar {
+  background-color: var(--yellow-primary-color);
+}
+
+
+.inputPesquisar {
+  background-color: var(--white-secondary-color);
+  border-radius: 0.8rem;
+  border: none;
+  opacity: 0;
+  width: 0;
+  transition: width 0.5s ease-out, opacity 0.5s ease-out;
+  right: 740px;
+  height: 48px;
+  font-size: 1.5rem;
+
+}
+
+.inputPesquisar.visivel {
+  opacity: 1;
+  width: 160px;
+  height: 48px;
+}
+
+.centroListagemCliente {
+  height: calc(100vh - 80px);
+  width: 100%;
+}
+.ListagemCliente {
+  width: 100%;
+  height: calc(100vh - 80px);
+  overflow-y: auto;
+  display: grid;
+  justify-content: center;
+}	
+.ListagemCliente h1{
+  font-size: 3rem;
+  color: var(--white-secondary-color);
+  display: flex;
+
+  justify-content: center;
+}
+.scrollCliente {
+  background-color: var(--white-primary-color);
+  width: 1000px;
+  height: calc(100vh - 280px);
+  color: var(--black-primary-color);
+  border: 1px solid var(--black-primary-color);
+  margin: 2rem 16rem;
+  padding: 0;
+  overflow-y: auto;
+  display: block;
+}
+.tableCliente {
+  background-color: var(--white-primary-color);
+  width: 100%;
+  height: auto;
+  color: var(--black-primary-color);
+  border: 1px solid var(--black-primary-color);
+  padding: 0;
+  overflow-y: auto;
+}
+tbody,
+thead {
+  width: 100%;
+}
+th,
+tr,
+td,
+tbody,
+thead {
+  border: 1px solid var(--black-primary-color);
+  margin: 0;
+  gap: 0;
+  padding: 3px;
+  font-size: 20px;
+}
+
+
+
+
+
+
+
+
+
+
+
+.centroEditarCliente {
+  height: calc(100vh - 80px);
+  width: 100%;
+}
+
+.EditarCliente {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  display: grid;
+  justify-content: center;
+}
+
+.EditarCliente h1 {
+  font-size: 3rem;
+  color: var(--white-secondary-color);
+}
+
+.divEditarCliente {
+  display: grid;
+  grid-template-columns: repeat(2, 180px);
+  grid-template-rows: repeat(5, 80px);
+  row-gap: .1rem;
+  column-gap: 3rem;
+}
+
+ .inputIdEditarCliente {
+  grid-column-start: 1;
+  grid-row-start: 1;
+  grid-column-end: -1;
+}  
+
+.inputEditarCliente {
+  background-color: var(--white-secondary-color);
+  border: none;
+  height: 60px;
+  border-radius: 0.5rem;
+  width: 210px;
+  font-size: 1.5rem;
+
+}
+
+.inputEditarCliente::placeholder {
+  color: var(--black-primary-color);
+  font-size: 1.5rem;
+
+}
+
+.selectEditarCliente {
+  border: none;
+  background-color: var(--white-secondary-color);
+  font-size: 1rem;
+  width: 210px;
+  color: var(--black-primary-color);
+  border-radius: 0.5rem;
+  height: 60px;
+}
+
+.buttonsGroupEditarCliente {
+  display: flex;
+  width: 500px;
+  justify-content: space-around;
+  gap: 2rem;
+}
+
+.btnEditarCliente {
+  border: none;
+  color: var(--black-primary-color);
+  text-align: center;
+  font-size: 1rem;
+  width: 200px;
+  height: 60px;
+  cursor: pointer;
+  border-radius: 0.8rem;
+}
+
+
+
+
+
+.centroDetalhesCliente {
+  height: calc(100vh - 80px);
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.DetalhesCliente {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  display: grid;
+  justify-content: center;
+}
+
+.DetalhesCliente h1 {
+  font-size: 2rem;
+  color: var(--white-secondary-color);
+}
+
+.divDetalhesCliente {
+  display: grid;
+  grid-template-columns: repeat(2, 180px);
+  grid-template-rows: repeat(5, 80px);
+  row-gap: .1rem;
+  column-gap: 3rem;
+}
+
+ .inputIdDetalhesCliente {
+  grid-column-start: 1;
+  grid-row-start: 1;
+  grid-column-end: -1;
+}  
+
+.inputDetalhesCliente {
+  background-color: var(--white-secondary-color);
+  border: none;
+  height: 60px;
+  border-radius: 0.5rem;
+  width: 210px;
+  font-size: 1.5rem;
+
+}
+
+.inputDetalhesCliente {
+  color: var(--black-primary-color);
+  font-size: 1.5rem;
+
+}
+
+.selectDetalhesCliente {
+  border: none;
+  background-color: var(--white-secondary-color);
+  font-size: 1rem;
+  width: 210px;
+  color: var(--black-primary-color);
+  border-radius: 0.5rem;
+  height: 60px;
+}
+
+.buttonsGroupDetalhesCliente {
+  display: flex;
+  width: 500px;
+  justify-content: space-around;
+  
+}
+
+.btnDetalhesCliente {
+  border: none;
+  color: var(--black-primary-color);
+  text-align: center;
+  font-size: 1rem;
+  width: 200px;
+  height: 60px;
+  cursor: pointer;
+  border-radius: 0.8rem;
+  margin: 0.5rem;
+}
+.contentDetalhesCliente {
+  width: 90%;
+  display: flex;
+justify-content: space-between;
+
+}
+.detalhesClienteTabela {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  max-height: 500px;
+  width: 800px;
+  overflow-y: auto;
+  display: block; /* Necessário para tabelas */
+  background-color: var(--white-primary-color);
+}
+
+.detalhesClienteTabela th,
+.detalhesClienteTabela td {
+  border: 1px solid #ccc;
+  font-size: 1.5rem;
+  width: 200px;
+  padding: 8px 10px;
+  text-align: center;
+  color: var(--black-primary-color);
+}
+.detalhesClienteTabela th {
+  background: #fdda76;
+}
+.detalhesClienteTotal th,
+.detalhesClienteTotal td {
+  color: var(--black-primary-color);
+  text-align: center;
+  font-size: .9rem;
+}
+
+
+.btnDetalharVendaCliente{
+  background-color: var(--yellow-secondary-color);
+  border: none;
+  border-radius: 0.8rem;
+  width: 180px;
+  height: 40px;
+  cursor: pointer;
+  font-size: 1.4rem;
+
+}
+.btnDetalharVendaClienteLink{
+    text-decoration: none;
+  color: var(--white-primary-color);
+  color: var(--black-primary-color-);
+}
+.PagarDetalhesCliente{
+  background-color: var(--yellow-secondary-color);
+  border: none;
+  border-radius: 0.8rem;
+  width: 100px;
+  height: 40px;
+  cursor: pointer;
+  font-size: 1.4rem;
+}
+.PagarDetalhesClienteLink {
+  text-decoration: none;
+  color: var(--white-primary-color);
+  color: var(--black-primary-color-);
+
+} 
+
+
+.inputTipoPesquisa{
+    cursor: pointer;
+  width: 100px;
+  height: 50px;
+  border-radius: 0.8rem;
+  align-items: center;
+  border: none;
+  background-color: var(--white-primary-color);
+}
