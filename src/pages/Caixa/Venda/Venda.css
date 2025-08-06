@@ -14,7 +14,37 @@ html,
 body {
   max-height: 100vh;
 }
+.AppHomeCaixa{
+  display: flex;
 
+}
+.CentroOp{
+display: flex;
+justify-content: center;
+align-items: center;
+
+}
+.Opcoes{
+    display: grid; 
+  grid-template-columns: repeat(3, 1fr);
+  justify-content: center;
+  gap: 10px;
+}
+.OpcoesBtn{
+gap: 10px;
+  width: 200px;
+  height: 100px;
+  border-radius: 0.8rem;
+  align-items: center;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+
+
+
+}
 .centroCadastroVendas {
   height: auto;
 

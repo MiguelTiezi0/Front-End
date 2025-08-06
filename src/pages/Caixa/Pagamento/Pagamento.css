@@ -29,6 +29,7 @@ body {
 .CadastroPagamento {
   padding: 0.5rem;
   max-height: 80vh;
+
 }
 .cadastroPagamentoTitulo {
   width: 100%;
@@ -589,4 +590,139 @@ filtrosPagamento {
 
 .linhaPaga {
   background-color: #d5f7d5 !important;
+}
+
+
+
+/* Modal de fundo escuro */
+.modalPagamentoDevedor {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+}
+
+/* Caixa do modal */
+.modalPagamentoBox {
+  background: #fefefe;
+  width: 100%;
+  max-width: 460px;
+  max-height: 90vh;
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
+  position: relative;
+  padding: 32px 24px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+/* Título do modal */
+.modalPagamentoBox h2 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #2ecc40;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+/* Inputs e selects */
+.modalPagamentoBox input[type="text"],
+.modalPagamentoBox input[type="number"],
+.modalPagamentoBox select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-top: 6px;
+  margin-bottom: 12px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.modalPagamentoBox input:focus,
+.modalPagamentoBox select:focus {
+  border-color: #2ecc40;
+}
+
+/* Lista de sugestões de cliente */
+.listaBuscaCliente-modal {
+  position: absolute;
+  background: #fff;
+  border: 1px solid #ccc;
+  width: 94%;
+  max-height: 160px;
+  overflow-y: auto;
+  z-index: 10;
+  margin-top: 2px;
+  padding: 0;
+  list-style: none;
+  left: 3%;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.listaBuscaCliente-modal li {
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.listaBuscaCliente-modal li:hover {
+  background: #e6ffe6;
+}
+
+/* Cliente selecionado */
+.clienteSelecionadoBox {
+  background: #f0fdf4;
+  border: 1px solid #c6f7d4;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.95rem;
+  margin-bottom: 12px;
+  color: #222;
+}
+
+/* Botões */
+.modalPagamentoBox button {
+  padding: 12px 24px;
+  font-size: 1.05rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.modalPagamentoBox button:hover {
+  opacity: 0.9;
+}
+
+/* Botão verde */
+.modalPagamentoBox button.confirmar {
+  background-color: #2ecc40;
+  color: #fff;
+}
+
+/* Botão vermelho */
+.modalPagamentoBox button.cancelar {
+  background-color: #b41111;
+  color: #fff;
+}
+
+/* Botão de fechar (X) */
+.modalPagamentoBox button.fechar {
+  position: absolute;
+  top: 12px;
+  right: 18px;
+  background: none;
+  border: none;
+  font-size: 1.5em;
+  cursor: pointer;
+  color: #b41111;
 }
