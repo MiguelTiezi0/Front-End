@@ -1,439 +1,181 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import React, { useEffect, useState } from "react"; 
 import { HeaderCaixa } from "../../components/Caixa/HeaderCaixa/HeaderCaixa.jsx";
+import "./HomeCaixa.css";
 
-import { linkVen } from "./Venda/linkVen.jsx";
-import { linkFun } from "../Gerenciamento/Funcionario/linkFun";
-import { linkCli } from "../Gerenciamento/Cliente/linkCli";
-import { linkPro } from "../Gerenciamento/Produto/linkPro";
-import { linkVenItens } from "./ItensVenda/linkVenItens";
-import { linkPag } from "./Pagamento/linkPag";
-
-import "./Venda/Venda.css";
 export function HomeCaixa() {
   document.title = "Home";
+  const [mensagemCaixa, setMensagemCaixa] = useState("");
+  const [caixa, setCaixa] = useState(null);
 
-  const navigate = useNavigate();
-  const { id } = useParams();
-
-  const [funcionarios, setFuncionarios] = useState([]);
-  const [clientes, setClientes] = useState([]);
-  const [produtos, setProdutos] = useState([]);
-  const [itens, setItens] = useState([]);
-  const [qtdParcelas, setQtdParcelas] = useState(1);
-  const [formaDePagamento, setFormaDePagamento] = useState("");
-  const [descontoTipo, setDescontoTipo] = useState("");
-  const [descontoValor, setDescontoValor] = useState("");
-  const [totalPago, setTotalPago] = useState(""); // string para mostrar placeholder
-  const [item, setItem] = useState({
-    produtoId: "",
-    valorDoItem: "",
-    quantidade: "", // string para mostrar placeholder
-  });
-
-  const [venda, setVenda] = useState({
-    funcionarioId: "",
-    clienteId: "",
-    totalDeItens: 0,
-    valorTotal: 0,
-    totalPago: 0,
-    formaDePagamento: [],
-    totalDeVezes: 1,
-    dataVenda: new Date().toISOString().slice(0, 16),
-  });
-
-  useEffect(() => {
-    fetch(linkFun)
-      .then((r) => r.json())
-      .then(setFuncionarios);
-    fetch(linkCli)
-      .then((r) => r.json())
-      .then(setClientes);
-    fetch(linkPro)
-      .then((r) => r.json())
-      .then(setProdutos);
-  }, []);
-
-  useEffect(() => {
-    setVenda((v) => ({
-      ...v,
-      totalDeItens: itens.reduce((acc, i) => acc + Number(i.quantidade), 0),
-    }));
-  }, [itens]);
-
-  useEffect(() => {
-    if (!id) return;
-    fetch(`${linkVen}/${id}`)
-      .then((r) => r.json())
-      .then((data) => {
-        setVenda(data);
-        setItens(data.itens || []);
-        setQtdParcelas(data.totalDeVezes || 1);
-      });
-  }, [id]);
-
-  const handleProdutoChange = (e) => {
-    const produtoId = Number(e.target.value);
-    const produtoSelecionado = produtos.find((p) => p.id === produtoId);
-    setItem({
-      produtoId: e.target.value,
-      valorDoItem: produtoSelecionado?.["preçoVenda"] || "",
-      quantidade: "",
-    });
-  };
-
-  const handleAddItem = () => {
-    const produtoId = Number(item.produtoId);
-    const quantidadeNum = Number(item.quantidade);
-    if (!produtoId || !item.valorDoItem || !quantidadeNum) {
-      alert("Selecione um produto, quantidade e valor válidos.");
-      return;
-    }
-
-    const produto = produtos.find((p) => p.id === produtoId);
-    if (!produto) return alert("Produto inválido.");
-
-    if (quantidadeNum > produto.quantidade) {
-      alert("Quantidade maior que o estoque!");
-      return;
-    }
-
-    setItens([
-      ...itens,
-      {
-        ...item,
-        produtoId,
-        quantidade: quantidadeNum,
-        tempId: Date.now() + Math.random(),
-      },
-    ]);
-    setItem({ produtoId: "", valorDoItem: "", quantidade: "" });
-  };
-
-  const handleRemoveItem = (tempId) => {
-    setItens(itens.filter((i) => i.tempId !== tempId));
-  };
-
-  const handleCancelOne = (tempId) => {
-    setItens((prev) =>
-      prev
-        .map((i) =>
-          i.tempId === tempId
-            ? { ...i, quantidade: i.quantidade > 1 ? i.quantidade - 1 : 1 }
-            : i
-        )
-        .filter((i) => i.quantidade > 0)
-    );
-  };
-
-  const handleFormaPagamento = (e) => {
-    const value = e.target.value;
-    setFormaDePagamento(value);
-    setDescontoTipo("");
-    setDescontoValor("");
-    setVenda((v) => ({ ...v, formaDePagamento: [value] }));
-
-    // Só mostra parcelas para Crédito e Débito
-    const parcelasDiv = document.getElementById("QtdParcelas");
-    if (value === "Crédito" || value === "Débito" || value === "Crediário") {
-      parcelasDiv.style.display = "flex";
-    } else {
-      parcelasDiv.style.display = "none";
-      setQtdParcelas(1);
+  // Consulta do caixa (chamada manualmente após cada operação)
+  const consultarCaixa = async () => {
+    try {
+      const res = await fetch("http://localhost:7172/api/Caixa/aberto");
+      if (!res.ok) {
+        setCaixa(null);
+        setMensagemCaixa("Caixa fechado ou erro ao consultar.");
+        return;
+      }
+      const dados = await res.json();
+      setCaixa(dados);
+      setMensagemCaixa("");
+    } catch {
+      setCaixa(null);
+      setMensagemCaixa("Caixa fechado ou erro ao consultar.");
     }
   };
+useEffect(() => {
+    consultarCaixa(); // Consulta o caixa ao carregar a página
+}, []);
 
-  // Cálculo do valor com desconto aplicado
-  useEffect(() => {
-    const valorProdutos = itens.reduce(
-      (acc, i) => acc + Number(i.valorDoItem) * Number(i.quantidade),
-      0
-    );
-
-    let desconto = 0;
-    const valor = Number(descontoValor);
-
-    if (descontoTipo === "porcentagem" && !isNaN(valor)) {
-      desconto = valorProdutos * (valor / 100);
-    } else if (descontoTipo === "decimal" && !isNaN(valor)) {
-      desconto = valor;
-    }
-
-    const final = Math.max(0, valorProdutos - desconto);
-
-    setVenda((v) => ({
-      ...v,
-      valorTotal: final,
-      totalDeItens: itens.reduce((acc, i) => acc + Number(i.quantidade), 0),
-    }));
-  }, [itens, descontoTipo, descontoValor]);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!venda.funcionarioId || !venda.clienteId || itens.length === 0) {
-      alert(
-        "Preencha todos os campos obrigatórios e adicione pelo menos um item."
-      );
+  // Abrir caixa
+  const handleAbrirCaixa = async () => {
+    const valor = prompt("Informe o valor de abertura do caixa:");
+    if (!valor || isNaN(valor)) {
+      setMensagemCaixa("Valor inválido.");
       return;
     }
-
-    const clienteSelecionado = clientes.find(
-      (c) => String(c.id) === String(venda.clienteId)
-    );
-
-    // Verificação de limite de crédito
-    const valorRestante = Number(venda.valorTotal) - Number(totalPago || 0);
-    if (
-      clienteSelecionado &&
-      clienteSelecionado.limiteDeCrédito !== undefined &&
-      valorRestante > Number(clienteSelecionado.limiteDeCrédito)
-    ) {
-      alert(
-        `O valor restante da venda (R$ ${valorRestante.toFixed(
-          2
-        )}) excede o limite de crédito do cliente (R$ ${Number(
-          clienteSelecionado.limiteDeCrédito
-        ).toFixed(2)}).`
-      );
-      return;
-    }
-
-    const isCartao =
-      venda.formaDePagamento.includes("Crédito") ||
-      venda.formaDePagamento.includes("Débito");
-    const totalDeVezes = isCartao ? qtdParcelas : 1;
-
-    // Permite inserir valor, mas alerta se for menor que o total
-    const totalPagoNumber = Number(totalPago);
-
-    if (
-      (venda.clienteId === "0" || venda.clienteId === 0) &&
-      totalPagoNumber < venda.valorTotal
-    ) {
-      alert("Cliente anônimo deve pagar o valor total da venda!");
-      return;
-    }
-
-    const valorProdutos = itens.reduce(
-      (acc, i) => acc + Number(i.valorDoItem) * Number(i.quantidade),
-      0
-    );
-
-    const valor = Number(descontoValor);
-    let desconto = 0;
-
-    if (descontoTipo === "porcentagem" && !isNaN(valor)) {
-      desconto = valorProdutos * (valor / 100);
-    } else if (descontoTipo === "decimal" && !isNaN(valor)) {
-      desconto = valor;
-    }
-
-    const valorFinal = valorProdutos - desconto;
-
-    const vendaBody = {
-      funcionarioId: Number(venda.funcionarioId),
-      clienteId: Number(venda.clienteId),
-      totalDeItens: venda.totalDeItens,
-      valorTotal: venda.valorTotal,
-      totalPago: totalPagoNumber,
-      formaDePagamento: venda.formaDePagamento,
-      totalDeVezes: totalDeVezes,
-      dataVenda: new Date(venda.dataVenda).toISOString(),
-      desconto: desconto,
-      formaDeDesconto: descontoTipo ? [descontoTipo] : [], // <-- Adicionado aqui
-    };
-
-    const resVenda = await fetch(linkVen, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(vendaBody),
-    });
-
-    if (!resVenda.ok) {
-      alert("Erro ao salvar venda");
-      return;
-    }
-
-    const vendaSalva = await resVenda.json();
-
-    // Cria o pagamento automaticamente se totalPago > 0
-    if (totalPagoNumber > 0) {
-      const pagamentoBody = {
-        FuncionarioId: Number(venda.funcionarioId),
-        ClienteId: Number(venda.clienteId),
-        VendaId: vendaSalva.id,
-        TotalPago: totalPagoNumber,
-        Desconto: desconto,
-        FormaDePagamento: Array.isArray(venda.formaDePagamento)
-          ? venda.formaDePagamento
-          : [venda.formaDePagamento],
-        ToTalDeVezes: totalDeVezes,
-        DataPagamento: new Date().toISOString(),
-      };
-
-      await fetch(linkPag, {
+    try {
+      const res = await fetch("http://localhost:7172/api/Caixa/abrir", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(pagamentoBody),
+        body: JSON.stringify({ valorAbertura: parseFloat(valor) }),
       });
+      if (res.ok) setMensagemCaixa("Caixa aberto com sucesso.");
+      else setMensagemCaixa(`Erro ao abrir caixa. (${res.status})`);
+      await consultarCaixa(); // Atualiza o valor do caixa
+    } catch {
+      setMensagemCaixa("Falha na comunicação com o servidor.");
     }
+  };
 
-    for (const i of itens) {
-      await fetch(linkVenItens, {
+  // Fechar caixa
+  const handleFecharCaixa = async () => {
+    try {
+      const res = await fetch("http://localhost:7172/api/Caixa/fechar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          vendaId: vendaSalva.id,
-          produtoId: Number(i.produtoId),
-          valorDoItem: Number(i.valorDoItem),
-          quantidade: Number(i.quantidade),
+          valorFechamento: caixa?.valorFinal ?? caixa?.valorAtual ?? 0,
         }),
       });
-
-      const produto = produtos.find((p) => p.id === Number(i.produtoId));
-      if (produto) {
-        await fetch(`${linkPro}/${produto.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...produto,
-            quantidade: produto.quantidade - i.quantidade,
-          }),
-        });
+      if (res.ok) {
+        setMensagemCaixa("Caixa fechado com sucesso.");
+        setCaixa(null);
+      } else {
+        setMensagemCaixa(`Erro ao fechar caixa. (${res.status})`);
       }
+      await consultarCaixa(); // Atualiza o valor do caixa
+    } catch {
+      setMensagemCaixa("Erro na conexão.");
     }
-
-    // Após registrar venda e pagamento
-    const vendasDoCliente = await fetch(linkVen)
-      .then((r) => r.json())
-      .then((vs) =>
-        vs.filter(
-          (v) => Number(v.clienteId ?? v.ClienteId) === Number(venda.clienteId)
-        )
-      );
-    const totalPagoCliente = vendasDoCliente.reduce(
-      (acc, v) => acc + Number(v.totalPago ?? v.TotalPago ?? 0),
-      0
-    );
-    const totalDevidoCliente = vendasDoCliente.reduce(
-      (acc, v) =>
-        acc +
-        (Number(v.valorTotal ?? v.ValorTotal ?? 0) -
-          Number(v.totalPago ?? v.TotalPago ?? 0)),
-      0
-    );
-    const totalGastoCliente = vendasDoCliente.reduce(
-      (acc, v) => acc + Number(v.valorTotal ?? v.ValorTotal ?? 0),
-      0
-    );
-
-    await fetch(`${linkCli}/${venda.clienteId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        totalPago: totalPagoCliente,
-        totalDevido: totalDevidoCliente,
-        totalGasto: totalGastoCliente,
-      }),
-    });
-
-    alert("Venda cadastrada com sucesso!");
-    navigate("../Venda/ListagemVenda");
-    setItens([]);
-    setQtdParcelas(1);
-    setVenda({
-      funcionarioId: "",
-      clienteId: "",
-      totalDeItens: 0,
-      valorTotal: 0,
-      totalPago: 0,
-      formaDePagamento: [],
-      totalDeVezes: 1,
-      dataVenda: new Date().toISOString().slice(0, 16),
-    });
-    setTotalPago("");
-    fetch(linkPro)
-      .then((r) => r.json())
-      .then(setProdutos);
   };
 
-  // Sincroniza totalPago se cliente for anônimo:
-  useEffect(() => {
-    if (venda.clienteId === "0" || venda.clienteId === 0) {
-      setTotalPago(venda.valorTotal);
+  // Registrar entrada
+  const handleEntrada = async () => {
+    const valor = prompt("Informe o valor da ENTRADA:");
+    const descricao = prompt("Informe uma descrição da ENTRADA:");
+    if (!valor || isNaN(valor) || !descricao) {
+      setMensagemCaixa("Preencha valor e descrição válidos.");
+      return;
     }
-  }, [venda.clienteId, venda.valorTotal]);
+    try {
+      const res = await fetch("http://localhost:7172/api/Caixa/entrada", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          valor: parseFloat(valor),
+          descricao,
+          tipo: "Entrada", // <-- Adicione este campo
+        }),
+      });
+      if (res.ok) setMensagemCaixa("Entrada registrada.");
+      else setMensagemCaixa(`Erro ao registrar entrada. (${res.status})`);
+      await consultarCaixa();
+    } catch {
+      setMensagemCaixa("Erro ao registrar entrada.");
+    }
+  };
 
-  const formasPagamento = [
-    "Dinheiro",
-    "Débito",
-    "Pix",
-    "Crédito",
-    "Crediário",
-    "Consignação",
-  ];
-
-  // Adicione este helper para buscar o cliente selecionado:
-  const clienteSelecionado = clientes.find(
-    (c) => String(c.id) === String(venda.clienteId)
-  );
+  // Registrar saída
+  const handleSaida = async () => {
+    const valor = prompt("Informe o valor da SAÍDA:");
+    const descricao = prompt("Informe uma descrição da SAÍDA:");
+    if (!valor || isNaN(valor) || !descricao) {
+      setMensagemCaixa("Preencha valor e descrição válidos.");
+      return;
+    }
+    try {
+      const res = await fetch("http://localhost:7172/api/Caixa/saida", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          valor: parseFloat(valor),
+          descricao,
+          tipo: "Saída", // <-- Adicione este campo, com acento!
+        }),
+      });
+      if (res.ok) setMensagemCaixa("Saída registrada.");
+      else setMensagemCaixa(`Erro ao registrar saída. (${res.status})`);
+      await consultarCaixa();
+    } catch {
+      setMensagemCaixa("Erro ao registrar saída.");
+    }
+  };
 
   return (
     <div className="HomeCaixa">
       <HeaderCaixa />
-    <div className="AppHomeCaixa">
-
-
-      <div className="CentroOp">
-        <div className="Opcoes">
-          <button
-            className="OpcoesBtn"
-          >
-            Opções
-          </button>
-          <button
-            className="OpcoesBtn"
-          >
-            Rec. Clientes
-          </button>
-          <button
-            className="OpcoesBtn"
-          >
-            Abrir Gaveta
-          </button>
-          <button
-            className="OpcoesBtn"
-          >
-            Nova venda
-          </button>
-          <button
-            className="OpcoesBtn"
-          >
-            Pendentes
-          </button>
-          <button
-            className="OpcoesBtn"
-          >
-            Localizar
-          </button>
-          <button
-            className="OpcoesBtn"
-          >
-            Reimpressão
-          </button>
-          <button
-            className="OpcoesBtn"
-          >
-            Troca
-          </button>
-          <button
-            className="OpcoesBtn"
-          >
-            Troca
-          </button>
+      <div className="AppHomeCaixa">
+        <div className="CaixaOperacoes">
+          <h2>Operações de Caixa</h2>
+          <div style={{ marginBottom: 16 }}>
+            <label htmlFor="valorCaixa" style={{ fontWeight: "bold" }}>
+              Valor atual no caixa:
+            </label>
+            <input
+              id="valorCaixa"
+              type="text"
+              readOnly
+              value={
+                caixa
+                  ? `R$ ${caixa.valorAtual?.toFixed(2) ?? caixa.valorFinal?.toFixed(2) ?? "0.00"}`
+                  : "Caixa fechado"
+              }
+              style={{
+                marginLeft: 12,
+                width: 140,
+                fontWeight: "bold",
+                fontSize: "1.2em",
+                background: "#f6fff6",
+                border: "1px solid #ccc",
+                borderRadius: 4,
+                padding: "6px 10px",
+              }}
+            />
+          </div>
+          <div className="CaixaBtns">
+            <button onClick={handleAbrirCaixa}>Abrir Caixa</button>
+            <button onClick={handleFecharCaixa}>Fechar Caixa</button>
+            <button onClick={handleEntrada}>Registrar Entrada</button>
+            <button onClick={handleSaida}>Registrar Saída</button>
+          </div>
+          {mensagemCaixa && <p className="MensagemCaixa">{mensagemCaixa}</p>}
+        </div>
+        <div className="CentroOp">
+          <div className="Opcoes">
+            <button className="OpcoesBtn">Opções</button>
+            <button className="OpcoesBtn">Rec. Clientes</button>
+            <button className="OpcoesBtn">Abrir Gaveta</button>
+            <button className="OpcoesBtn">Nova venda</button>
+            <button className="OpcoesBtn">Pendentes</button>
+            <button className="OpcoesBtn">Localizar</button>
+            <button className="OpcoesBtn">Reimpressão</button>
+            <button className="OpcoesBtn">Troca</button>
+            <button className="OpcoesBtn">Troca</button>
+          </div>
         </div>
       </div>
-    </div>
     </div>
   );
 }
