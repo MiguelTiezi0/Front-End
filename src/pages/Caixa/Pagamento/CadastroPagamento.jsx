@@ -142,6 +142,19 @@ export function CadastroPagamento() {
       }),
     });
 
+    // ATUALIZA O CAIXA SE FOR DINHEIRO
+    if (pagamento.formaDePagamento === "Dinheiro") {
+      await fetch("http://localhost:7172/api/Caixa/entrada", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          valor: Number(pagamento.totalPago),
+          descricao: `Pagamento de venda - Cliente ${pagamento.clienteId}`,
+          tipo: "Entrada",
+        }),
+      });
+    }
+
     alert("Pagamento registrado e distribuído com sucesso!");
     navigate(-1);
   };

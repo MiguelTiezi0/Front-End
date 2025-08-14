@@ -14,58 +14,84 @@ export function EditarPagamento() {
   const [clientes, setClientes] = useState([]);
   const [vendas, setVendas] = useState([]);
   const [pagamento, setPagamento] = useState({
-    funcionarioId: "",
-    clienteId: "",
-    formaDePagamento: "",
-    totalPago: "",
-    toTalDeVezes: 1,
-    dataPagamento: new Date().toISOString().slice(0, 16),
+    FuncionarioId: "",
+    ClienteId: "",
+    FormaDePagamento: "",
+    TotalPago: "",
+    TotalDeVezes: 1,
+    DataPagamento: new Date().toISOString().slice(0, 16),
   });
+  const [valorPagoAntes, setValorPagoAntes] = useState(0);
+  const [valorRestanteFixo, setValorRestanteFixo] = useState(0);
 
   useEffect(() => {
-    fetch(linkFun).then((r) => r.json()).then(setFuncionarios);
-    fetch(linkCli).then((r) => r.json()).then(setClientes);
-    fetch(linkVen).then((r) => r.json()).then(setVendas);
+    Promise.all([
+      fetch(linkFun).then((r) => r.json()),
+      fetch(linkCli).then((r) => r.json()),
+      fetch(linkVen).then((r) => r.json()),
+      fetch(`${linkPag}/${id}`).then((r) => r.json()),
+    ]).then(([funcs, clis, vens, data]) => {
+      setFuncionarios(funcs);
+      setClientes(clis);
+      setVendas(vens);
 
-    fetch(`${linkPag}/${id}`)
-      .then((r) => r.json())
-      .then((data) => {
-        setPagamento({
-          funcionarioId: data.funcionarioId ?? data.FuncionarioId ?? "",
-          clienteId: data.clienteId ?? data.ClienteId ?? "",
-          formaDePagamento: Array.isArray(data.formaDePagamento ?? data.FormaDePagamento)
-            ? (data.formaDePagamento ?? data.FormaDePagamento)[0]
-            : (data.formaDePagamento ?? data.FormaDePagamento ?? ""),
-          totalPago: data.totalPago ?? data.TotalPago ?? "",
-          toTalDeVezes: data.toTalDeVezes ?? data.ToTalDeVezes ?? 1,
-          dataPagamento:
-            (data.dataPagamento ?? data.DataPagamento)
-              ? (data.dataPagamento ?? data.DataPagamento).slice(0, 16)
-              : new Date().toISOString().slice(0, 16),
-        });
+      setValorPagoAntes(Number(data.TotalPago ?? data.totalPago ?? 0));
+      setPagamento({
+        FuncionarioId: data.FuncionarioId ?? data.funcionarioId ?? "",
+        ClienteId: data.ClienteId ?? data.clienteId ?? "",
+        FormaDePagamento: String(data.FormaDePagamento ?? data.formaDePagamento ?? ""),
+        TotalPago: data.TotalPago ?? data.totalPago ?? "",
+        TotalDeVezes: data.TotalDeVezes ?? data.toTalDeVezes ?? 1,
+        DataPagamento:
+          (data.DataPagamento ?? data.dataPagamento)
+            ? (data.DataPagamento ?? data.dataPagamento).slice(0, 16)
+            : new Date().toISOString().slice(0, 16),
       });
+
+      // Calcula o valorRestanteFixo apenas uma vez, após carregar os dados
+      const vendasDoCliente = vens.filter(
+        v => Number(v.ClienteId ?? v.clienteId) === Number(data.ClienteId ?? data.clienteId)
+      );
+      const totalDevidoSemEstePagamento = vendasDoCliente.reduce(
+        (acc, v) =>
+          acc +
+          (Number(v.ValorTotal ?? v.valorTotal ?? 0) - Number(v.TotalPago ?? v.totalPago ?? 0)),
+        0
+      );
+      // Corrigido: não soma o valor já pago
+      setValorRestanteFixo(totalDevidoSemEstePagamento);
+    });
   }, [id]);
 
   // Vendas em aberto do cliente, ordenadas da mais antiga para a mais recente
   const vendasEmAberto = vendas
     .filter(
       (v) =>
-        Number(v.clienteId ?? v.ClienteId) === Number(pagamento.clienteId) &&
-        Number(v.totalPago ?? v.TotalPago ?? 0) < Number(v.valorTotal ?? v.ValorTotal ?? 0)
+        Number(v.ClienteId ?? v.clienteId) === Number(pagamento.ClienteId) &&
+        Number(v.TotalPago ?? v.totalPago ?? 0) < Number(v.ValorTotal ?? v.valorTotal ?? 0)
     )
-    .sort((a, b) => new Date(a.dataVenda ?? a.DataVenda) - new Date(b.dataVenda ?? b.DataVenda));
+    .sort((a, b) => new Date(a.DataVenda ?? a.dataVenda) - new Date(b.DataVenda ?? b.dataVenda));
+
+  // Todas as vendas do cliente
+  const vendasDoCliente = vendas.filter(
+    v => Number(v.ClienteId ?? v.clienteId) === Number(pagamento.ClienteId)
+  );
 
   // Total devido pelo cliente (SEM considerar o pagamento atual em edição)
-  const vendasDoCliente = vendas.filter(
-    v => Number(v.clienteId ?? v.ClienteId) === Number(pagamento.clienteId)
-  );
   const totalDevidoSemEstePagamento = vendasDoCliente.reduce(
     (acc, v) =>
       acc +
-      (Number(v.valorTotal ?? v.ValorTotal ?? 0) - Number(v.totalPago ?? v.TotalPago ?? 0)),
+      (Number(v.ValorTotal ?? v.valorTotal ?? 0) - Number(v.TotalPago ?? v.totalPago ?? 0)),
     0
-  ) + Number(pagamento.totalPago || 0); // soma de volta o valor do pagamento atual
+  );
 
+  // Novo total devido exibido ao usuário (restante + valor pago antes da edição)
+  const totalDevidoExibido = totalDevidoSemEstePagamento + valorPagoAntes;
+
+  // Valor restante após edição (quanto ainda falta pagar após editar)
+  const valorRestante = totalDevidoSemEstePagamento + Number(pagamento.TotalPago) - valorPagoAntes;
+
+  // Valor restante deve ser calculado apenas com base no valor origina
   const handleChange = (e) => {
     const { name, value } = e.target;
     setPagamento((prev) => ({
@@ -77,82 +103,186 @@ export function EditarPagamento() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Atualiza o pagamento
-    const pagamentoBody = {
-      Id: Number(id),
-      FuncionarioId: Number(pagamento.funcionarioId),
-      ClienteId: Number(pagamento.clienteId),
-      VendaId: vendasEmAberto.length > 0 ? vendasEmAberto[0].id : null,
-      FormaDePagamento: [pagamento.formaDePagamento],
-      TotalPago: Number(pagamento.totalPago),
-      ToTalDeVezes: Number(pagamento.toTalDeVezes),
-      DataPagamento: new Date(pagamento.dataPagamento).toISOString(),
-      Desconto: 0,
-    };
+    try {
+      // 1. Busque o pagamento anterior para saber o valor antigo
+      const pagamentoAnteriorRes = await fetch(`${linkPag}/${id}`);
+      let valorPagoAntesEdicao = 0;
+      let formaDePagamentoAntes = "";
+      if (pagamentoAnteriorRes.ok) {
+        const pagamentoAnterior = await pagamentoAnteriorRes.json();
+        valorPagoAntesEdicao = Number(pagamentoAnterior.TotalPago ?? pagamentoAnterior.totalPago ?? 0);
+        formaDePagamentoAntes = String(pagamentoAnterior.FormaDePagamento ?? pagamentoAnterior.formaDePagamento ?? "");
+      }
 
-    const res = await fetch(`${linkPag}/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(pagamentoBody),
-    });
+      // 2. Se o pagamento anterior era em dinheiro, subtrai do caixa
+      if (
+        formaDePagamentoAntes === "Dinheiro" &&
+        valorPagoAntesEdicao > 0
+      ) {
+        const caixaRes = await fetch("http://localhost:7172/api/Caixa/saida", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            valor: valorPagoAntesEdicao,
+            descricao: `Estorno edição pagamento ${id}`,
+            tipo: "Saída",
+          }),
+        });
+        if (!caixaRes.ok) {
+          alert("Erro ao estornar valor do caixa!");
+          console.error("Erro ao estornar valor do caixa", await caixaRes.text());
+          return;
+        }
+      }
 
-    if (!res.ok) {
-      alert("Erro ao atualizar pagamento!");
-      return;
-    }
+      // 3. Estorna o valor antigo das vendas do cliente
+      let valorRestanteEstorno = valorPagoAntesEdicao;
+      const vendasDoClienteOrdenadas = vendas
+        .filter(
+          (v) =>
+            Number(v.ClienteId ?? v.clienteId) === Number(pagamento.ClienteId)
+        )
+        .sort((a, b) =>
+          new Date(a.DataVenda ?? a.dataVenda) - new Date(b.DataVenda ?? b.dataVenda)
+        );
 
-    // Distribui o pagamento nas vendas em aberto (mais antigas primeiro)
-    let restante = Number(pagamento.totalPago);
+      for (const venda of vendasDoClienteOrdenadas) {
+        if (valorRestanteEstorno <= 0) break;
+        const pago = Number(venda.TotalPago ?? venda.totalPago ?? 0);
+        const valorParaEstornar = Math.min(pago, valorRestanteEstorno);
 
-    for (const venda of vendasEmAberto) {
-      const total = Number(venda.valorTotal ?? venda.ValorTotal ?? 0);
-      const pago = Number(venda.totalPago ?? venda.TotalPago ?? 0);
-      const devido = total - pago;
+        const vendaRes = await fetch(`${linkVen}/${venda.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...venda,
+            TotalPago: pago - valorParaEstornar,
+          }),
+        });
+        if (!vendaRes.ok) {
+          alert("Erro ao estornar valor das vendas!");
+          console.error("Erro ao estornar venda", await vendaRes.text());
+          return;
+        }
 
-      if (restante <= 0) break;
+        valorRestanteEstorno -= valorParaEstornar;
+      }
 
-      let valorParaPagar = Math.min(restante, devido);
+      // 4. Distribui o novo valor pago nas vendas em aberto (mais antigas primeiro)
+      let restante = Number(pagamento.TotalPago);
 
-      await fetch(`${linkVen}/${venda.id}`, {
+      for (const venda of vendasEmAberto) {
+        const total = Number(venda.ValorTotal ?? venda.valorTotal ?? 0);
+        const pago = Number(venda.TotalPago ?? venda.totalPago ?? 0);
+        const devido = total - pago;
+
+        if (restante <= 0) break;
+
+        let valorParaPagar = Math.min(restante, devido);
+
+        const vendaRes = await fetch(`${linkVen}/${venda.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...venda,
+            TotalPago: pago + valorParaPagar,
+          }),
+        });
+        if (!vendaRes.ok) {
+          alert("Erro ao distribuir valor nas vendas!");
+          console.error("Erro ao distribuir venda", await vendaRes.text());
+          return;
+        }
+
+        restante -= valorParaPagar;
+      }
+
+      // 5. Atualiza o pagamento (PUT)
+      const pagamentoBody = {
+        id: Number(id),
+        funcionarioId: Number(pagamento.FuncionarioId),
+        clienteId: Number(pagamento.ClienteId),
+        vendaId: vendasEmAberto.length > 0 ? Number(vendasEmAberto[0].id) : 0,
+        totalPago: Number(pagamento.TotalPago),
+        desconto: 0,
+        formaDePagamento: [String(pagamento.FormaDePagamento)],
+        toTalDeVezes: Number(pagamento.TotalDeVezes),
+        dataPagamento: new Date(pagamento.DataPagamento).toISOString(),
+      };
+
+      console.log("Enviando para PUT:", JSON.stringify({ pagamento: pagamentoBody }));
+
+ const res = await fetch(`${linkPag}/${id}`, {
+  method: "PUT",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(pagamentoBody),
+});
+
+      if (!res.ok) {
+        alert("Erro ao atualizar pagamento!");
+        console.error("Erro ao atualizar pagamento", await res.text());
+        return;
+      }
+
+      // 6. Atualiza o cliente após pagamento
+      const vendasDoClienteAtualizadas = await fetch(linkVen)
+        .then(r => r.json())
+        .then(vs => vs.filter(
+          v => Number(v.ClienteId ?? v.clienteId) === Number(pagamento.ClienteId)
+        ));
+      const totalPagoCliente = vendasDoClienteAtualizadas.reduce(
+        (acc, v) => acc + Number(v.TotalPago ?? v.totalPago ?? 0), 0
+      );
+      const totalDevidoCliente = vendasDoClienteAtualizadas.reduce(
+        (acc, v) => acc + (Number(v.ValorTotal ?? v.valorTotal ?? 0) - Number(v.TotalPago ?? v.totalPago ?? 0)), 0
+      );
+      const totalGastoCliente = vendasDoClienteAtualizadas.reduce(
+        (acc, v) => acc + Number(v.ValorTotal ?? v.valorTotal ?? 0), 0
+      );
+
+      const clienteRes = await fetch(`${linkCli}/${pagamento.ClienteId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...venda,
-          TotalPago: pago + valorParaPagar,
+          ...clientes.find(c => Number(c.id) === Number(pagamento.ClienteId)),
+          TotalPago: totalPagoCliente,
+          TotalDevido: totalDevidoCliente,
+          TotalGasto: totalGastoCliente,
         }),
       });
+      if (!clienteRes.ok) {
+        alert("Erro ao atualizar cliente!");
+        console.error("Erro ao atualizar cliente", await clienteRes.text());
+        return;
+      }
 
-      restante -= valorParaPagar;
+      // 7. Se a nova forma de pagamento for dinheiro, adiciona ao caixa
+      if (
+        pagamento.FormaDePagamento === "Dinheiro" &&
+        Number(pagamento.TotalPago) > 0
+      ) {
+        const caixaRes = await fetch("http://localhost:7172/api/Caixa/entrada", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            valor: Number(pagamento.TotalPago),
+            descricao: `Novo valor edição pagamento ${id}`,
+            tipo: "Entrada",
+          }),
+        });
+        if (!caixaRes.ok) {
+          alert("Erro ao adicionar valor ao caixa!");
+          console.error("Erro ao adicionar valor ao caixa", await caixaRes.text());
+          return;
+        }
+      }
+
+      alert("Pagamento atualizado e distribuído com sucesso!");
+      navigate(-1);
+    } catch (error) {
+      alert("Erro inesperado ao editar pagamento!");
+      console.error(error);
     }
-
-    // ATUALIZA O CLIENTE APÓS PAGAMENTO
-    const vendasDoCliente = await fetch(linkVen)
-      .then(r => r.json())
-      .then(vs => vs.filter(
-        v => Number(v.clienteId ?? v.ClienteId) === Number(pagamento.clienteId)
-      ));
-    const totalPagoCliente = vendasDoCliente.reduce(
-      (acc, v) => acc + Number(v.totalPago ?? v.TotalPago ?? 0), 0
-    );
-    const totalDevidoCliente = vendasDoCliente.reduce(
-      (acc, v) => acc + (Number(v.valorTotal ?? v.ValorTotal ?? 0) - Number(v.totalPago ?? v.TotalPago ?? 0)), 0
-    );
-    const totalGastoCliente = vendasDoCliente.reduce(
-      (acc, v) => acc + Number(v.valorTotal ?? v.ValorTotal ?? 0), 0
-    );
-
-    await fetch(`${linkCli}/${pagamento.clienteId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        totalPago: totalPagoCliente,
-        totalDevido: totalDevidoCliente,
-        totalGasto: totalGastoCliente,
-      }),
-    });
-
-    alert("Pagamento atualizado e distribuído com sucesso!");
-    navigate(-1);
   };
 
   return (
@@ -163,9 +293,9 @@ export function EditarPagamento() {
           <div>
             <select
               className="inputEditarPagamento"
-              name="funcionarioId"
+              name="FuncionarioId"
               required
-              value={pagamento.funcionarioId}
+              value={pagamento.FuncionarioId}
               onChange={handleChange}
             >
               <option value="">Funcionário</option>
@@ -179,9 +309,9 @@ export function EditarPagamento() {
           <div>
             <select
               className="inputEditarPagamento"
-              name="clienteId"
+              name="ClienteId"
               required
-              value={pagamento.clienteId}
+              value={pagamento.ClienteId}
               onChange={handleChange}
             >
               <option value="">Cliente</option>
@@ -200,15 +330,26 @@ export function EditarPagamento() {
               disabled
               placeholder="Total Devido"
               style={{ fontWeight: "bold" }}
-              value={`Total devido: R$ ${totalDevidoSemEstePagamento.toFixed(2)}`}
+              value={`Total devido: R$ ${totalDevidoExibido.toFixed(2)}`}
+            />
+          </div>
+          <div>
+            <input
+              className="inputEditarPagamento"
+              type="text"
+              name="valorRestante"
+              disabled
+              placeholder="Valor Restante"
+              style={{ fontWeight: "bold" }}
+              value={`Valor restante: R$ ${valorRestanteFixo.toFixed(2)}`}
             />
           </div>
           <div>
             <select
               className="inputEditarPagamento"
-              name="formaDePagamento"
+              name="FormaDePagamento"
               required
-              value={pagamento.formaDePagamento}
+              value={pagamento.FormaDePagamento}
               onChange={handleChange}
             >
               <option value="">Forma de Pagamento</option>
@@ -224,37 +365,36 @@ export function EditarPagamento() {
             <input
               className="inputEditarPagamento"
               type="number"
-              name="toTalDeVezes"
+              name="TotalDeVezes"
               required
               placeholder="Total de Vezes"
-              value={pagamento.toTalDeVezes}
+              value={pagamento.TotalDeVezes}
               onChange={handleChange}
               min={1}
-              max={1}
             />
           </div>
           <div>
             <input
               className="inputEditarPagamento"
               type="number"
-              name="totalPago"
+              name="TotalPago"
               required
               placeholder="Valor Pago"
-              value={pagamento.totalPago}
+              value={pagamento.TotalPago}
               onChange={handleChange}
               min={1}
-              max={totalDevidoSemEstePagamento} // <-- aqui!
+              max={totalDevidoExibido}
               step="0.01"
-              disabled={!pagamento.clienteId || totalDevidoSemEstePagamento === 0}
+              disabled={!pagamento.ClienteId || totalDevidoExibido === 0}
             />
           </div>
           <div>
             <input
               className="inputEditarPagamento"
               type="datetime-local"
-              name="dataPagamento"
+              name="DataPagamento"
               required
-              value={pagamento.dataPagamento}
+              value={pagamento.DataPagamento}
               onChange={handleChange}
             />
           </div>
@@ -268,3 +408,5 @@ export function EditarPagamento() {
     </div>
   );
 }
+
+

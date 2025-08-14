@@ -7,7 +7,7 @@ import { linkFun } from "../../Gerenciamento/Funcionario/linkFun";
 import { linkCli } from "../../Gerenciamento/Cliente/linkCli";
 import { linkVenItens } from "../ItensVenda/linkVenItens";
 import { linkPro } from "../../Gerenciamento/Produto/linkPro";
-import { linkPag } from "../Pagamento/linkPag"; // IMPORTANTE
+import { linkPag } from "../Pagamento/linkPag";
 
 export function EditarVenda() {
   const { id } = useParams();
@@ -39,6 +39,10 @@ export function EditarVenda() {
   const [descontoTipo, setDescontoTipo] = useState("");
   const [descontoValor, setDescontoValor] = useState("");
 
+  // Para mostrar valor pago antes da edição e valor restante original
+  const [valorPagoAntes, setValorPagoAntes] = useState(0);
+  const [valorRestanteOriginal, setValorRestanteOriginal] = useState(0);
+
   useEffect(() => {
     fetch(`${linkVen}/${id}`)
       .then((r) => r.json())
@@ -57,7 +61,6 @@ export function EditarVenda() {
         // Se vier desconto do backend, tente deduzir tipo
         if (data.desconto) {
           setDescontoValor(data.desconto);
-          // O tipo não é salvo, então deixe o usuário escolher ao editar
         }
       });
     fetch(linkFun)
@@ -78,6 +81,19 @@ export function EditarVenda() {
     fetch(linkPro)
       .then((r) => r.json())
       .then(setProdutos);
+
+    // Busca o pagamento relacionado para mostrar valor pago antes e valor restante original
+    fetch(linkPag)
+      .then((r) => r.json())
+      .then((pagamentos) => {
+        const pagamento = pagamentos.find(
+          (p) => Number(p.vendaId ?? p.VendaId) === Number(id)
+        );
+        const valorPago = pagamento
+          ? Number(pagamento.TotalPago ?? pagamento.totalPago ?? 0)
+          : 0;
+        setValorPagoAntes(valorPago);
+      });
   }, [id]);
 
   // Recalcula valor total com desconto
@@ -103,8 +119,13 @@ export function EditarVenda() {
     }));
   }, [itensEditados, descontoTipo, descontoValor]);
 
-  
-  // Adicione este useEffect para sincronizar totalPago se cliente for anônimo
+  // Atualiza valorRestanteOriginal sempre que valorTotal ou valorPagoAntes mudar
+  useEffect(() => {
+    setValorRestanteOriginal(
+      Number(venda.valorTotal) - Number(valorPagoAntes)
+    );
+  }, [venda.valorTotal, valorPagoAntes]);
+
   useEffect(() => {
     if (venda.clienteId === "0" || venda.clienteId === 0) {
       setTotalPago(venda.valorTotal);
@@ -172,7 +193,6 @@ export function EditarVenda() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Impede salvar se cliente anônimo e valor pago < valor total
     if (
       (venda.clienteId === "0" || venda.clienteId === 0) &&
       Number(totalPago) < Number(venda.valorTotal)
@@ -192,33 +212,6 @@ export function EditarVenda() {
       desconto = valorProdutos * (valor / 100);
     } else if (descontoTipo === "decimal" && !isNaN(valor)) {
       desconto = valor;
-    }
-
-    // Adicione o campo formaDeDesconto igual ao backend
-    const vendaBody = {
-      Id: Number(id),
-      FuncionarioId: Number(venda.funcionarioId),
-      ClienteId: Number(venda.clienteId),
-      TotalDeItens: Number(venda.totalDeItens),
-      ValorTotal: Number(valorProdutos - desconto),
-      TotalPago: Number(totalPago),
-      FormaDePagamento: Array.isArray(venda.formaDePagamento)
-        ? venda.formaDePagamento
-        : [venda.formaDePagamento],
-      TotalDeVezes: Number(qtdParcelas),
-      DataVenda: new Date(venda.dataVenda).toISOString(),
-      desconto: desconto,
-      formaDeDesconto: descontoTipo ? [descontoTipo] : [], // <-- aqui
-    };
-
-    const response = await fetch(`${linkVen}/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(vendaBody),
-    });
-    if (!response.ok) {
-      alert("Erro ao atualizar a venda");
-      return;
     }
 
     // Atualizar itens da venda (remover, atualizar, adicionar)
@@ -253,8 +246,9 @@ export function EditarVenda() {
 
     // Atualizar pagamento relacionado, se existir
     const pagamentosRes = await fetch(linkPag);
+    let pagamentos = [];
     if (pagamentosRes.ok) {
-      const pagamentos = await pagamentosRes.json();
+      pagamentos = await pagamentosRes.json();
       const pagamento = pagamentos.find(
         (p) => Number(p.vendaId ?? p.VendaId) === Number(id)
       );
@@ -313,6 +307,79 @@ export function EditarVenda() {
       }
     }
 
+    // Calcule a diferença do valor pago
+    const pagamentoAnterior = pagamentos.find(
+      (p) => Number(p.vendaId ?? p.VendaId) === Number(id)
+    );
+    const valorPagoAntesLocal = pagamentoAnterior
+      ? Number(pagamentoAnterior.TotalPago ?? pagamentoAnterior.totalPago ?? 0)
+      : 0;
+
+    // Se for dinheiro, sempre subtrai o valor antigo e adiciona o novo
+    if (venda.formaDePagamento.includes("Dinheiro")) {
+      // Subtrai o valor antigo (se maior que zero)
+      if (valorPagoAntesLocal > 0) {
+        const caixaRes = await fetch("http://localhost:7172/api/Caixa/saida", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            valor: valorPagoAntesLocal,
+            descricao: `Estorno edição venda ${id}`,
+            tipo: "Saída",
+          }),
+        });
+        if (!caixaRes.ok) {
+          alert("Erro ao estornar valor do caixa!");
+          console.error("Erro ao estornar valor do caixa", await caixaRes.text());
+          return;
+        }
+      }
+      // Adiciona o valor novo (se maior que zero)
+      if (Number(totalPago) > 0) {
+        const caixaRes = await fetch("http://localhost:7172/api/Caixa/entrada", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            valor: Number(totalPago),
+            descricao: `Novo valor edição venda ${id}`,
+            tipo: "Entrada",
+          }),
+        });
+        if (!caixaRes.ok) {
+          alert("Erro ao adicionar valor ao caixa!");
+          console.error("Erro ao adicionar valor ao caixa", await caixaRes.text());
+          return;
+        }
+      }
+    }
+
+    // Atualiza a venda por último (após todos os ajustes)
+    const vendaBody = {
+      Id: Number(id),
+      FuncionarioId: Number(venda.funcionarioId),
+      ClienteId: Number(venda.clienteId),
+      TotalDeItens: Number(venda.totalDeItens),
+      ValorTotal: Number(valorProdutos - desconto),
+      TotalPago: Number(totalPago),
+      FormaDePagamento: Array.isArray(venda.formaDePagamento)
+        ? venda.formaDePagamento
+        : [venda.formaDePagamento],
+      TotalDeVezes: Number(qtdParcelas),
+      DataVenda: new Date(venda.dataVenda).toISOString(),
+      desconto: desconto,
+      formaDeDesconto: descontoTipo ? [descontoTipo] : [],
+    };
+
+    const response = await fetch(`${linkVen}/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(vendaBody),
+    });
+    if (!response.ok) {
+      alert("Erro ao atualizar a venda");
+      return;
+    }
+
     navigate("/Venda/ListagemVenda");
   };
 
@@ -330,7 +397,6 @@ export function EditarVenda() {
     <div className="editarVendaCentro">
       <h1 className="editarVendaTitulo">Editar Venda</h1>
       <div className="editarVendaGrid">
-        {/* Exemplo de campos com "Campo: Valor" no form */}
         <form className="editarVendaForm" onSubmit={handleSubmit}>
           <div className="editarVendaDividirInput">
             <input
@@ -504,7 +570,17 @@ export function EditarVenda() {
               max={venda.valorTotal}
             />
           </div>
-
+          <div className="editarVendaDividirInput">
+            <input
+              className="editarVendaInput"
+              type="text"
+              name="valorRestante"
+              disabled
+              placeholder="Valor Restante"
+              style={{ fontWeight: "bold" }}
+              value={`Valor restante: R$ ${valorRestanteOriginal.toFixed(2)}`}
+            />
+          </div>
           <div className="editarVendaDividirInput">
             <select
               name="produtoId"

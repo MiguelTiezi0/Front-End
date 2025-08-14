@@ -137,6 +137,32 @@ export function ListagemPagamento() {
     if (!confirmDelete) return;
 
     try {
+      // --- Remover do caixa se for dinheiro ---
+      const pagamentoRes = await fetch(`${linkPag}/${pagamentoSelecionado}`);
+      if (pagamentoRes.ok) {
+        const pagamento = await pagamentoRes.json();
+        const formaDinheiro =
+          pagamento.formaDePagamento === "Dinheiro" ||
+          (Array.isArray(pagamento.formaDePagamento) &&
+            pagamento.formaDePagamento.includes("Dinheiro"));
+        const valorPago =
+          Number(pagamento.totalPago ?? pagamento.TotalPago ?? 0);
+
+        if (formaDinheiro && valorPago > 0) {
+          await fetch("http://localhost:7172/api/Caixa/saida", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              valor: valorPago,
+              descricao: `Estorno pagamento deletado ID ${pagamento.id}`,
+              tipo: "Saída",
+            }),
+          });
+        }
+      }
+      // --- Fim do bloco de remoção do caixa ---
+
+      // Agora sim, delete o pagamento
       const response = await fetch(`${linkPag}/${pagamentoSelecionado}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },

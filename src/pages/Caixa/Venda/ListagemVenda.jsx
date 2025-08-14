@@ -189,8 +189,33 @@ export function ListagemVenda() {
     );
     if (!confirmDelete) return;
 
-    // Apenas apaga a venda (o back-end devolve os itens ao estoque)
     try {
+      // --- Remover do caixa se for dinheiro ---
+      const vendaRes = await fetch(`${linkVen}/${vendaSelecionada}`);
+      if (vendaRes.ok) {
+        const venda = await vendaRes.json();
+        const formaDinheiro =
+          venda.formaDePagamento === "Dinheiro" ||
+          (Array.isArray(venda.formaDePagamento) &&
+            venda.formaDePagamento.includes("Dinheiro"));
+        const valorPago =
+          Number(venda.totalPago ?? venda.TotalPago ?? 0);
+
+        if (formaDinheiro && valorPago > 0) {
+          await fetch("http://localhost:7172/api/Caixa/saida", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              valor: valorPago,
+              descricao: `Estorno venda deletada ID ${venda.id}`,
+              tipo: "Saída",
+            }),
+          });
+        }
+      }
+      // --- Fim do bloco de remoção do caixa ---
+
+      // Agora sim, delete a venda
       const response = await fetch(`${linkVen}/${vendaSelecionada}`, {
         method: "DELETE",
         headers: {

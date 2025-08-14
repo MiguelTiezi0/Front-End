@@ -335,6 +335,23 @@ export function CadastroVenda() {
       }),
     });
 
+
+    if (
+      totalPagoNumber > 0 &&
+      (venda.formaDePagamento.includes("Dinheiro") || formaDePagamento === "Dinheiro")
+    ) {
+      await fetch("http://localhost:7172/api/Caixa/entrada", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          valor: parseFloat(totalPagoNumber),
+          descricao: `Venda ${vendaSalva.id} - Cliente ${venda.clienteId}`,
+          tipo: "Entrada",
+        }),
+      });
+    }
+  
+
     alert("Venda cadastrada com sucesso!");
     navigate("../Venda/ListagemVenda");
     setItens([]);
