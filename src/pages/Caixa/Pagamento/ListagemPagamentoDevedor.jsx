@@ -20,13 +20,13 @@ export function ListagemPagamentoDevedor() {
   const [clienteSelecionado, setClienteSelecionado] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [modalPagamento, setModalPagamento] = useState(false);
-  const [pagamentoCliente, setPagamentoCliente] = useState("");
   const [pagamentoClienteId, setPagamentoClienteId] = useState("");
   const [pagamentoValor, setPagamentoValor] = useState("");
   const [pagamentoForma, setPagamentoForma] = useState("Dinheiro");
   const [parcelasEmCarteira, setParcelasEmCarteira] = useState([]);
   const [dataPagamento] = useState(new Date().toISOString().slice(0, 16));
   const [vendaSelecionadaId, setVendaSelecionadaId] = useState("");
+  const [parcelaSelecionada, setParcelaSelecionada] = useState(null);
 
   const formasPagamento = [
     "Dinheiro",
@@ -37,13 +37,13 @@ export function ListagemPagamentoDevedor() {
     "Consignação",
   ];
 
+  // Carrega clientes, vendas e monta as parcelas
   const fetchData = async () => {
     try {
       const [clientesData, vendasData] = await Promise.all([
         fetch(linkCli).then((r) => r.json()),
         fetch(linkVen).then((r) => r.json()),
       ]);
-
       setClientes(clientesData);
       setVendas(vendasData);
 
@@ -125,38 +125,31 @@ export function ListagemPagamentoDevedor() {
     fetchData();
   }, []);
 
-  const handleOpenModal = (clienteId) => {
-  setPagamentoClienteId(clienteId);
-  setVendaSelecionadaId(""); // Resetar a venda selecionada ao abrir o modal
-  setModalPagamento(true);
+  // Abre modal de pagamento para a parcela/venda selecionada
+  const handleOpenModalParcela = (parcela) => {
+    setPagamentoClienteId(parcela.clienteId);
+    setVendaSelecionadaId(parcela.idVenda);
+    setParcelaSelecionada(parcela);
+    setPagamentoValor("");
+    setPagamentoForma("Dinheiro");
+    setModalPagamento(true);
+  };
 
-  // Selecionar automaticamente a primeira venda em aberto do cliente
-  const vendasEmAberto = parcelasEmCarteira.filter(
-    (p) => p.clienteId === clienteId && p.status !== "Paga"
-  );
+  // Pesquisa de cliente por texto
+  const handleClienteBuscaChange = (e) => {
+    setClienteBusca(e.target.value);
+    setClienteSelecionado("");
+  };
 
-  if (vendasEmAberto.length > 0) {
-    // Encontrar a parcela mais próxima do vencimento
-    const parcelaMaisProxima = vendasEmAberto.reduce((maisProxima, atual) => {
-      const diasMaisProxima = getDiasParaVencimento(maisProxima.vencimento);
-      const diasAtual = getDiasParaVencimento(atual.vencimento);
-      return (diasAtual < diasMaisProxima) ? atual : maisProxima;
-    });
-
-    setVendaSelecionadaId(parcelaMaisProxima.idVenda);
-  }
-};
-
-
+  // Pagamento
   const handlePagamento = async () => {
     if (
       !pagamentoClienteId ||
       !pagamentoValor ||
       isNaN(Number(pagamentoValor)) ||
-      !vendaSelecionadaId // Verifica se uma venda foi selecionada
+      !vendaSelecionadaId
     ) {
       alert("Selecione o cliente, informe o valor e escolha uma venda.");
-      console.log("Dados do pagamento:", pagamentoClienteId, pagamentoValor, vendaSelecionadaId);
       return;
     }
 
@@ -167,7 +160,7 @@ export function ListagemPagamentoDevedor() {
     const pagamentoBody = {
       FuncionarioId: 1,
       ClienteId: Number(pagamentoClienteId),
-      VendaId: vendaSelecionadaId, // Envia o VendaId selecionado
+      VendaId: vendaSelecionadaId,
       TotalPago: valorTotalPagamento,
       Desconto: 0,
       FormaDePagamento: [pagamentoForma],
@@ -179,7 +172,7 @@ export function ListagemPagamentoDevedor() {
       const resPagamento = await fetch(linkPag, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(pagamentoBody),
+        body: JSON.stringify({ pagamento: pagamentoBody }),
       });
 
       if (!resPagamento.ok) {
@@ -193,7 +186,7 @@ export function ListagemPagamentoDevedor() {
         return;
       }
 
-      // 2. Distribuir o pagamento nas vendas em aberto do cliente
+      // 2. Distribuir o pagamento nas vendas em aberto do cliente (mais antigas primeiro)
       const vendasDoClienteAtualizadas = await fetch(linkVen)
         .then((r) => r.json())
         .then((vs) =>
@@ -301,12 +294,30 @@ export function ListagemPagamentoDevedor() {
         );
       }
 
+      // 4. Se for dinheiro, adiciona ao caixa
+      if (pagamentoForma === "Dinheiro" && valorTotalPagamento > 0) {
+        const caixaRes = await fetch("http://localhost:7172/api/Caixa/entrada", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            valor: valorTotalPagamento,
+            descricao: `Pagamento recebido do cliente ${pagamentoClienteId}`,
+            tipo: "Entrada",
+          }),
+        });
+        if (!caixaRes.ok) {
+          alert("Erro ao adicionar valor ao caixa!");
+          console.error("Erro ao adicionar valor ao caixa", await caixaRes.text());
+          return;
+        }
+      }
+
       alert("Pagamento registrado e distribuído com sucesso!");
       setModalPagamento(false);
-      setPagamentoCliente("");
       setPagamentoClienteId("");
       setPagamentoValor("");
       setPagamentoForma("Dinheiro");
+      setParcelaSelecionada(null);
       fetchData();
     } catch (error) {
       console.error("Erro inesperado no processo de pagamento:", error);
@@ -383,21 +394,27 @@ export function ListagemPagamentoDevedor() {
             <input
               type="text"
               value={clienteBusca}
-              onChange={(e) => {
-                setClienteBusca(e.target.value);
-                setClienteSelecionado("");
-              }}
-              onBlur={() => {
-                const encontrado = clientes.find(
-                  (c) => c.nome.toLowerCase() === clienteBusca.toLowerCase()
-                );
-                if (encontrado) {
-                  setClienteSelecionado(encontrado.id);
-                }
-              }}
+              onChange={handleClienteBuscaChange}
               placeholder="Buscar cliente..."
               style={{ width: 180 }}
+              autoComplete="off"
             />
+            {clienteBusca && (
+              <div className="autocomplete-clientes">
+                {clientesFiltrados.map((c) => (
+                  <div
+                    key={c.id}
+                    className="autocomplete-item"
+                    onClick={() => {
+                      setClienteBusca(c.nome);
+                      setClienteSelecionado(c.id);
+                    }}
+                  >
+                    {c.nome}
+                  </div>
+                ))}
+              </div>
+            )}
 
             <label>Status:</label>
             <select
@@ -409,21 +426,6 @@ export function ListagemPagamentoDevedor() {
               <option value="naopagas">Não pagas</option>
             </select>
           </div>
-          <button
-            style={{
-              background: "#2ecc40",
-              color: "#fff",
-              border: "none",
-              borderRadius: 4,
-              padding: "8px 24px",
-              cursor: "pointer",
-              fontWeight: "bold",
-              height: 40,
-            }}
-            onClick={() => handleOpenModal(clienteSelecionado)} // Passa o cliente selecionado ao abrir o modal
-          >
-            Pagar
-          </button>
         </div>
         <div className="tabelaCarteiraContainer">
           <h2>Parcelas em Carteira a Receber</h2>
@@ -438,12 +440,13 @@ export function ListagemPagamentoDevedor() {
                   <th>Valor Parcela</th>
                   <th>Valor Pago</th>
                   <th>Status</th>
+                  <th>Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {parcelasFiltradas.length === 0 ? (
                   <tr>
-                    <td colSpan={7} style={{ textAlign: "center" }}>
+                    <td colSpan={8} style={{ textAlign: "center" }}>
                       Nenhuma parcela encontrada
                     </td>
                   </tr>
@@ -464,6 +467,25 @@ export function ListagemPagamentoDevedor() {
                       <td>R$ {p.valorParcela.toFixed(2)}</td>
                       <td>R$ {p.valorPago.toFixed(2)}</td>
                       <td>{p.status}</td>
+                      <td>
+                        {p.status !== "Paga" && (
+                          <button
+                            className="btnPagarParcela"
+                            style={{
+                              background: "#2ecc40",
+                              color: "#fff",
+                              border: "none",
+                              borderRadius: 4,
+                              padding: "4px 12px",
+                              cursor: "pointer",
+                              fontWeight: "bold",
+                            }}
+                            onClick={() => handleOpenModalParcela(p)}
+                          >
+                            Pagar
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   ))
                 )}
@@ -477,7 +499,7 @@ export function ListagemPagamentoDevedor() {
                   <td>
                     <strong>R$ {totalPago.toFixed(2)}</strong>
                   </td>
-                  <td>
+                  <td colSpan={2}>
                     <strong>À Receber: R$ {totalAPagar.toFixed(2)}</strong>
                   </td>
                 </tr>
@@ -499,7 +521,7 @@ export function ListagemPagamentoDevedor() {
               ×
             </button>
 
-            <h2 className="modalTitulo">Pagamento de Vendas</h2>
+            <h2 className="modalTitulo">Pagamento de Venda</h2>
 
             <form
               className="modalFormulario"
@@ -510,33 +532,15 @@ export function ListagemPagamentoDevedor() {
             >
               <div className="modalCampo">
                 <label>Cliente:</label>
-                <select
+                <input
                   className="modalInput"
-                  required
-                  value={pagamentoClienteId}
-                  onChange={(e) => {
-                    const id = e.target.value;
-                    setPagamentoClienteId(id);
-                    const nome =
-                      clientes.find((c) => String(c.id) === id)?.nome || "";
-                    setPagamentoCliente(nome);
-                    // Selecionar automaticamente a primeira venda em aberto do cliente
-                    const vendasEmAberto = parcelasEmCarteira.filter(
-                      (p) => p.clienteId === id && p.status !== "Paga"
-                    );
-
-                    if (vendasEmAberto.length > 0) {
-                      setVendaSelecionadaId(vendasEmAberto[0].idVenda);
-                    }
-                  }}
-                >
-                  <option value="">Selecione o cliente</option>
-                  {clientes.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.nome}
-                    </option>
-                  ))}
-                </select>
+                  type="text"
+                  value={
+                    clientes.find((c) => String(c.id) === String(pagamentoClienteId))
+                      ?.nome || ""
+                  }
+                  disabled
+                />
               </div>
 
               <div className="modalCampo">
