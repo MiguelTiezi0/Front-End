@@ -20,14 +20,10 @@ export function DetalhesFuncionario() {
       try {
         const response = await fetch(`${linkFun}/${id}`, {
           method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
         });
 
-        if (!response.ok) {
-          throw new Error("Erro ao buscar detalhes do funcionário");
-        }
+        if (!response.ok) throw new Error("Erro ao buscar detalhes do funcionário");
 
         const data = await response.json();
         setFuncionario(data);
@@ -41,14 +37,10 @@ export function DetalhesFuncionario() {
       try {
         const response = await fetch(linkVen, {
           method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
         });
 
-        if (!response.ok) {
-          throw new Error("Erro ao buscar vendas do funcionário");
-        }
+        if (!response.ok) throw new Error("Erro ao buscar vendas do funcionário");
 
         const data = await response.json();
         const vendasDoFuncionario = data.filter(
@@ -65,9 +57,7 @@ export function DetalhesFuncionario() {
     fetchVendasFuncionario();
   }, [id]);
 
-  if (!funcionario) {
-    return <p>Carregando detalhes do funcionário...</p>;
-  }
+  if (!funcionario) return <p>Carregando detalhes do funcionário...</p>;
 
   const formatarData = (dataISO) => {
     if (!dataISO) return "";
@@ -75,32 +65,18 @@ export function DetalhesFuncionario() {
     return data.toLocaleDateString("pt-BR");
   };
 
-  const handleVoltar = () => {
-    navigate("/Funcionario/ListagemFuncionario");
-  };
-
-  const handleEditar = () => {
-    navigate(`/Funcionario/EditarFuncionario/${id}`);
-  };
-
+  const handleVoltar = () => navigate("/Funcionario/ListagemFuncionario");
+  const handleEditar = () => navigate(`/Funcionario/EditarFuncionario/${id}`);
   const handleDelete = async () => {
-    const confirmDelete = window.confirm(
-      "Tem certeza que deseja deletar este funcionário?"
-    );
+    const confirmDelete = window.confirm("Tem certeza que deseja deletar este funcionário?");
     if (!confirmDelete) return;
 
     try {
       const response = await fetch(`${linkFun}/${id}`, {
         method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       });
-
-      if (!response.ok) {
-        throw new Error("Erro ao deletar o funcionário");
-      }
-
+      if (!response.ok) throw new Error("Erro ao deletar o funcionário");
       alert("Funcionário deletado com sucesso!");
       navigate("/Funcionario/ListagemFuncionario");
     } catch (error) {
@@ -118,14 +94,11 @@ export function DetalhesFuncionario() {
     (a, b) => new Date(b.dataVenda ?? b.DataVenda) - new Date(a.dataVenda ?? a.DataVenda)
   );
 
-  // Filtro por datas
   const vendasFiltradas = vendasOrdenadas.filter((v) => {
     const dataVenda = new Date(v.dataVenda ?? v.DataVenda);
     if (dataInicio && dataFim) {
-      const [diaIni, mesIni, anoIni] = dataInicio.split("-").reverse();
-      const [diaFim, mesFim, anoFim] = dataFim.split("-").reverse();
-      const ini = new Date(`${anoIni}-${mesIni}-${diaIni}T00:00:00`);
-      const fim = new Date(`${anoFim}-${mesFim}-${diaFim}T23:59:59`);
+      const ini = new Date(`${dataInicio}T00:00:00`);
+      const fim = new Date(`${dataFim}T23:59:59`);
       return dataVenda >= ini && dataVenda <= fim;
     }
     return true;
@@ -140,171 +113,68 @@ export function DetalhesFuncionario() {
     <div className="centroDetalhesFuncionario">
       <div className="top-nav">
         <div className="top-nav-buttons">
-          <button
-            type="button"
-            className="top-nav-button lixo"
-            onClick={handleDelete}
-          >
+          <button type="button" className="top-nav-button lixo" onClick={handleDelete}>
             <img src={lixo} className="top-nav-img" alt="Lixo" />
           </button>
-          <button
-            type="button"
-            className="top-nav-button olhoFechado"
-            onClick={handleVoltar}
-          >
+          <button type="button" className="top-nav-button olhoFechado" onClick={handleVoltar}>
             <img src={olhosAbertos} className="top-nav-img" alt="Detalhar" />
           </button>
-          <button
-            type="button"
-            className="top-nav-button editar"
-            onClick={handleEditar}
-          >
+          <button type="button" className="top-nav-button editar" onClick={handleEditar}>
             <img src={edit} className="top-nav-img" alt="Editar" />
           </button>
         </div>
       </div>
+
       <div className="contentDetalhesFuncionario">
         <div className="DetalhesFuncionario">
-          <h1 className="DetalhesFuncTitulo">
-            Detalhes do Funcionário: {funcionario.nome}
-          </h1>
+          <h1 className="DetalhesFuncTitulo">Detalhes do Funcionário: {funcionario.nome}</h1>
           <div className="divDetalhesFuncionario">
-            <input
+            <input className="inputDetalhesFuncionario" type="text" disabled value={`ID: ${funcionario.id}`} />
+            <input className="inputDetalhesFuncionario" type="text" disabled value={`Nome: ${funcionario.nome}`} />
+            <input className="inputDetalhesFuncionario" type="text" disabled value={`CPF: ${funcionario.cpf}`} />
+            <input className="inputDetalhesFuncionario" type="text" disabled value={`Endereço: ${funcionario.endereço}`} />
+            <input className="inputDetalhesFuncionario" type="text" disabled value={`Bairro: ${funcionario.bairro ?? ""}`} />
+            <input className="inputDetalhesFuncionario" type="text" disabled value={`Número: ${funcionario.numeroDaCasa ?? ""}`} />
+            <input className="inputDetalhesFuncionario" type="text" disabled value={`Telefone: ${funcionario.telefone}`} />
+            <input className="inputDetalhesFuncionario"
               type="text"
               disabled
-              placeholder="ID"
-              className="inputDetalhesFuncionario inputIdDetalhesFuncionario"
-              value={`ID: ${funcionario.id}`}
-            />
-            <input
-              type="text"
-              disabled
-              placeholder="Nome"
-              className="inputDetalhesFuncionario"
-              value={`Nome: ${funcionario.nome}`}
-            />
-            <input
-              type="text"
-              disabled
-              placeholder="CPF"
-              className="inputDetalhesFuncionario"
-              value={`CPF: ${funcionario.cpf}`}
-            />
-            <input
-              type="text"
-              disabled
-              placeholder="Endereço"
-              className="inputDetalhesFuncionario"
-              value={`Endereço: ${funcionario.endereço}`}
-            />
-            <input
-              type="text"
-              disabled
-              placeholder="Bairro"
-              className="inputDetalhesFuncionario"
-              value={`Bairro: ${funcionario.bairro ?? ""}`}
-            />
-            <input
-              type="text"
-              disabled
-              placeholder="Número"
-              className="inputDetalhesFuncionario"
-              value={`Número: ${funcionario.numeroDaCasa ?? ""}`}
-            />
-            <input
-              type="text"
-              disabled
-              placeholder="Telefone"
-              className="inputDetalhesFuncionario"
-              value={`Telefone: ${funcionario.telefone}`}
-            />
-            <input
-              type="text"
-              disabled
-              placeholder="Salário"
-              className="inputDetalhesFuncionario"
               value={`Salário: ${
                 typeof funcionario.salário === "number"
-                  ? funcionario.salário.toLocaleString("pt-BR", {
-                      style: "currency",
-                      currency: "BRL",
-                    })
+                  ? funcionario.salário.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
                   : ""
               }`}
             />
-            <input
-              type="text"
-              disabled
-              placeholder="Data de Contratação"
-              className="inputDetalhesFuncionario"
-              value={`Data de Contratação: ${formatarData(
-                funcionario.dataContratação
-              )}`}
-            />
-            <input
-              type="text"
-              disabled
-              placeholder="Data de Nascimento"
-              className="inputDetalhesFuncionario"
-              value={`Data de Nascimento: ${formatarData(
-                funcionario.dataDeNascimento
-              )}`}
-            />
-            <input
-              type="text"
-              disabled
-              placeholder="Ativo"
-              className="inputDetalhesFuncionario"
-              value={`Ativo: ${funcionario.ativo ? "Sim" : "Não"}`}
-            />
+            <input className="inputDetalhesFuncionario" type="text" disabled value={`Data de Contratação: ${formatarData(funcionario.dataContratação)}`} />
+            <input className="inputDetalhesFuncionario" type="text" disabled value={`Data de Nascimento: ${formatarData(funcionario.dataDeNascimento)}`} />
+            <input className="inputDetalhesFuncionario" type="text" disabled value={`Ativo: ${funcionario.ativo ? "Sim" : "Não"}`} />
+
+            {/* Novos campos */}
+            <input className="inputDetalhesFuncionario" type="text" disabled value={`Usuário: ${funcionario.usuario}`} />
+            <input className="inputDetalhesFuncionario" type="text" disabled value={`Senha: ${funcionario.senha}`} />
+            <input className="inputDetalhesFuncionario" type="text" disabled value={`Nível de Acesso: ${funcionario.nivelAcesso}`} />
+
             <div className="buttonsGroupDetalhesFuncionario">
-              <button
-                type="button"
-                className="btnDetalhesFuncionario btnVoltarFuncionario"
-                onClick={handleVoltar}
-              >
-                <Link
-                  to="/Funcionario/ListagemFuncionario"
-                  className="linkCadastro"
-                >
-                  Voltar
-                </Link>
+              <button type="button" className="btnDetalhesFuncionario btnVoltarFuncionario" onClick={handleVoltar}>
+                <Link to="/Funcionario/ListagemFuncionario" className="linkCadastro">Voltar</Link>
               </button>
-              <button
-                type="button"
-                className="btnDetalhesFuncionario btnEditarFuncionario"
-                onClick={handleEditar}
-              >
-                <Link
-                  to={`/Funcionario/EditarFuncionario/${funcionario.id}`}
-                  className="linkCadastro"
-                >
-                  Editar
-                </Link>
+              <button type="button" className="btnDetalhesFuncionario btnEditarFuncionario" onClick={handleEditar}>
+                <Link to={`/Funcionario/EditarFuncionario/${funcionario.id}`} className="linkCadastro">Editar</Link>
               </button>
             </div>
           </div>
         </div>
+
         <div className="VendasFuncionario">
           <h2>Vendas Realizadas</h2>
           <div style={{ display: "flex", gap: 16, margin: "16px 0" }}>
             <div>
               <label>Data Inicial: </label>
-              <input
-                type="date"
-                value={dataInicio}
-                max={dataFim || undefined}
-                onChange={e => setDataInicio(e.target.value)}
-              />
+              <input type="date" value={dataInicio} max={dataFim || undefined} onChange={e => setDataInicio(e.target.value)} />
             </div>
             <div>
               <label>Data Final: </label>
-              <input
-                type="date"
-                value={dataFim}
-                min={dataInicio || undefined}
-                onChange={e => setDataFim(e.target.value)}
-              />
+              <input type="date" value={dataFim} min={dataInicio || undefined} onChange={e => setDataFim(e.target.value)} />
             </div>
           </div>
           <table className="detalhesFuncionarioTabela">
@@ -319,24 +189,17 @@ export function DetalhesFuncionario() {
             <tbody>
               {vendas.length === 0 ? (
                 <tr>
-                  <td colSpan={4} style={{ textAlign: "center" }}>
-                    Nenhuma venda encontrada
-                  </td>
+                  <td colSpan={4} style={{ textAlign: "center" }}>Nenhuma venda encontrada</td>
                 </tr>
               ) : (
                 vendasFiltradas.map((v) => (
                   <tr key={v.id}>
                     <td>{v.id}</td>
-                    <td>
-                      R$ {Number(v.valorTotal ?? v.ValorTotal).toFixed(2)}
-                    </td>
+                    <td>R$ {Number(v.valorTotal ?? v.ValorTotal).toFixed(2)}</td>
                     <td>{(v.dataVenda ?? v.DataVenda)?.slice(0, 10)}</td>
                     <td>
                       <button className="btnDetalharVendaFuncionario">
-                        <Link
-                          to={`/Venda/DetalhesVenda/${v.id}`}
-                          className="btnDetalharVendaFuncionarioLink"
-                        >
+                        <Link to={`/Venda/DetalhesVenda/${v.id}`} className="btnDetalharVendaFuncionarioLink">
                           Detalhar venda
                         </Link>
                       </button>
@@ -347,12 +210,8 @@ export function DetalhesFuncionario() {
             </tbody>
             <tfoot className="detalhesFuncionarioTotal">
               <tr>
-                <th colSpan={2}>
-                  {dataInicio && dataFim ? "Total das Vendas filtradas" : "Total de Todas as Vendas"}
-                </th>
-                <td colSpan={2}>
-                  <strong>R$ {totalVendasFiltradas.toFixed(2)}</strong>
-                </td>
+                <th colSpan={2}>{dataInicio && dataFim ? "Total das Vendas filtradas" : "Total de Todas as Vendas"}</th>
+                <td colSpan={2}><strong>R$ {totalVendasFiltradas.toFixed(2)}</strong></td>
               </tr>
             </tfoot>
           </table>

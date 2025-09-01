@@ -7,7 +7,6 @@ import "./Cliente.css";
 import { linkCli } from "./linkCli";
 import { linkVen } from "../../Caixa/Venda/linkVen";
 
-
 export function DetalhesCliente() {
   const { id } = useParams();
   const [cliente, setCliente] = useState(null);
@@ -69,7 +68,8 @@ export function DetalhesCliente() {
         );
 
         // Atualize o cliente no backend com os novos totais
-        if (cliente) { // Só faz o PUT se cliente já foi carregado
+        if (cliente) {
+          // Só faz o PUT se cliente já foi carregado
           await fetch(`${linkCli}/${id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -153,7 +153,10 @@ export function DetalhesCliente() {
     0
   );
   const totalDevido = vendas.reduce(
-    (acc, v) => acc + (Number(v.valorTotal ?? v.ValorTotal ?? 0) - Number(v.totalPago ?? v.TotalPago ?? 0)),
+    (acc, v) =>
+      acc +
+      (Number(v.valorTotal ?? v.ValorTotal ?? 0) -
+        Number(v.totalPago ?? v.TotalPago ?? 0)),
     0
   );
 
@@ -167,7 +170,7 @@ export function DetalhesCliente() {
 
     return ""; // Sem cor se não se encaixar em nenhum caso
   }
-console.table(cliente)
+  console.table(cliente);
   return (
     <div className="centroDetalhesCliente">
       <div className="top-nav">
@@ -272,7 +275,23 @@ console.table(cliente)
                   : ""
               }`}
             />
+            {/* NOVOS CAMPOS */}
+            <input
+              type="text"
+              disabled
+              placeholder="Usuário"
+              className="inputDetalhesCliente"
+              value={`Usuário: ${cliente.usuario || ""}`}
+            />
+            <input
+              type="text"
+              disabled
+              placeholder="Nível de Acesso"
+              className="inputDetalhesCliente"
+              value={`Nível de Acesso: ${cliente.nivelAcesso || "Cliente"}`}
+            />
           </div>
+
           <div className="buttonsGroupDetalhesCliente">
             <button
               type="button"
@@ -354,7 +373,10 @@ console.table(cliente)
               )}
             </tbody>
             <td></td>
-            <tfoot style={{position: "relative"}} className="detalhesClienteTotal">
+            <tfoot
+              style={{ position: "relative" }}
+              className="detalhesClienteTotal"
+            >
               <tr>
                 <th>Total Gasto</th>
                 <th>Total Pago</th>
@@ -363,22 +385,13 @@ console.table(cliente)
               </tr>
               <tr>
                 <td>
-                  Total Gasto:{" "}
-                  <strong>
-                    R$ {totalGasto.toFixed(2)}
-                  </strong>
+                  Total Gasto: <strong>R$ {totalGasto.toFixed(2)}</strong>
                 </td>
                 <td>
-                  Total Pago:{" "}
-                  <strong>
-                    R$ {totalPago.toFixed(2)}
-                  </strong>
+                  Total Pago: <strong>R$ {totalPago.toFixed(2)}</strong>
                 </td>
                 <td>
-                  Total Devido:{" "}
-                  <strong>
-                    R$ {totalDevido.toFixed(2)}
-                  </strong>
+                  Total Devido: <strong>R$ {totalDevido.toFixed(2)}</strong>
                 </td>
                 <td>
                   <button className="PagarDetalhesCliente">

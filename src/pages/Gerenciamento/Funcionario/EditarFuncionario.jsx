@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import "./Funcionario.css";
 import { linkFun } from "./linkFun";
 import lixo from "../../../assets/icons/lixo.svg";
@@ -8,23 +8,25 @@ import edit from "../../../assets/icons/edit.svg";
 
 // Função de validação de CPF
 function validarCPF(cpf) {
-  cpf = cpf.replace(/[^\d]+/g, '');
+  cpf = cpf.replace(/[^\d]+/g, "");
 
   if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
 
   const calcularDV = (cpfArray, pesoInicial) => {
-    let soma = cpfArray.reduce((acc, num, idx) => acc + num * (pesoInicial - idx), 0);
+    let soma = cpfArray.reduce(
+      (acc, num, idx) => acc + num * (pesoInicial - idx),
+      0
+    );
     let resto = soma % 11;
     return resto < 2 ? 0 : 11 - resto;
   };
 
-  const numeros = cpf.split('').map(Number);
+  const numeros = cpf.split("").map(Number);
   const dv1 = calcularDV(numeros.slice(0, 9), 10);
   const dv2 = calcularDV(numeros.slice(0, 10), 11);
 
   return dv1 === numeros[9] && dv2 === numeros[10];
 }
-
 
 function formatarTelefone(valor) {
   return valor
@@ -38,32 +40,35 @@ export function EditarFuncionario() {
   document.title = "Editar Funcionário";
   const { id } = useParams();
   const navigate = useNavigate();
+
   const [funcionario, setFuncionario] = useState({
+    id: "",
     nome: "",
     cpf: "",
-    endereço: "",
+    endereco: "",
     bairro: "",
     numeroDaCasa: "",
-    dataContratação: "",
+    dataContratacao: "",
     telefone: "",
-    salário: "",
+    salario: "",
     dataDeNascimento: "",
     ativo: true,
+    usuario: "",
+    senha: "",
+    nivelAcesso: 3, // cliente como padrão
   });
 
+  // Buscar funcionário
   useEffect(() => {
     const fetchFuncionario = async () => {
       try {
         const response = await fetch(`${linkFun}/${id}`, {
           method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
         });
 
-        if (!response.ok) {
+        if (!response.ok)
           throw new Error("Erro ao buscar os dados do funcionário");
-        }
 
         const data = await response.json();
         setFuncionario(data);
@@ -76,21 +81,20 @@ export function EditarFuncionario() {
     fetchFuncionario();
   }, [id]);
 
+  // Mudança nos campos
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     if (name === "telefone") {
-      setFuncionario((prevFuncionario) => ({
-        ...prevFuncionario,
-        [name]: formatarTelefone(value),
-      }));
+      setFuncionario((prev) => ({ ...prev, [name]: formatarTelefone(value) }));
     } else {
-      setFuncionario((prevFuncionario) => ({
-        ...prevFuncionario,
+      setFuncionario((prev) => ({
+        ...prev,
         [name]: type === "checkbox" ? checked : value,
       }));
     }
   };
 
+  // Submit do formulário
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -102,16 +106,17 @@ export function EditarFuncionario() {
     try {
       const response = await fetch(`${linkFun}/${id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...funcionario,
-          salário: parseFloat(funcionario.salário),
+          salario: parseFloat(funcionario.salario),
+          nivelAcesso: parseInt(funcionario.nivelAcesso),
         }),
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Erro do backend:", errorText);
         throw new Error("Erro ao atualizar o funcionário");
       }
 
@@ -122,34 +127,22 @@ export function EditarFuncionario() {
     }
   };
 
-  const handleVoltar = () => {
-    navigate("/Funcionario/ListagemFuncionario");
-  };
-
-  const handleDetalhar = () => {
+  const handleVoltar = () => navigate("/Funcionario/ListagemFuncionario");
+  const handleDetalhar = () =>
     navigate(`/Funcionario/DetalhesFuncionario/${id}`);
-  };
-
-  const handleEditar = () => {
-    alert("Você já está na tela de edição.");
-  };
-
+  const handleEditar = () => alert("Você já está na tela de edição.");
   const handleDelete = async () => {
-    const confirmDelete = window.confirm("Tem certeza que deseja deletar este funcionário?");
+    const confirmDelete = window.confirm(
+      "Tem certeza que deseja deletar este funcionário?"
+    );
     if (!confirmDelete) return;
 
     try {
       const response = await fetch(`${linkFun}/${id}`, {
         method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       });
-
-      if (!response.ok) {
-        throw new Error("Erro ao deletar o funcionário");
-      }
-
+      if (!response.ok) throw new Error("Erro ao deletar o funcionário");
       alert("Funcionário deletado com sucesso!");
       navigate("/Funcionario/ListagemFuncionario");
     } catch (error) {
@@ -185,13 +178,13 @@ export function EditarFuncionario() {
           </button>
         </div>
       </div>
+
       <div className="EditarFuncionario">
         <h1>Editar Funcionário: {funcionario.nome}</h1>
         <form className="divEditarFuncionario" onSubmit={handleSubmit}>
           <input
             type="text"
             name="id"
-            id="id"
             readOnly
             value={funcionario.id || ""}
             placeholder="Id"
@@ -217,11 +210,11 @@ export function EditarFuncionario() {
           />
           <input
             type="text"
-            name="endereço"
+            name="endereco"
             required
             placeholder="Endereço"
             className="inputEditarFuncionario"
-            value={funcionario.endereço}
+            value={funcionario.endereco}
             onChange={handleChange}
           />
           <input
@@ -254,29 +247,27 @@ export function EditarFuncionario() {
           />
           <input
             type="date"
-            name="dataContratação"
+            name="dataContratacao"
             required
-            placeholder="Data de Contratação"
             className="inputEditarFuncionario"
-            value={funcionario.dataContratação ? funcionario.dataContratação.substring(0, 10) : ""}
+            value={funcionario.dataContratacao?.substring(0, 10) || ""}
             onChange={handleChange}
           />
           <input
             type="number"
-            name="salário"
+            name="salario"
             required
             placeholder="Salário"
             className="inputEditarFuncionario"
-            value={funcionario.salário}
+            value={funcionario.salario}
             onChange={handleChange}
           />
           <input
             type="date"
             name="dataDeNascimento"
             required
-            placeholder="Data de Nascimento"
             className="inputEditarFuncionario"
-            value={funcionario.dataDeNascimento ? funcionario.dataDeNascimento.substring(0, 10) : ""}
+            value={funcionario.dataDeNascimento?.substring(0, 10) || ""}
             onChange={handleChange}
           />
           <label style={{ color: "#fff", marginTop: "10px" }}>
@@ -288,11 +279,53 @@ export function EditarFuncionario() {
               onChange={handleChange}
             />
           </label>
+
+          {/* Novos campos */}
+          <input
+            type="text"
+            name="usuario"
+            required
+            placeholder="Usuário"
+            className="inputEditarFuncionario"
+            value={funcionario.usuario}
+            onChange={handleChange}
+          />
+          <input
+            type="text"
+            name="senha"
+            required
+            placeholder="Senha"
+            className="inputEditarFuncionario"
+            value={funcionario.senha}
+            onChange={handleChange}
+          />
+
+          {/* Nivel de acesso com enum */}
+          <select
+            name="nivelAcesso"
+            className="inputEditarFuncionario"
+            value={funcionario.nivelAcesso}
+            onChange={handleChange}
+            required
+          >
+            <option value={0}>Administrador</option>
+            <option value={1}>Gerente</option>
+            <option value={2}>Funcionário</option>
+            <option value={3}>Cliente</option>
+          </select>
+
           <div className="buttonsGroupFuncionario">
-            <button type="button" className="btnFuncionario btnVoltarFuncionario" onClick={handleVoltar}>
+            <button
+              type="button"
+              className="btnFuncionario btnVoltarFuncionario"
+              onClick={handleVoltar}
+            >
               Voltar
             </button>
-            <button type="submit" className="btnFuncionario btnSalvarFuncionario">
+            <button
+              type="submit"
+              className="btnFuncionario btnSalvarFuncionario"
+            >
               Salvar
             </button>
           </div>

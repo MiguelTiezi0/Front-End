@@ -4,6 +4,10 @@ import './index.css';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 import { Home } from './pages/Home';
+import { Inicio } from './pages/Inicio';
+import { Cadastro } from './pages/Cadastro';
+import { Login } from './pages/Login';
+import { Contato } from './pages/Contato';
 
 
 import { HomeGerenciamento } from './pages/Gerenciamento/HomeGerenciamento';
@@ -60,6 +64,13 @@ root.render(
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/inicio" element={<Inicio />} />
+          <Route path="/cadastro" element={<Cadastro />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/contato" element={<Contato />} />
+
+          {/* Home Pages */}
           <Route path="/Gerenciamento/HomeGerenciamento" element={<HomeGerenciamento />} />
           <Route path="/Caixa/HomeCaixa" element={<HomeCaixa />} />
 

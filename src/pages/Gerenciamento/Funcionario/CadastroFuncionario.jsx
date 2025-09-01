@@ -25,8 +25,8 @@ function validarCPF(cpf) {
 
   return dv1 === numeros[9] && dv2 === numeros[10];
 }
+
 function formatDateInput(value) {
-  // Remove tudo que não for número
   let v = value.replace(/\D/g, "");
   if (v.length > 8) v = v.slice(0, 8);
   if (v.length > 4) {
@@ -38,14 +38,12 @@ function formatDateInput(value) {
 }
 
 function toISODate(dateStr) {
-  // Converte dd/mm/aaaa para aaaa-mm-dd
   if (!dateStr) return "";
   const [dd, mm, yyyy] = dateStr.split("/");
   if (!dd || !mm || !yyyy) return dateStr;
   return `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
 }
 
-// Função para formatar telefone (99) 99999-9999
 function formatarTelefone(valor) {
   return valor
     .replace(/\D/g, "")
@@ -76,6 +74,9 @@ export function CadastroFuncionario() {
   );
   const [bairro, setBairro] = useState(funcionarioClonado?.bairro || "");
   const [numero, setNumero] = useState(funcionarioClonado?.numeroDaCasa || "");
+  const [usuario, setUsuario] = useState(funcionarioClonado?.usuario || "");
+  const [senha, setSenha] = useState(funcionarioClonado?.senha || "");
+  const [nivelAcesso] = useState("Funcionario"); // Sempre funcionário
 
   useEffect(() => {
     Inputmask("99/99/9999").mask(
@@ -86,14 +87,10 @@ export function CadastroFuncionario() {
       try {
         const response = await fetch(linkFun, {
           method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
         });
 
-        if (!response.ok) {
-          throw new Error("Erro ao buscar funcionários");
-        }
+        if (!response.ok) throw new Error("Erro ao buscar funcionários");
 
         const funcionarios = await response.json();
         const maiorId = funcionarios.reduce(
@@ -130,33 +127,27 @@ export function CadastroFuncionario() {
       salário: parseFloat(salario),
       dataDeNascimento: toISODate(dataDeNascimento),
       ativo,
+      usuario,
+      senha,
+      nivelAcesso, // Adicionado
     };
 
     try {
       const response = await fetch(linkFun, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(funcionario),
       });
 
-      if (!response.ok) {
-        throw new Error("Erro ao cadastrar o funcionário");
-      }
+      if (!response.ok) throw new Error("Erro ao cadastrar o funcionário");
 
       const responseFuncionarios = await fetch(linkFun, {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       });
 
-      if (!responseFuncionarios.ok) {
-        throw new Error(
-          "Erro ao buscar funcionários para calcular o próximo ID"
-        );
-      }
+      if (!responseFuncionarios.ok)
+        throw new Error("Erro ao buscar funcionários para calcular o próximo ID");
 
       const funcionarios = await responseFuncionarios.json();
       const maiorId = funcionarios.reduce(
@@ -175,6 +166,8 @@ export function CadastroFuncionario() {
       setSalario("");
       setDataDeNascimento("");
       setAtivo(true);
+      setUsuario("");
+      setSenha("");
     } catch (error) {
       console.log(error);
       alert("Erro ao cadastrar o funcionário");
@@ -189,7 +182,6 @@ export function CadastroFuncionario() {
           <input
             type="text"
             name="id"
-            id="id"
             readOnly
             value={id}
             placeholder="Id"
@@ -247,7 +239,7 @@ export function CadastroFuncionario() {
           <input
             type="text"
             required
-            placeholder="Data de Contratação "
+            placeholder="Data de Contratação"
             className="inputCadastroFuncionario"
             value={dataContratacao}
             onChange={(e) => setDataContratacao(formatDateInput(e.target.value))}
@@ -257,7 +249,7 @@ export function CadastroFuncionario() {
           <input
             type="text"
             required
-            placeholder="Data de Nascimento "
+            placeholder="Data de Nascimento"
             className="inputCadastroFuncionario"
             value={dataDeNascimento}
             onChange={(e) => setDataDeNascimento(formatDateInput(e.target.value))}
@@ -281,6 +273,29 @@ export function CadastroFuncionario() {
               style={{ marginLeft: "10px" }}
             />
           </label>
+          <input
+            type="text"
+            required
+            placeholder="Usuário"
+            className="inputCadastroFuncionario"
+            value={usuario}
+            onChange={(e) => setUsuario(e.target.value)}
+          />
+          <input
+            type="password"
+            required
+            placeholder="Senha"
+            className="inputCadastroFuncionario"
+            value={senha}
+            onChange={(e) => setSenha(e.target.value)}
+          />
+          <input
+            type="text"
+            readOnly
+            placeholder="Nível de Acesso"
+            className="inputCadastroFuncionario"
+            value={nivelAcesso}
+          />
           <div className="buttonsGroupFuncionario">
             <button type="button" className="btnFuncionario btnVoltarFuncionario">
               <Link to="/" className="linkCadastro">

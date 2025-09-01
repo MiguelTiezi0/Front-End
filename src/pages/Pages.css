@@ -1,0 +1,294 @@
+:root {
+  --yellow-primary-color: #fdda76;
+  --yellow-secondary-color: #f9c74f;
+  --black-primary-color: #252525;
+  --black: #000000;
+  --white-primary-color: #d9d9d9;
+  --white-secondary-color: #ebebeb;
+  --red: #b41111;
+  --blue: #2974d7;
+  --green: #39862f;
+}
+
+
+
+
+/* Fundo geral */
+.Page {
+  background: var(--black-primary-color);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Navbar específica */
+.headerNav {
+  background: #f9d465;
+  padding: 15px 0;
+  height: 8vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.headerNav ul {
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  gap: 100px;
+  height: 100%;
+}
+
+.headerNav ul li a {
+  text-decoration: none;
+  color: black;
+  font-size: 30px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 8px;
+  transition: 0.3s;
+}
+
+.headerNav ul li a:hover,
+.headerNav ul li a.active {
+  background: #f3c94a;
+}
+
+
+/* Cadastro     */
+
+.cadastroContainer {
+  background: var(--yellow-primary-color);
+  max-width: 1200px;
+  height: 670px;
+  border-radius: 8px;
+  margin: 60px auto;
+  padding: 10px;
+  text-align: center;
+}
+
+.cadastroContainer h1 {
+  margin-bottom: 50px;
+  font-size: 45px;
+  color: var(--black);
+}
+
+.cadastroForm {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: 15px;
+  row-gap: 40px;
+}
+
+.cadastroInput {
+  padding-left: 12px;
+  border: none;
+  border-radius: 5px;
+  font-size: 35px;
+  background: var(--white-secondary-color);
+  outline: none;
+  color: var(--black);
+  width: 350px;
+  height: 80px;
+}
+
+.cadastroInput:focus {
+  border: 2px solid var(--black-primary-color);
+}
+
+
+
+/* Wrapper do input + botão */
+.inputWrapperCadastro {
+  position: relative;
+  width: 100%;
+  max-width: 350px; /* igual ao seu input */
+ 
+}
+/* Botão do olho */
+.togglePasswordCadastro {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%); 
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.togglePasswordCadastro img {
+  width: 40px;
+  height: 40px;
+  opacity: 0.7;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.togglePasswordCadastro img:hover {
+  opacity: 1;
+}
+
+
+
+
+
+
+.cadastroButtons {
+  grid-column: span 3;
+  justify-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 15px;
+  width: 100%;
+}
+
+.cadastroBtn {
+  background: var(--green);
+  color: var(--white-secondary-color);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 30px;
+  font-weight: 600;
+  transition: 0.3s;
+  width: 100%;
+  max-width: 700px;
+  height: 70px;
+}
+
+.cadastroBtn:hover {
+  background: #2c6a27;
+}
+
+.cadastroLink {
+  font-size: 25px;
+  color: var(--blue);
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.cadastroLink:hover {
+  text-decoration: underline;
+}
+
+
+/* Login            */
+
+.loginContainer {
+  background: var(--yellow-primary-color);
+  max-width: 700px;
+  height: 500px;
+  margin: 60px auto;
+  padding: 30px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.loginContainer h1 {
+  margin-block-start: 0em;
+    margin-block-end: 0.67em;
+  font-size: 50px;
+  color: var(--black);
+}
+
+.loginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Input de login */
+.loginInput {
+  width: 100%;
+  min-width: 670px;
+   max-width: 600px; 
+  padding: 12px;
+  border: none;
+  border-radius: 5px;
+  font-size: 35px;
+  background: var(--white-secondary-color);
+  outline: none;
+  color: var(--black);
+ 
+}
+
+.loginInput:focus {
+  border: 2px solid var(--black-primary-color);
+}
+
+.loginButtons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+  
+}
+
+.loginBtn {
+  background: var(--green);
+  color: var(--white-secondary-color);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 30px;
+  font-weight: 600;
+  transition: 0.3s;
+  width: 100%;
+  min-width: 400px;
+  height: 60px;
+}
+
+.loginBtn:hover {
+  background: #2c6a27;
+}
+
+.loginLink {
+  font-size: 25px;
+  color: var(--blue);
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.loginLink:hover {
+  text-decoration: underline;
+}
+
+
+
+/* Wrapper do input + botão */
+.inputWrapper {
+  position: relative;
+  width: 100%;
+  max-width: 700px; /* igual ao seu input */
+ 
+}
+/* Botão do olho */
+.togglePassword {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%); 
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.togglePassword img {
+  width: 40px;
+  height: 40px;
+  opacity: 0.7;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.togglePassword img:hover {
+  opacity: 1;
+}

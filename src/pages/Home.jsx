@@ -1,12 +1,18 @@
-import React from "react";
-import "./Home.css";
+import React, { useEffect } from "react";
+
+import "./Pages.css";
 
 import { HeaderGeral } from "../components/Geral/HeaderGeral/HeaderGeral.jsx";
+import { useRequireAuth } from "../hooks/RequireAuth/useRequireAuth.jsx";
+
 
 export function Home() {
   document.title = "Home";
 
-  return (
+    useRequireAuth("Funcionario"); 
+    
+  return(
+
     <div className="homeContainer">
       <HeaderGeral />
       <div className="homeContent">
