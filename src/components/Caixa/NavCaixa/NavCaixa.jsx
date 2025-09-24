@@ -44,6 +44,11 @@ export const NavCaixa = () => {
                 </Link>
               </li>
               <li className="nav-li">
+                <Link className="nav-a" to="/Compra/ListagemCompra">
+                  Compra
+                </Link>
+              </li>
+              <li className="nav-li">
                 <Link className="nav-a" to="/Pagamento/ListagemPagamentoDevedor">
                   Devedores
                 </Link>
@@ -59,6 +64,11 @@ export const NavCaixa = () => {
         <li className="nav-li">
           <Link className="nav-a" to="/Pagamento/CadastroPagamento">
             Pagar
+          </Link>
+        </li>
+        <li className="nav-li">
+          <Link className="nav-a" to="/Compra/CadastroCompra">
+            Comprar
           </Link>
         </li>
       </ul>

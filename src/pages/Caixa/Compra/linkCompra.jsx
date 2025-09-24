@@ -1,0 +1,1 @@
+export const linkCompra = "http://localhost:7172/api/Compras"; 

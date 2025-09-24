@@ -52,6 +52,11 @@ export const NavGerenciamento = () => {
                   Cliente
                 </Link>
               </li>
+              <li className="nav-li">
+                <Link className="nav-a" to="/Fornecedor/CadastroFornecedor">
+                  Fornecedor
+                </Link>
+              </li>
             </ul>
           </details>
         </li>
@@ -80,6 +85,11 @@ export const NavGerenciamento = () => {
               <li className="nav-li">
                 <Link className="nav-a" to="/Cliente/ListagemCliente">
                   Cliente
+                </Link>
+              </li>
+              <li className="nav-li">
+                <Link className="nav-a" to="/Fornecedor/ListagemFornecedor">
+                  Fornecedor
                 </Link>
               </li>
             </ul>

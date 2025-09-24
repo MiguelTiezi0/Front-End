@@ -38,12 +38,24 @@ import { DeletarFuncionario } from './pages/Gerenciamento/Funcionario/DeletarFun
 import { EditarFuncionario } from './pages/Gerenciamento/Funcionario/EditarFuncionario.jsx';
 import { DetalhesFuncionario } from './pages/Gerenciamento/Funcionario/DetalhesFuncionario.jsx';
 
+import { CadastroFornecedor } from './pages/Gerenciamento/Fornecedor/CadastroFornecedor.jsx';
+import { ListagemFornecedor } from './pages/Gerenciamento/Fornecedor/ListagemFornecedor.jsx';
+import { DeletarFornecedor } from './pages/Gerenciamento/Fornecedor/DeletarFornecedor.jsx';
+import { EditarFornecedor } from './pages/Gerenciamento/Fornecedor/EditarFornecedor.jsx';
+import { DetalhesFornecedor } from './pages/Gerenciamento/Fornecedor/DetalhesFornecedor.jsx';
+
 
 import { CadastroVenda } from './pages/Caixa/Venda/CadastroVenda.jsx';
 import { ListagemVenda } from './pages/Caixa/Venda/ListagemVenda.jsx';
 import { DeletarVenda } from './pages/Caixa/Venda/DeletarVenda.jsx';
 import { EditarVenda } from './pages/Caixa/Venda/EditarVenda.jsx';
 import { DetalhesVenda } from './pages/Caixa/Venda/DetalhesVenda.jsx';
+
+import { CadastroCompra } from './pages/Caixa/Compra/CadastroCompra.jsx';
+import { ListagemCompra } from './pages/Caixa/Compra/ListagemCompra.jsx';
+import { DeletarCompra } from './pages/Caixa/Compra/DeletarCompra.jsx';
+import { EditarCompra } from './pages/Caixa/Compra/EditarCompra.jsx';
+import { DetalhesCompra } from './pages/Caixa/Compra/DetalhesCompra.jsx';
 
 import { CadastroPagamento } from './pages/Caixa/Pagamento/CadastroPagamento.jsx';
 import { ListagemPagamento } from './pages/Caixa/Pagamento/ListagemPagamento.jsx';
@@ -98,6 +110,13 @@ root.render(
             <Route path="/Funcionario/DeletarFuncionario" element={<DeletarFuncionario />} />
             <Route path="/Funcionario/EditarFuncionario/:id" element={<EditarFuncionario />} />
             <Route path="/Funcionario/DetalhesFuncionario/:id" element={<DetalhesFuncionario />} />
+   
+
+            <Route path="/Fornecedor/CadastroFornecedor" element={<CadastroFornecedor />} />
+            <Route path="/Fornecedor/ListagemFornecedor" element={<ListagemFornecedor />} />
+            <Route path="/Fornecedor/DeletarFornecedor" element={<DeletarFornecedor />} />
+            <Route path="/Fornecedor/EditarFornecedor/:id" element={<EditarFornecedor />} />
+            <Route path="/Fornecedor/DetalhesFornecedor/:id" element={<DetalhesFornecedor />} />
           </Route>
 
           {/* Caixa Layout */}
@@ -107,6 +126,12 @@ root.render(
             <Route path="/Venda/DeletarVenda" element={<DeletarVenda />} />
             <Route path="/Venda/EditarVenda/:id" element={<EditarVenda />} />
             <Route path="/Venda/DetalhesVenda/:id" element={<DetalhesVenda />} />
+
+            <Route path="/Compra/CadastroCompra" element={<CadastroCompra />} />
+            <Route path="/Compra/ListagemCompra" element={<ListagemCompra />} />
+            <Route path="/Compra/DeletarCompra" element={<DeletarCompra />} />
+            <Route path="/Compra/EditarCompra/:id" element={<EditarCompra />} />
+            <Route path="/Compra/DetalhesCompra/:id" element={<DetalhesCompra />} />
 
             <Route path="/Pagamento/CadastroPagamento" element={<CadastroPagamento />} />
             <Route path="/Pagamento/ListagemPagamento" element={<ListagemPagamento />} />

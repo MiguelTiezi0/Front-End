@@ -7,7 +7,7 @@ import { linkCli } from "../../Gerenciamento/Cliente/linkCli";
 import { linkPro } from "../../Gerenciamento/Produto/linkPro";
 import { linkVenItens } from "../ItensVenda/linkVenItens";
 import { linkPag } from "../Pagamento/linkPag";
-
+import { CadastroCliente } from "../../Gerenciamento/Cliente/CadastroCliente";
 import "./Venda.css";
 
 export function CadastroVenda() {
@@ -22,11 +22,11 @@ export function CadastroVenda() {
   const [formaDePagamento, setFormaDePagamento] = useState("");
   const [descontoTipo, setDescontoTipo] = useState("");
   const [descontoValor, setDescontoValor] = useState("");
-  const [totalPago, setTotalPago] = useState(""); // string para mostrar placeholder
+  const [totalPago, setTotalPago] = useState("");
   const [item, setItem] = useState({
     produtoId: "",
     valorDoItem: "",
-    quantidade: "", // string para mostrar placeholder
+    quantidade: "",
   });
 
   const [venda, setVenda] = useState({
@@ -41,15 +41,9 @@ export function CadastroVenda() {
   });
 
   useEffect(() => {
-    fetch(linkFun)
-      .then((r) => r.json())
-      .then(setFuncionarios);
-    fetch(linkCli)
-      .then((r) => r.json())
-      .then(setClientes);
-    fetch(linkPro)
-      .then((r) => r.json())
-      .then(setProdutos);
+    fetch(linkFun).then((r) => r.json()).then(setFuncionarios);
+    fetch(linkCli).then((r) => r.json()).then(setClientes);
+    fetch(linkPro).then((r) => r.json()).then(setProdutos);
   }, []);
 
   useEffect(() => {
@@ -87,15 +81,12 @@ export function CadastroVenda() {
       alert("Selecione um produto, quantidade e valor válidos.");
       return;
     }
-
     const produto = produtos.find((p) => p.id === produtoId);
     if (!produto) return alert("Produto inválido.");
-
     if (quantidadeNum > produto.quantidade) {
       alert("Quantidade maior que o estoque!");
       return;
     }
-
     setItens([
       ...itens,
       {
@@ -130,10 +121,8 @@ export function CadastroVenda() {
     setDescontoTipo("");
     setDescontoValor("");
     setVenda((v) => ({ ...v, formaDePagamento: [value] }));
-
-    // Só mostra parcelas para Crédito e Débito
     const parcelasDiv = document.getElementById("QtdParcelas");
-    if (value === "Crédito" || value === "Débito" || value ==="Crediário") {
+    if (value === "Crédito" || value === "Débito" || value === "Crediário") {
       parcelasDiv.style.display = "flex";
     } else {
       parcelasDiv.style.display = "none";
@@ -141,24 +130,19 @@ export function CadastroVenda() {
     }
   };
 
-  // Cálculo do valor com desconto aplicado
   useEffect(() => {
     const valorProdutos = itens.reduce(
       (acc, i) => acc + Number(i.valorDoItem) * Number(i.quantidade),
       0
     );
-
     let desconto = 0;
     const valor = Number(descontoValor);
-
     if (descontoTipo === "porcentagem" && !isNaN(valor)) {
       desconto = valorProdutos * (valor / 100);
     } else if (descontoTipo === "decimal" && !isNaN(valor)) {
       desconto = valor;
     }
-
     const final = Math.max(0, valorProdutos - desconto);
-
     setVenda((v) => ({
       ...v,
       valorTotal: final,
@@ -166,20 +150,31 @@ export function CadastroVenda() {
     }));
   }, [itens, descontoTipo, descontoValor]);
 
+  useEffect(() => {
+    if (venda.clienteId === "0" || venda.clienteId === 0) {
+      setTotalPago(venda.valorTotal);
+    }
+  }, [venda.clienteId, venda.valorTotal]);
+
+  const formasPagamento = [
+    "Dinheiro",
+    "Débito",
+    "Pix",
+    "Crédito",
+    "Crediário",
+    "Consignação",
+  ];
+
+  const clienteSelecionado = clientes.find(
+    (c) => String(c.id) === String(venda.clienteId)
+  );
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!venda.funcionarioId || !venda.clienteId || itens.length === 0) {
-      alert(
-        "Preencha todos os campos obrigatórios e adicione pelo menos um item."
-      );
+      alert("Preencha todos os campos obrigatórios e adicione pelo menos um item.");
       return;
     }
-
-    const clienteSelecionado = clientes.find(
-      (c) => String(c.id) === String(venda.clienteId)
-    );
-
-    // Verificação de limite de crédito
     const valorRestante = Number(venda.valorTotal) - Number(totalPago || 0);
     if (
       clienteSelecionado &&
@@ -195,15 +190,11 @@ export function CadastroVenda() {
       );
       return;
     }
-
     const isCartao =
       venda.formaDePagamento.includes("Crédito") ||
       venda.formaDePagamento.includes("Débito");
     const totalDeVezes = isCartao ? qtdParcelas : 1;
-
-    // Permite inserir valor, mas alerta se for menor que o total
     const totalPagoNumber = Number(totalPago);
-
     if (
       (venda.clienteId === "0" || venda.clienteId === 0) &&
       totalPagoNumber < venda.valorTotal
@@ -211,23 +202,17 @@ export function CadastroVenda() {
       alert("Cliente anônimo deve pagar o valor total da venda!");
       return;
     }
-
     const valorProdutos = itens.reduce(
       (acc, i) => acc + Number(i.valorDoItem) * Number(i.quantidade),
       0
     );
-
     const valor = Number(descontoValor);
     let desconto = 0;
-
     if (descontoTipo === "porcentagem" && !isNaN(valor)) {
       desconto = valorProdutos * (valor / 100);
     } else if (descontoTipo === "decimal" && !isNaN(valor)) {
       desconto = valor;
     }
-
-    const valorFinal = valorProdutos - desconto;
-
     const vendaBody = {
       funcionarioId: Number(venda.funcionarioId),
       clienteId: Number(venda.clienteId),
@@ -238,23 +223,18 @@ export function CadastroVenda() {
       totalDeVezes: totalDeVezes,
       dataVenda: new Date(venda.dataVenda).toISOString(),
       desconto: desconto,
-      formaDeDesconto: descontoTipo ? [descontoTipo] : [], // <-- Adicionado aqui
+      formaDeDesconto: descontoTipo ? [descontoTipo] : [],
     };
-
     const resVenda = await fetch(linkVen, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(vendaBody),
     });
-
     if (!resVenda.ok) {
       alert("Erro ao salvar venda");
       return;
     }
-
     const vendaSalva = await resVenda.json();
-
-    // Cria o pagamento automaticamente se totalPago > 0
     if (totalPagoNumber > 0) {
       const pagamentoBody = {
         FuncionarioId: Number(venda.funcionarioId),
@@ -268,14 +248,12 @@ export function CadastroVenda() {
         ToTalDeVezes: totalDeVezes,
         DataPagamento: new Date().toISOString(),
       };
-
       await fetch(linkPag, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(pagamentoBody),
+        body: JSON.stringify({ pagamento: pagamentoBody }),
       });
     }
-
     for (const i of itens) {
       await fetch(linkVenItens, {
         method: "POST",
@@ -287,7 +265,6 @@ export function CadastroVenda() {
           quantidade: Number(i.quantidade),
         }),
       });
-
       const produto = produtos.find((p) => p.id === Number(i.produtoId));
       if (produto) {
         await fetch(`${linkPro}/${produto.id}`, {
@@ -300,8 +277,6 @@ export function CadastroVenda() {
         });
       }
     }
-
-    // Após registrar venda e pagamento
     const vendasDoCliente = await fetch(linkVen)
       .then((r) => r.json())
       .then((vs) =>
@@ -324,7 +299,6 @@ export function CadastroVenda() {
       (acc, v) => acc + Number(v.valorTotal ?? v.ValorTotal ?? 0),
       0
     );
-
     await fetch(`${linkCli}/${venda.clienteId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -334,8 +308,6 @@ export function CadastroVenda() {
         totalGasto: totalGastoCliente,
       }),
     });
-
-
     if (
       totalPagoNumber > 0 &&
       (venda.formaDePagamento.includes("Dinheiro") || formaDePagamento === "Dinheiro")
@@ -344,14 +316,12 @@ export function CadastroVenda() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          valor: parseFloat(totalPagoNumber),
+          valor: Number(totalPagoNumber),
           descricao: `Venda ${vendaSalva.id} - Cliente ${venda.clienteId}`,
           tipo: "Entrada",
         }),
       });
     }
-  
-
     alert("Venda cadastrada com sucesso!");
     navigate("../Venda/ListagemVenda");
     setItens([]);
@@ -367,37 +337,16 @@ export function CadastroVenda() {
       dataVenda: new Date().toISOString().slice(0, 16),
     });
     setTotalPago("");
-    fetch(linkPro)
-      .then((r) => r.json())
-      .then(setProdutos);
+    fetch(linkPro).then((r) => r.json()).then(setProdutos);
   };
-
-  // Sincroniza totalPago se cliente for anônimo:
-  useEffect(() => {
-    if (venda.clienteId === "0" || venda.clienteId === 0) {
-      setTotalPago(venda.valorTotal);
-    }
-  }, [venda.clienteId, venda.valorTotal]);
-
-  const formasPagamento = [
-    "Dinheiro",
-    "Débito",
-    "Pix",
-    "Crédito",
-    "Crediário",
-    "Consignação",
-  ];
-
-  // Adicione este helper para buscar o cliente selecionado:
-  const clienteSelecionado = clientes.find(
-    (c) => String(c.id) === String(venda.clienteId)
-  );
 
   return (
     <div className="centroCadastroVendas">
       <div className="cadastroVendaTela">
         <h1 className="cadastroVendaTitulo">Vender</h1>
-        <div className="cadastroVendaGrid">
+
+         <div className="cadastroVendaGrid">
+         
           <form className="cadastroVendaForm" onSubmit={handleSubmit}>
             <div className="dividirInputVenda">
               <select
@@ -431,7 +380,6 @@ export function CadastroVenda() {
                 disabled
               />
             </div>
-
             <div className="dividirInputVenda">
               <select
                 className="cadastroVendaInput"
@@ -449,7 +397,6 @@ export function CadastroVenda() {
                 ))}
               </select>
             </div>
-
             <div className="dividirInputVenda">
               <select
                 className="cadastroVendaInput"
@@ -466,7 +413,6 @@ export function CadastroVenda() {
                 ))}
               </select>
             </div>
-
             <div
               className="dividirInputVenda"
               id="QtdParcelas"
@@ -491,7 +437,6 @@ export function CadastroVenda() {
                 ))}
               </select>
             </div>
-
             {(formaDePagamento === "Pix" ||
               formaDePagamento === "Dinheiro") && (
               <>
@@ -545,12 +490,11 @@ export function CadastroVenda() {
                 placeholder={`Total Pago (R$ ${venda.valorTotal.toFixed(2)})`}
                 value={totalPago}
                 min={0}
-                 step="0.01" 
+                step="0.01"
                 max={venda.valorTotal.toFixed(2)}
                 onChange={(e) => setTotalPago(e.target.value)}
               />
             </div>
-
             <div className="dividirInputVenda">
               <select
                 className="cadastroVendaInput"
@@ -565,7 +509,6 @@ export function CadastroVenda() {
                 ))}
               </select>
             </div>
-
             <div className="dividirInputVenda">
               <input
                 className="cadastroVendaInput"
@@ -591,7 +534,6 @@ export function CadastroVenda() {
                 }
               />
             </div>
-
             <div className="cadastroVendaBtnDiv">
               <button
                 type="button"
@@ -601,7 +543,6 @@ export function CadastroVenda() {
                 Adicionar Produto
               </button>
             </div>
-
             <div className="cadastroVendaDivFinalizar dividirInputVenda">
               <button
                 className="cadastroVendaBtnFinalizar"
@@ -612,7 +553,6 @@ export function CadastroVenda() {
               </button>
             </div>
           </form>
-
           <div className="cadastroVendaTabelaWrapper">
             <table className="cadastroVendaTabela">
               <thead>
@@ -621,13 +561,13 @@ export function CadastroVenda() {
                   <th>Produto</th>
                   <th>Quantidade</th>
                   <th>Valor uni</th>
-                  <th>Cancelar </th> {/* NOVA COLUNA */}
+                  <th>Cancelar</th>
                 </tr>
               </thead>
               <tbody>
                 {itens.length === 0 ? (
                   <tr>
-                    <td colSpan={4} style={{ textAlign: "center" }}>
+                    <td colSpan={5} style={{ textAlign: "center" }}>
                       Nenhum item
                     </td>
                   </tr>

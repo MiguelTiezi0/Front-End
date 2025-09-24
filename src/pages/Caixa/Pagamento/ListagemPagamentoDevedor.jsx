@@ -24,7 +24,7 @@ export function ListagemPagamentoDevedor() {
   const [pagamentoValor, setPagamentoValor] = useState("");
   const [pagamentoForma, setPagamentoForma] = useState("Dinheiro");
   const [parcelasEmCarteira, setParcelasEmCarteira] = useState([]);
-  const [dataPagamento] = useState(new Date().toISOString().slice(0, 16));
+  const [dataPagamento, setDataPagamento] = useState(new Date().toISOString().slice(0, 16));
   const [vendaSelecionadaId, setVendaSelecionadaId] = useState("");
   const [parcelaSelecionada, setParcelaSelecionada] = useState(null);
 
@@ -33,8 +33,6 @@ export function ListagemPagamentoDevedor() {
     "Débito",
     "Pix",
     "Crédito",
-    "Crediário",
-    "Consignação",
   ];
 
   // Carrega clientes, vendas e monta as parcelas
@@ -125,6 +123,18 @@ export function ListagemPagamentoDevedor() {
     fetchData();
   }, []);
 
+  // Pesquisa dinâmica de clientes: ao digitar, já filtra e seleciona o primeiro
+  useEffect(() => {
+    if (clienteBusca.trim() === "") {
+      setClienteSelecionado("");
+      return;
+    }
+    const filtrados = clientes.filter((c) =>
+      c.nome.toLowerCase().includes(clienteBusca.toLowerCase())
+    );
+    setClienteSelecionado(filtrados[0]?.id || "");
+  }, [clienteBusca, clientes]);
+
   // Abre modal de pagamento para a parcela/venda selecionada
   const handleOpenModalParcela = (parcela) => {
     setPagamentoClienteId(parcela.clienteId);
@@ -132,13 +142,8 @@ export function ListagemPagamentoDevedor() {
     setParcelaSelecionada(parcela);
     setPagamentoValor("");
     setPagamentoForma("Dinheiro");
+    setDataPagamento(new Date().toISOString().slice(0, 16));
     setModalPagamento(true);
-  };
-
-  // Pesquisa de cliente por texto
-  const handleClienteBuscaChange = (e) => {
-    setClienteBusca(e.target.value);
-    setClienteSelecionado("");
   };
 
   // Pagamento
@@ -394,25 +399,15 @@ export function ListagemPagamentoDevedor() {
             <input
               type="text"
               value={clienteBusca}
-              onChange={handleClienteBuscaChange}
+              onChange={(e) => setClienteBusca(e.target.value)}
               placeholder="Buscar cliente..."
               style={{ width: 180 }}
               autoComplete="off"
             />
-            {clienteBusca && (
-              <div className="autocomplete-clientes">
-                {clientesFiltrados.map((c) => (
-                  <div
-                    key={c.id}
-                    className="autocomplete-item"
-                    onClick={() => {
-                      setClienteBusca(c.nome);
-                      setClienteSelecionado(c.id);
-                    }}
-                  >
-                    {c.nome}
-                  </div>
-                ))}
+            {/* Mostra o cliente selecionado automaticamente */}
+            {clienteBusca && clientesFiltrados.length > 0 && (
+              <div style={{ marginTop: 4, fontWeight: "bold", color: "#2ecc40" }}>
+                {clientesFiltrados[0].nome}
               </div>
             )}
 
@@ -511,17 +506,40 @@ export function ListagemPagamentoDevedor() {
 
       {/* Modal de pagamento */}
       {modalPagamento && (
-        <div className="modalPagamentoDevedor">
-          <div className="modalPagamentoBox">
+        <div className="modalPagamentoDevedor" style={{
+          position: "fixed",
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: "rgba(0,0,0,0.5)",
+          display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999
+        }}>
+          <div className="modalPagamentoBox" style={{
+            background: "#f8f8f8",
+            borderRadius: 8,
+            padding: 32,
+            minWidth: 340,
+            boxShadow: "0 0 16px #0004",
+            position: "relative"
+          }}>
             <button
               className="modalFechar"
               onClick={() => setModalPagamento(false)}
               title="Fechar"
+              style={{
+                position: "absolute",
+                top: 8, right: 12,
+                background: "none",
+                border: "none",
+                fontSize: 28,
+                color: "#888",
+                cursor: "pointer"
+              }}
             >
               ×
             </button>
 
-            <h2 className="modalTitulo">Pagamento de Venda</h2>
+            <h2 className="modalTitulo" style={{ textAlign: "center", marginBottom: 16 }}>
+              Pagamento de Venda
+            </h2>
 
             <form
               className="modalFormulario"
@@ -540,6 +558,7 @@ export function ListagemPagamentoDevedor() {
                       ?.nome || ""
                   }
                   disabled
+                  style={{ background: "#eee", fontWeight: "bold" }}
                 />
               </div>
 
@@ -550,6 +569,7 @@ export function ListagemPagamentoDevedor() {
                   required
                   value={pagamentoForma}
                   onChange={(e) => setPagamentoForma(e.target.value)}
+                  style={{ fontWeight: "bold" }}
                 >
                   <option value="">Selecione a forma</option>
                   {formasPagamento.map((fp) => (
@@ -578,7 +598,8 @@ export function ListagemPagamentoDevedor() {
                   onChange={(e) => setPagamentoValor(e.target.value)}
                   min={1}
                   step="0.01"
-                  disabled={!pagamentoClienteId}
+                  autoFocus
+                  style={{ fontWeight: "bold" }}
                 />
               </div>
 
@@ -588,18 +609,38 @@ export function ListagemPagamentoDevedor() {
                   className="modalInput"
                   type="datetime-local"
                   value={dataPagamento}
-                  disabled
+                  onChange={e => setDataPagamento(e.target.value)}
+                  style={{ fontWeight: "bold" }}
                 />
               </div>
 
-              <div className="modalBotoes">
-                <button className="btnPagar" type="submit">
+              <div className="modalBotoes" style={{ display: "flex", gap: 12, marginTop: 18 }}>
+                <button className="btnPagar" type="submit" style={{
+                  background: "#2ecc40",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 4,
+                  padding: "8px 24px",
+                  cursor: "pointer",
+                  fontWeight: "bold",
+                  fontSize: 16
+                }}>
                   Pagar
                 </button>
                 <button
                   className="btnCancelar"
                   type="button"
                   onClick={() => setModalPagamento(false)}
+                  style={{
+                    background: "#eee",
+                    color: "#333",
+                    border: "none",
+                    borderRadius: 4,
+                    padding: "8px 24px",
+                    cursor: "pointer",
+                    fontWeight: "bold",
+                    fontSize: 16
+                  }}
                 >
                   Cancelar
                 </button>
