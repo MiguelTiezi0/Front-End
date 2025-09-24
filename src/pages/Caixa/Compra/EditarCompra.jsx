@@ -13,22 +13,15 @@ export function EditarCompra() {
   const [funcionarios, setFuncionarios] = useState([]);
   const [produtos, setProdutos] = useState([]);
   const [itens, setItens] = useState([]);
+  const [itensOriginais, setItensOriginais] = useState([]);
   const [compra, setCompra] = useState(null);
-  const [item, setItem] = useState({
-    produtoId: "",
-    quantidade: "",
-    preçoCusto: "",
-  });
+  const [item, setItem] = useState({ produtoId: "", quantidade: "", preçoCusto: "" });
 
-  // carregar dados
+  // Carregar dados iniciais
   useEffect(() => {
-    // funcionários
     fetch(linkFun).then((r) => r.json()).then(setFuncionarios);
-
-    // produtos
     fetch(linkPro).then((r) => r.json()).then(setProdutos);
 
-    // compra
     fetch(`${linkCompra}/${id}`)
       .then((r) => r.json())
       .then((dados) => {
@@ -41,16 +34,14 @@ export function EditarCompra() {
       });
   }, [id]);
 
-  // carregar itens só depois que os produtos existirem
+  // Carregar itens da compra
   useEffect(() => {
     if (produtos.length === 0) return;
 
     fetch(`${Link_Itens_Compra}`)
       .then((r) => r.json())
       .then((dadosItens) => {
-        const apenasDaCompra = dadosItens.filter(
-          (i) => i.compraId === Number(id)
-        );
+        const apenasDaCompra = dadosItens.filter((i) => i.compraId === Number(id));
 
         const itensComPreco = apenasDaCompra.map((i) => {
           const produto = produtos.find((p) => p.id === i.produtoId);
@@ -62,25 +53,27 @@ export function EditarCompra() {
         });
 
         setItens(itensComPreco);
+        setItensOriginais(itensComPreco);
       });
   }, [id, produtos]);
 
-  // recalcular totais sempre que mudar itens
+  // Recalcular totais da compra quando itens mudarem
   useEffect(() => {
-    if (compra) {
-      setCompra((c) => ({
-        ...c,
-        quantidadeDeProduto: itens.reduce(
-          (acc, i) => acc + Number(i.quantidade),
-          0
-        ),
-        valorDaCompra: itens.reduce(
-          (acc, i) => acc + Number(i.preçoCusto) * Number(i.quantidade),
-          0
-        ),
-        itens_Compra: itens.length,
-      }));
-    }
+    if (!compra) return;
+
+    const quantidadeTotal = itens.reduce((acc, i) => acc + Number(i.quantidade), 0);
+    const valorTotal = itens.reduce(
+      (acc, i) => acc + Number(i.preçoCusto) * Number(i.quantidade),
+      0
+    );
+
+    setCompra((c) => ({
+      ...c,
+      quantidadeDeProduto: quantidadeTotal,
+      quantidadeAtual: quantidadeTotal,
+      valorDaCompra: valorTotal,
+      itens_Compra: itens.length,
+    }));
   }, [itens]);
 
   const handleProdutoChange = (e) => {
@@ -89,9 +82,7 @@ export function EditarCompra() {
 
     setItem({
       produtoId,
-      preçoCusto: produtoSelecionado?.preçoCusto
-        ? Number(produtoSelecionado.preçoCusto)
-        : 0,
+      preçoCusto: produtoSelecionado?.preçoCusto ? Number(produtoSelecionado.preçoCusto) : 0,
       quantidade: "",
     });
   };
@@ -131,22 +122,14 @@ export function EditarCompra() {
       return;
     }
 
-    const quantidadeDeProduto = itens.reduce(
-      (acc, i) => acc + Number(i.quantidade),
-      0
-    );
-    const valorDaCompra = itens.reduce(
-      (acc, i) => acc + Number(i.preçoCusto) * Number(i.quantidade),
-      0
-    );
-
-    // atualizar compra
+    // Sempre enviar valores recalculados e incluir o ID
     const compraBody = {
+      id: Number(id), // 👈 necessário para atualizar a compra
       funcionarioId: Number(compra.funcionarioId),
       descricao: compra.descricao,
-      quantidadeDeProduto,
-      quantidadeAtual: quantidadeDeProduto,
-      valorDaCompra,
+      quantidadeDeProduto: itens.reduce((acc, i) => acc + Number(i.quantidade), 0),
+      quantidadeAtual: itens.reduce((acc, i) => acc + Number(i.quantidade), 0),
+      valorDaCompra: itens.reduce((acc, i) => acc + Number(i.preçoCusto) * Number(i.quantidade), 0),
       dataCompra: new Date(compra.dataCompra).toISOString(),
       itens_Compra: itens.length,
     };
@@ -157,24 +140,43 @@ export function EditarCompra() {
       body: JSON.stringify(compraBody),
     });
 
-    // apagar itens antigos
-    await fetch(`${Link_Itens_Compra}/deleteByCompra/${id}`, {
-      method: "DELETE",
-    });
-
-    // salvar novos itens
+    // Atualizar itens
     for (const i of itens) {
-      await fetch(Link_Itens_Compra, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          compraId: Number(id),
-          produtoId: Number(i.produtoId),
-          quantidade: Number(i.quantidade),
-          valorUnitario: Number(i.preçoCusto),
-          subtotal: Number(i.preçoCusto) * Number(i.quantidade),
-        }),
-      });
+      if (!i.id) {
+        await fetch(Link_Itens_Compra, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            compraId: Number(id),
+            produtoId: Number(i.produtoId),
+            quantidade: Number(i.quantidade),
+            valorUnitario: Number(i.preçoCusto),
+            subtotal: Number(i.preçoCusto) * Number(i.quantidade),
+          }),
+        });
+      } else {
+        const original = itensOriginais.find((o) => o.id === i.id);
+        if (original.quantidade !== i.quantidade || original.preçoCusto !== i.preçoCusto) {
+          await fetch(`${Link_Itens_Compra}/${i.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              compraId: Number(id),
+              produtoId: Number(i.produtoId),
+              quantidade: Number(i.quantidade),
+              valorUnitario: Number(i.preçoCusto),
+              subtotal: Number(i.preçoCusto) * Number(i.quantidade),
+            }),
+          });
+        }
+      }
+    }
+
+    // Remover itens deletados
+    for (const o of itensOriginais) {
+      if (!itens.find((i) => i.id === o.id)) {
+        await fetch(`${Link_Itens_Compra}/${o.id}`, { method: "DELETE" });
+      }
     }
 
     alert("Compra atualizada com sucesso!");
@@ -187,22 +189,17 @@ export function EditarCompra() {
     <div className="centroCadastroCompra">
       <div className="cadastroCompraTela">
         <h1 className="cadastroCompraTitulo">Editar Compra</h1>
-
         <form className="cadastroCompraForm" onSubmit={handleSubmit}>
           <div className="dividirInputCompra">
             <select
               className="cadastroCompraInput"
               required
               value={compra.funcionarioId}
-              onChange={(e) =>
-                setCompra((c) => ({ ...c, funcionarioId: e.target.value }))
-              }
+              onChange={(e) => setCompra((c) => ({ ...c, funcionarioId: e.target.value }))}
             >
               <option value="">Funcionário</option>
               {funcionarios.map((f) => (
-                <option key={f.id} value={f.id}>
-                  {f.nome}
-                </option>
+                <option key={f.id} value={f.id}>{f.nome}</option>
               ))}
             </select>
           </div>
@@ -214,9 +211,7 @@ export function EditarCompra() {
               required
               placeholder="Descrição da compra"
               value={compra.descricao}
-              onChange={(e) =>
-                setCompra((c) => ({ ...c, descricao: e.target.value }))
-              }
+              onChange={(e) => setCompra((c) => ({ ...c, descricao: e.target.value }))}
             />
           </div>
 
@@ -226,9 +221,7 @@ export function EditarCompra() {
               type="datetime-local"
               required
               value={compra.dataCompra}
-              onChange={(e) =>
-                setCompra((c) => ({ ...c, dataCompra: e.target.value }))
-              }
+              onChange={(e) => setCompra((c) => ({ ...c, dataCompra: e.target.value }))}
             />
           </div>
 
@@ -260,18 +253,12 @@ export function EditarCompra() {
               min={1}
               placeholder="Quantidade"
               value={item.quantidade}
-              onChange={(e) =>
-                setItem((i) => ({ ...i, quantidade: e.target.value }))
-              }
+              onChange={(e) => setItem((i) => ({ ...i, quantidade: e.target.value }))}
             />
           </div>
 
           <div className="cadastroCompraBtnDiv">
-            <button
-              type="button"
-              className="cadastroCompraBtn"
-              onClick={handleAddItem}
-            >
+            <button type="button" className="cadastroCompraBtn" onClick={handleAddItem}>
               Adicionar Produto
             </button>
           </div>
@@ -280,9 +267,7 @@ export function EditarCompra() {
             <button
               className="cadastroCompraBtnFinalizar"
               type="submit"
-              disabled={
-                itens.length === 0 || !compra.funcionarioId || !compra.descricao
-              }
+              disabled={itens.length === 0 || !compra.funcionarioId || !compra.descricao}
             >
               Salvar Alterações
             </button>
@@ -303,31 +288,19 @@ export function EditarCompra() {
             <tbody>
               {itens.length === 0 ? (
                 <tr>
-                  <td colSpan={5} style={{ textAlign: "center" }}>
-                    Nenhum item
-                  </td>
+                  <td colSpan={5} style={{ textAlign: "center" }}>Nenhum item</td>
                 </tr>
               ) : (
                 itens.map((i) => (
                   <tr key={i.tempId}>
                     <td>{i.produtoId}</td>
-                    <td>
-                      {
-                        produtos.find((p) => p.id === Number(i.produtoId))
-                          ?.descricao
-                      }
-                    </td>
+                    <td>{produtos.find((p) => p.id === Number(i.produtoId))?.descricao}</td>
                     <td>{i.quantidade}</td>
                     <td>R$ {Number(i.preçoCusto).toFixed(2)}</td>
                     <td>
                       <button
                         onClick={() => handleRemoveItem(i.tempId)}
-                        style={{
-                          background: "none",
-                          border: "none",
-                          color: "red",
-                          cursor: "pointer",
-                        }}
+                        style={{ background: "none", border: "none", color: "red", cursor: "pointer" }}
                         title="Remover produto"
                       >
                         X
@@ -340,11 +313,9 @@ export function EditarCompra() {
           </table>
 
           <div className="cadastroCompraValorTotalTabela">
-            Valor total:{" "}
-            <strong>R$ {compra.valorDaCompra?.toFixed(2)}</strong>
+            Valor total: <strong>R$ {compra.valorDaCompra?.toFixed(2)}</strong>
             <span style={{ marginLeft: 16 }}>
-              Quantidade total:{" "}
-              <strong>{compra.quantidadeDeProduto}</strong>
+              Quantidade total: <strong>{compra.quantidadeDeProduto}</strong>
             </span>
           </div>
         </div>
