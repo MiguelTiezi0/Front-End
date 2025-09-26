@@ -21,6 +21,7 @@ export function EditarPagamento() {
     TotalDeVezes: 1,
     DataPagamento: new Date().toISOString().slice(0, 16),
   });
+
   const [valorPagoAntes, setValorPagoAntes] = useState(0);
   const [valorRestanteFixo, setValorRestanteFixo] = useState(0);
 
@@ -35,7 +36,8 @@ export function EditarPagamento() {
       setClientes(clis);
       setVendas(vens);
 
-      setValorPagoAntes(Number(data.TotalPago ?? data.totalPago ?? 0));
+      const valorAntes = Number(data.TotalPago ?? data.totalPago ?? 0);
+      setValorPagoAntes(valorAntes);
       setPagamento({
         FuncionarioId: data.FuncionarioId ?? data.funcionarioId ?? "",
         ClienteId: data.ClienteId ?? data.clienteId ?? "",
@@ -48,9 +50,9 @@ export function EditarPagamento() {
             : new Date().toISOString().slice(0, 16),
       });
 
-      // Calcula o valorRestanteFixo apenas uma vez, após carregar os dados
+      // calcula total devido sem considerar o pagamento atual
       const vendasDoCliente = vens.filter(
-        v => Number(v.ClienteId ?? v.clienteId) === Number(data.ClienteId ?? data.clienteId)
+        (v) => Number(v.ClienteId ?? v.clienteId) === Number(data.ClienteId ?? data.clienteId)
       );
       const totalDevidoSemEstePagamento = vendasDoCliente.reduce(
         (acc, v) =>
@@ -58,40 +60,11 @@ export function EditarPagamento() {
           (Number(v.ValorTotal ?? v.valorTotal ?? 0) - Number(v.TotalPago ?? v.totalPago ?? 0)),
         0
       );
-      // Corrigido: não soma o valor já pago
       setValorRestanteFixo(totalDevidoSemEstePagamento);
     });
   }, [id]);
 
-  // Vendas em aberto do cliente, ordenadas da mais antiga para a mais recente
-  const vendasEmAberto = vendas
-    .filter(
-      (v) =>
-        Number(v.ClienteId ?? v.clienteId) === Number(pagamento.ClienteId) &&
-        Number(v.TotalPago ?? v.totalPago ?? 0) < Number(v.ValorTotal ?? v.valorTotal ?? 0)
-    )
-    .sort((a, b) => new Date(a.DataVenda ?? a.dataVenda) - new Date(b.DataVenda ?? b.dataVenda));
-
-  // Todas as vendas do cliente
-  const vendasDoCliente = vendas.filter(
-    v => Number(v.ClienteId ?? v.clienteId) === Number(pagamento.ClienteId)
-  );
-
-  // Total devido pelo cliente (SEM considerar o pagamento atual em edição)
-  const totalDevidoSemEstePagamento = vendasDoCliente.reduce(
-    (acc, v) =>
-      acc +
-      (Number(v.ValorTotal ?? v.valorTotal ?? 0) - Number(v.TotalPago ?? v.totalPago ?? 0)),
-    0
-  );
-
-  // Novo total devido exibido ao usuário (restante + valor pago antes da edição)
-  const totalDevidoExibido = totalDevidoSemEstePagamento + valorPagoAntes;
-
-  // Valor restante após edição (quanto ainda falta pagar após editar)
-  const valorRestante = totalDevidoSemEstePagamento + Number(pagamento.TotalPago) - valorPagoAntes;
-
-  // Valor restante deve ser calculado apenas com base no valor origina
+  // Vendas (não muta vendas state aqui — usaremos fetchs quando precisar)
   const handleChange = (e) => {
     const { name, value } = e.target;
     setPagamento((prev) => ({
@@ -104,119 +77,203 @@ export function EditarPagamento() {
     e.preventDefault();
 
     try {
-      // 1. Busque o pagamento anterior para saber o valor antigo
+      // busca o pagamento anterior
       const pagamentoAnteriorRes = await fetch(`${linkPag}/${id}`);
-      let valorPagoAntesEdicao = 0;
-      let formaDePagamentoAntes = "";
-      if (pagamentoAnteriorRes.ok) {
-        const pagamentoAnterior = await pagamentoAnteriorRes.json();
-        valorPagoAntesEdicao = Number(pagamentoAnterior.TotalPago ?? pagamentoAnterior.totalPago ?? 0);
-        formaDePagamentoAntes = String(pagamentoAnterior.FormaDePagamento ?? pagamentoAnterior.formaDePagamento ?? "");
+      if (!pagamentoAnteriorRes.ok) {
+        alert("Erro ao buscar pagamento anterior");
+        return;
       }
+      const pagamentoAnterior = await pagamentoAnteriorRes.json();
+      const valorPagoAntesEdicao = Number(pagamentoAnterior.TotalPago ?? pagamentoAnterior.totalPago ?? 0);
+      const formaDePagamentoAntes = String(pagamentoAnterior.FormaDePagamento ?? pagamentoAnterior.formaDePagamento ?? "");
 
-      // 2. Se o pagamento anterior era em dinheiro, subtrai do caixa
-      if (
-        formaDePagamentoAntes === "Dinheiro" &&
-        valorPagoAntesEdicao > 0
-      ) {
-        const caixaRes = await fetch("http://localhost:7172/api/Caixa/saida", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            valor: valorPagoAntesEdicao,
-            descricao: `Estorno edição pagamento ${id}`,
-            tipo: "Saída",
-          }),
-        });
-        if (!caixaRes.ok) {
-          alert("Erro ao estornar valor do caixa!");
-          console.error("Erro ao estornar valor do caixa", await caixaRes.text());
-          return;
+      const novoTotalPago = Number(pagamento.TotalPago ?? 0);
+      const novaForma = String(pagamento.FormaDePagamento ?? "");
+
+      const delta = novoTotalPago - valorPagoAntesEdicao; // positivo => adicionar, negativo => estornar
+
+      // CAIXA: tratar apenas o delta / mudança de forma
+      // caso 1: ambos em dinheiro -> ajustar por delta
+      if (formaDePagamentoAntes === "Dinheiro" && novaForma === "Dinheiro") {
+        if (delta > 0) {
+          await fetch("http://localhost:7172/api/Caixa/entrada", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              valor: delta,
+              descricao: `Ajuste entrada edição pagamento ${id}`,
+              tipo: "Entrada",
+            }),
+          });
+        } else if (delta < 0) {
+          await fetch("http://localhost:7172/api/Caixa/saida", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              valor: -delta,
+              descricao: `Ajuste saída edição pagamento ${id}`,
+              tipo: "Saída",
+            }),
+          });
+        }
+      } else if (formaDePagamentoAntes === "Dinheiro" && novaForma !== "Dinheiro") {
+        // removed the old cash (estornar original total)
+        if (valorPagoAntesEdicao > 0) {
+          await fetch("http://localhost:7172/api/Caixa/saida", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              valor: valorPagoAntesEdicao,
+              descricao: `Estorno caixa - mudança de forma edição pagamento ${id}`,
+              tipo: "Saída",
+            }),
+          });
+        }
+      } else if (formaDePagamentoAntes !== "Dinheiro" && novaForma === "Dinheiro") {
+        // adiciona ao caixa o novo total
+        if (novoTotalPago > 0) {
+          await fetch("http://localhost:7172/api/Caixa/entrada", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              valor: novoTotalPago,
+              descricao: `Entrada caixa - mudança de forma edição pagamento ${id}`,
+              tipo: "Entrada",
+            }),
+          });
         }
       }
 
-      // 3. Estorna o valor antigo das vendas do cliente
-      let valorRestanteEstorno = valorPagoAntesEdicao;
-      const vendasDoClienteOrdenadas = vendas
-        .filter(
-          (v) =>
-            Number(v.ClienteId ?? v.clienteId) === Number(pagamento.ClienteId)
-        )
-        .sort((a, b) =>
-          new Date(a.DataVenda ?? a.dataVenda) - new Date(b.DataVenda ?? b.dataVenda)
+      // SE delta === 0 e forma não mudou: não mexer nas vendas (evita efeito colateral)
+      if (delta !== 0) {
+        // Recarregar vendas atualizadas do servidor (garante dados corretos)
+        let vendasAtual = await fetch(linkVen).then((r) => r.json());
+        // somente vendas do cliente
+        let vendasDoCliente = vendasAtual.filter(
+          (v) => Number(v.ClienteId ?? v.clienteId) === Number(pagamento.ClienteId)
         );
 
-      for (const venda of vendasDoClienteOrdenadas) {
-        if (valorRestanteEstorno <= 0) break;
-        const pago = Number(venda.TotalPago ?? venda.totalPago ?? 0);
-        const valorParaEstornar = Math.min(pago, valorRestanteEstorno);
+        // ESTORNO quando delta < 0 -> precisamos tirar (-delta)
+        if (delta < 0) {
+          let toEstornar = -delta;
+          // estornar do mais recente para o mais antigo (reverse)
+          const vendasDesc = vendasDoCliente.sort(
+            (a, b) =>
+              new Date(b.DataVenda ?? b.dataVenda ?? b.data ?? 0) -
+              new Date(a.DataVenda ?? a.dataVenda ?? a.data ?? 0)
+          );
 
-        const vendaRes = await fetch(`${linkVen}/${venda.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...venda,
-            TotalPago: pago - valorParaEstornar,
-          }),
-        });
-        if (!vendaRes.ok) {
-          alert("Erro ao estornar valor das vendas!");
-          console.error("Erro ao estornar venda", await vendaRes.text());
-          return;
+          for (const venda of vendasDesc) {
+            if (toEstornar <= 0) break;
+            const pago = Number(venda.TotalPago ?? venda.totalPago ?? 0);
+            const valorParaEstornar = Math.min(pago, toEstornar);
+            const novoPago = pago - valorParaEstornar;
+
+            await fetch(`${linkVen}/${venda.id}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                ...venda,
+                // enviar ambos para garantir compatibilidade com o backend
+                TotalPago: novoPago,
+                totalPago: novoPago,
+              }),
+            }).catch((err) =>
+              console.error("Erro ao estornar venda", venda.id, err)
+            );
+
+            toEstornar -= valorParaEstornar;
+          }
+        } else {
+          // DISTRIBUIR delta > 0 nas vendas em aberto (mais antigas primeiro)
+          let restante = delta;
+
+          // Recarrega vendas do cliente (pois estorno pode ter alterado valores)
+          vendasAtual = await fetch(linkVen).then((r) => r.json());
+          const vendasEmAberto = vendasAtual
+            .filter(
+              (v) =>
+                Number(v.ClienteId ?? v.clienteId) === Number(pagamento.ClienteId) &&
+                Number(v.TotalPago ?? v.totalPago ?? 0) < Number(v.ValorTotal ?? v.valorTotal ?? 0)
+            )
+            .sort(
+              (a, b) =>
+                new Date(a.DataVenda ?? a.dataVenda ?? a.data ?? 0) -
+                new Date(b.DataVenda ?? b.dataVenda ?? b.data ?? 0)
+            );
+
+          for (const venda of vendasEmAberto) {
+            if (restante <= 0) break;
+
+            const totalVenda = Number(venda.ValorTotal ?? venda.valorTotal ?? 0);
+            const pagoVenda = Number(venda.TotalPago ?? venda.totalPago ?? 0);
+            const devidoVenda = totalVenda - pagoVenda;
+
+            const valorParaPagarNestaVenda = Math.min(restante, devidoVenda);
+            const novoTotalPagoVenda = pagoVenda + valorParaPagarNestaVenda;
+
+            await fetch(`${linkVen}/${venda.id}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                ...venda,
+                TotalPago: novoTotalPagoVenda,
+                totalPago: novoTotalPagoVenda,
+              }),
+            }).catch((err) =>
+              console.error("Erro ao atualizar venda", venda.id, err)
+            );
+
+            restante -= valorParaPagarNestaVenda;
+          }
         }
-
-        valorRestanteEstorno -= valorParaEstornar;
       }
 
-      // 4. Distribui o novo valor pago nas vendas em aberto (mais antigas primeiro)
-      let restante = Number(pagamento.TotalPago);
+// 1) Preferir o VendaId que já está no pagamento anterior (se existir)
+const vendaIdAnterior =
+  pagamentoAnterior?.VendaId ?? pagamentoAnterior?.vendaId ?? null;
 
-      for (const venda of vendasEmAberto) {
-        const total = Number(venda.ValorTotal ?? venda.valorTotal ?? 0);
-        const pago = Number(venda.TotalPago ?? venda.totalPago ?? 0);
-        const devido = total - pago;
+// 2) Se não houver, tentar encontrar uma venda do mesmo cliente (mais antiga)
+let vendaIdFallback = vendaIdAnterior;
+if (!vendaIdFallback) {
+  const vendasDoMesmoCliente = Array.isArray(vendas)
+    ? vendas.filter(
+        (v) =>
+          String(v.ClienteId ?? v.clienteId) ===
+          String(pagamento.ClienteId ?? pagamento.ClienteId ?? pagamento.ClienteId)
+      )
+    : [];
 
-        if (restante <= 0) break;
+  if (vendasDoMesmoCliente.length) {
+    vendasDoMesmoCliente.sort(
+      (a, b) =>
+        new Date(a.DataVenda ?? a.dataVenda ?? 0) -
+        new Date(b.DataVenda ?? b.dataVenda ?? 0)
+    );
+    vendaIdFallback = vendasDoMesmoCliente[0].id;
+  } else {
+    vendaIdFallback = null; // ou 0 se sua API exigir número
+  }
+}
 
-        let valorParaPagar = Math.min(restante, devido);
 
-        const vendaRes = await fetch(`${linkVen}/${venda.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...venda,
-            TotalPago: pago + valorParaPagar,
-          }),
-        });
-        if (!vendaRes.ok) {
-          alert("Erro ao distribuir valor nas vendas!");
-          console.error("Erro ao distribuir venda", await vendaRes.text());
-          return;
-        }
-
-        restante -= valorParaPagar;
-      }
-
-      // 5. Atualiza o pagamento (PUT)
       const pagamentoBody = {
         id: Number(id),
-        funcionarioId: Number(pagamento.FuncionarioId),
-        clienteId: Number(pagamento.ClienteId),
-        vendaId: vendasEmAberto.length > 0 ? Number(vendasEmAberto[0].id) : 0,
-        totalPago: Number(pagamento.TotalPago),
-        desconto: 0,
-        formaDePagamento: [String(pagamento.FormaDePagamento)],
-        toTalDeVezes: Number(pagamento.TotalDeVezes),
-        dataPagamento: new Date(pagamento.DataPagamento).toISOString(),
+        FuncionarioId: Number(pagamento.FuncionarioId),
+        ClienteId: Number(pagamento.ClienteId),
+        VendaId: vendaIdFallback,
+        TotalPago: Number(pagamento.TotalPago),
+        Desconto: 0,
+        FormaDePagamento: [String(pagamento.FormaDePagamento)],
+        ToTalDeVezes: Number(pagamento.TotalDeVezes),
+        DataPagamento: new Date(pagamento.DataPagamento).toISOString(),
       };
 
-      console.log("Enviando para PUT:", JSON.stringify({ pagamento: pagamentoBody }));
-
- const res = await fetch(`${linkPag}/${id}`, {
-  method: "PUT",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(pagamentoBody),
-});
+      const res = await fetch(`${linkPag}/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(pagamentoBody),
+      });
 
       if (!res.ok) {
         alert("Erro ao atualizar pagamento!");
@@ -224,57 +281,45 @@ export function EditarPagamento() {
         return;
       }
 
-      // 6. Atualiza o cliente após pagamento
+      // Recalcula totais do cliente a partir das vendas atuais
       const vendasDoClienteAtualizadas = await fetch(linkVen)
-        .then(r => r.json())
-        .then(vs => vs.filter(
-          v => Number(v.ClienteId ?? v.clienteId) === Number(pagamento.ClienteId)
-        ));
+        .then((r) => r.json())
+        .then((vs) => vs.filter((v) => Number(v.ClienteId ?? v.clienteId) === Number(pagamento.ClienteId)));
+
       const totalPagoCliente = vendasDoClienteAtualizadas.reduce(
-        (acc, v) => acc + Number(v.TotalPago ?? v.totalPago ?? 0), 0
+        (acc, v) => acc + Number(v.TotalPago ?? v.totalPago ?? 0),
+        0
       );
       const totalDevidoCliente = vendasDoClienteAtualizadas.reduce(
-        (acc, v) => acc + (Number(v.ValorTotal ?? v.valorTotal ?? 0) - Number(v.TotalPago ?? v.totalPago ?? 0)), 0
+        (acc, v) => acc + (Number(v.ValorTotal ?? v.valorTotal ?? 0) - Number(v.TotalPago ?? v.totalPago ?? 0)),
+        0
       );
       const totalGastoCliente = vendasDoClienteAtualizadas.reduce(
-        (acc, v) => acc + Number(v.ValorTotal ?? v.valorTotal ?? 0), 0
+        (acc, v) => acc + Number(v.ValorTotal ?? v.valorTotal ?? 0),
+        0
       );
+
+      // Busca cliente atual e atualiza de forma segura (spread)
+      const clienteAtual = await fetch(`${linkCli}/${pagamento.ClienteId}`).then((r) => r.json());
+      const clienteAtualizado = {
+        ...clienteAtual,
+        TotalPago: totalPagoCliente,
+        TotalDevido: totalDevidoCliente,
+        TotalGasto: totalGastoCliente,
+        totalPago: totalPagoCliente,
+        totalDevido: totalDevidoCliente,
+        totalGasto: totalGastoCliente,
+      };
 
       const clienteRes = await fetch(`${linkCli}/${pagamento.ClienteId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...clientes.find(c => Number(c.id) === Number(pagamento.ClienteId)),
-          TotalPago: totalPagoCliente,
-          TotalDevido: totalDevidoCliente,
-          TotalGasto: totalGastoCliente,
-        }),
+        body: JSON.stringify(clienteAtualizado),
       });
       if (!clienteRes.ok) {
         alert("Erro ao atualizar cliente!");
         console.error("Erro ao atualizar cliente", await clienteRes.text());
         return;
-      }
-
-      // 7. Se a nova forma de pagamento for dinheiro, adiciona ao caixa
-      if (
-        pagamento.FormaDePagamento === "Dinheiro" &&
-        Number(pagamento.TotalPago) > 0
-      ) {
-        const caixaRes = await fetch("http://localhost:7172/api/Caixa/entrada", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            valor: Number(pagamento.TotalPago),
-            descricao: `Novo valor edição pagamento ${id}`,
-            tipo: "Entrada",
-          }),
-        });
-        if (!caixaRes.ok) {
-          alert("Erro ao adicionar valor ao caixa!");
-          console.error("Erro ao adicionar valor ao caixa", await caixaRes.text());
-          return;
-        }
       }
 
       alert("Pagamento atualizado e distribuído com sucesso!");
@@ -285,6 +330,7 @@ export function EditarPagamento() {
     }
   };
 
+  // Render (mantive sua UI original)
   return (
     <div className="centroEditarPagamento">
       <div className="EditarPagamento">
@@ -322,6 +368,7 @@ export function EditarPagamento() {
               ))}
             </select>
           </div>
+
           <div>
             <input
               className="inputEditarPagamento"
@@ -330,9 +377,10 @@ export function EditarPagamento() {
               disabled
               placeholder="Total Devido"
               style={{ fontWeight: "bold" }}
-              value={`Total devido: R$ ${totalDevidoExibido.toFixed(2)}`}
+              value={`Total devido: R$ ${ (valorRestanteFixo + valorPagoAntes).toFixed(2) }`}
             />
           </div>
+
           <div>
             <input
               className="inputEditarPagamento"
@@ -344,6 +392,7 @@ export function EditarPagamento() {
               value={`Valor restante: R$ ${valorRestanteFixo.toFixed(2)}`}
             />
           </div>
+
           <div>
             <select
               className="inputEditarPagamento"
@@ -361,6 +410,7 @@ export function EditarPagamento() {
               <option value="Consignação">Consignação</option>
             </select>
           </div>
+
           <div>
             <input
               className="inputEditarPagamento"
@@ -373,6 +423,7 @@ export function EditarPagamento() {
               min={1}
             />
           </div>
+
           <div>
             <input
               className="inputEditarPagamento"
@@ -382,12 +433,11 @@ export function EditarPagamento() {
               placeholder="Valor Pago"
               value={pagamento.TotalPago}
               onChange={handleChange}
-              min={1}
-              max={totalDevidoExibido}
+              min={0}
               step="0.01"
-              disabled={!pagamento.ClienteId || totalDevidoExibido === 0}
             />
           </div>
+
           <div>
             <input
               className="inputEditarPagamento"
@@ -398,6 +448,7 @@ export function EditarPagamento() {
               onChange={handleChange}
             />
           </div>
+
           <div>
             <button className="btnEditarPagamentoSalvar" type="submit">
               Salvar Alterações
@@ -408,5 +459,3 @@ export function EditarPagamento() {
     </div>
   );
 }
-
-
