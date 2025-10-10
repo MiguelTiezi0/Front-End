@@ -28,7 +28,7 @@ html, body {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 2rem 0;
+  padding: .5rem 0;
   min-height: 100vh;
   background: var(--black-primary-color);
 }
@@ -40,7 +40,7 @@ html, body {
   text-align: center;
   color: var(--yellow-secondary-color);
   font-size: 2.5rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: .5rem;
 }
 
 /* --- FORMULÁRIOS --- */
@@ -74,9 +74,14 @@ html, body {
 .cadastroCompraBtnDiv,
 .editarCompraBtnDiv {
   display: flex;
-  gap: 16px;
   justify-content: flex-end;
   margin-top: 12px;
+}
+
+.btnGroupCompra{
+  display: flex;
+  gap: 8px;
+  
 }
 
 .cadastroCompraBtn,
@@ -86,7 +91,7 @@ html, body {
   color: var(--black-primary-color);
   border: none;
   border-radius: 8px;
-  font-size: 1.2rem;
+  font-size: .1rem;
   padding: 10px 24px;
   cursor: pointer;
   transition: background 0.2s;
@@ -191,6 +196,23 @@ html, body {
 }
 
 /* --- DETALHES --- */
+.detalhesCompraContainer{
+  margin-left: 8vw;
+  display: block;
+
+  padding: 2rem;
+  border-radius: 12px;
+  max-width: 80vw;
+  border: #000000;
+}
+.detalhescontainer{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2rem;
+  gap: 5rem;
+
+}
 .detalhesCompraInfo {
   display: flex;
   flex-direction: column;
@@ -214,7 +236,9 @@ html, body {
 /* --- BOTÕES DE VOLTAR/EDITAR --- */
 .btnVoltarCompra,
 .btnDetalhesVoltar,
-.btnDetalhesEditar {
+.btnDetalhesEditar,
+.detalhesCompraBtnVoltar,
+.detalhesCompraBtnEditar{
   margin-top: 2rem;
   color: #fff;
   border: none;
@@ -227,11 +251,11 @@ html, body {
   margin-right: 12px;
 }
 
-.btnDetalhesVoltar {
+.detalhesCompraBtnVoltar {
   background: var(--red);
 }
 
-.btnDetalhesEditar {
+.detalhesCompraBtnEditar {
   background: var(--green);
 }
 
@@ -240,7 +264,10 @@ html, body {
 .btnDetalhesEditar:hover {
   opacity: 0.85;
 }
-
+.btnGroupDetalhesCompra{
+  display: flex;
+  justify-content: center;
+}
 /* --- SCROLL --- */
 .scroll,
 .scrollCompra {
@@ -280,3 +307,155 @@ html, body {
   }
 }
 
+/* --- FORMULÁRIO DE CADASTRO DE COMPRA --- */
+.cadastroCompraTela {
+ margin-left: 8vw;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(300px, 1fr));
+  flex-direction: column;
+  align-items: center;
+ 
+  padding: 2rem;
+  border-radius: 12px;
+  max-width: 80vw;
+
+  border: #000000;
+  
+
+
+
+}
+
+
+
+
+
+
+
+.centroCadastroCompra{
+  display: block;
+}
+
+/* Título centralizado */
+.cadastroCompraTitulo {
+  text-align: center;
+  color: var(--yellow-secondary-color);
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+}
+
+/* Inputs do cadastro */
+.cadastroCompraInput {
+  background-color: var(--white-secondary-color);
+  width: 100%;
+  border: none;
+  height: 45px;
+  color: var(--black-primary-color);
+  font-size: 1.1rem;
+  border-radius: 8px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  transition: 0.2s;
+}
+
+.cadastroCompraInput:focus {
+  outline: 2px solid var(--blue);
+  background-color: #fff;
+}
+
+/* Botões */
+.cadastroCompraBtnDiv {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.cadastroCompraBtn {
+  background: var(--yellow-primary-color);
+  color: var(--black-primary-color);
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  padding: 10px 24px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.cadastroCompraBtn:hover {
+  background: var(--yellow-secondary-color);
+  transform: scale(1.03);
+}
+
+/* Botão Finalizar */
+.cadastroCompraBtnFinalizar {
+  background: var(--green);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 28px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+  margin-top: 12px;
+}
+
+.cadastroCompraBtnFinalizar:hover {
+  opacity: 0.9;
+  transform: scale(1.05);
+}
+
+.cadastroCompraBtnFinalizar:disabled {
+  background: #888;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Tabela de itens */
+.cadastroCompraTabelaWrapper {
+  background: var(--white-primary-color);
+  border-radius: 8px;
+  padding: 18px 12px;
+  margin-top: 24px;
+  min-width: 420px;
+  min-height: 220px;
+  box-shadow: 0 2px 16px #0002;
+}
+
+.cadastroCompraTabela {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--white-secondary-color);
+  color: var(--black-primary-color);
+}
+
+.cadastroCompraTabela th,
+.cadastroCompraTabela td {
+  border: 1px solid #bbb;
+  padding: 10px 12px;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+.cadastroCompraTabela th {
+  background: var(--yellow-primary-color);
+  color: var(--black-primary-color);
+  font-weight: 600;
+}
+
+.cadastroCompraTabela tr:hover {
+  background: #f5f5f5;
+}
+
+/* Valor total */
+.cadastroCompraValorTotalTabela {
+  margin-top: 12px;
+  font-size: 1.2rem;
+  color: var(--black-primary-color);
+  font-weight: 600;
+  display: flex;
+  gap: 32px;
+  justify-content: flex-end;
+}

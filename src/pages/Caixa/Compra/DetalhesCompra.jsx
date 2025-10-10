@@ -45,6 +45,8 @@ export function DetalhesCompra() {
   return (
     <div className="detalhesCompraContainer">
       <h1 className="detalhesCompraTitulo">Detalhes da Compra</h1>
+      <div className="detalhescontainer">
+     
       <div className="detalhesCompraInfo">
         <input
           disabled
@@ -114,6 +116,19 @@ export function DetalhesCompra() {
           </tbody>
         </table>
       </div>
-    </div>
+    </div>   
+      <div className="btnGroupDetalhesCompra">
+        <button className="detalhesCompraBtnVoltar" onClick={() => navigate(-1)}>
+          Voltar
+        </button>
+        <button
+          className="detalhesCompraBtnEditar"
+          onClick={() => navigate(`/Compra/EditarCompra/${compra.id}`)}
+        >
+          Editar
+        </button>
+      
+      </div>
+      </div>
   );
 }

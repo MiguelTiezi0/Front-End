@@ -41,23 +41,28 @@ export function EditarPagamento() {
       setPagamento({
         FuncionarioId: data.FuncionarioId ?? data.funcionarioId ?? "",
         ClienteId: data.ClienteId ?? data.clienteId ?? "",
-        FormaDePagamento: String(data.FormaDePagamento ?? data.formaDePagamento ?? ""),
+        FormaDePagamento: String(
+          data.FormaDePagamento ?? data.formaDePagamento ?? ""
+        ),
         TotalPago: data.TotalPago ?? data.totalPago ?? "",
         TotalDeVezes: data.TotalDeVezes ?? data.toTalDeVezes ?? 1,
         DataPagamento:
-          (data.DataPagamento ?? data.dataPagamento)
+          data.DataPagamento ?? data.dataPagamento
             ? (data.DataPagamento ?? data.dataPagamento).slice(0, 16)
             : new Date().toISOString().slice(0, 16),
       });
 
       // calcula total devido sem considerar o pagamento atual
       const vendasDoCliente = vens.filter(
-        (v) => Number(v.ClienteId ?? v.clienteId) === Number(data.ClienteId ?? data.clienteId)
+        (v) =>
+          Number(v.ClienteId ?? v.clienteId) ===
+          Number(data.ClienteId ?? data.clienteId)
       );
       const totalDevidoSemEstePagamento = vendasDoCliente.reduce(
         (acc, v) =>
           acc +
-          (Number(v.ValorTotal ?? v.valorTotal ?? 0) - Number(v.TotalPago ?? v.totalPago ?? 0)),
+          (Number(v.ValorTotal ?? v.valorTotal ?? 0) -
+            Number(v.TotalPago ?? v.totalPago ?? 0)),
         0
       );
       setValorRestanteFixo(totalDevidoSemEstePagamento);
@@ -84,8 +89,14 @@ export function EditarPagamento() {
         return;
       }
       const pagamentoAnterior = await pagamentoAnteriorRes.json();
-      const valorPagoAntesEdicao = Number(pagamentoAnterior.TotalPago ?? pagamentoAnterior.totalPago ?? 0);
-      const formaDePagamentoAntes = String(pagamentoAnterior.FormaDePagamento ?? pagamentoAnterior.formaDePagamento ?? "");
+      const valorPagoAntesEdicao = Number(
+        pagamentoAnterior.TotalPago ?? pagamentoAnterior.totalPago ?? 0
+      );
+      const formaDePagamentoAntes = String(
+        pagamentoAnterior.FormaDePagamento ??
+          pagamentoAnterior.formaDePagamento ??
+          ""
+      );
 
       const novoTotalPago = Number(pagamento.TotalPago ?? 0);
       const novaForma = String(pagamento.FormaDePagamento ?? "");
@@ -116,7 +127,10 @@ export function EditarPagamento() {
             }),
           });
         }
-      } else if (formaDePagamentoAntes === "Dinheiro" && novaForma !== "Dinheiro") {
+      } else if (
+        formaDePagamentoAntes === "Dinheiro" &&
+        novaForma !== "Dinheiro"
+      ) {
         // removed the old cash (estornar original total)
         if (valorPagoAntesEdicao > 0) {
           await fetch("http://localhost:7172/api/Caixa/saida", {
@@ -129,7 +143,10 @@ export function EditarPagamento() {
             }),
           });
         }
-      } else if (formaDePagamentoAntes !== "Dinheiro" && novaForma === "Dinheiro") {
+      } else if (
+        formaDePagamentoAntes !== "Dinheiro" &&
+        novaForma === "Dinheiro"
+      ) {
         // adiciona ao caixa o novo total
         if (novoTotalPago > 0) {
           await fetch("http://localhost:7172/api/Caixa/entrada", {
@@ -150,7 +167,8 @@ export function EditarPagamento() {
         let vendasAtual = await fetch(linkVen).then((r) => r.json());
         // somente vendas do cliente
         let vendasDoCliente = vendasAtual.filter(
-          (v) => Number(v.ClienteId ?? v.clienteId) === Number(pagamento.ClienteId)
+          (v) =>
+            Number(v.ClienteId ?? v.clienteId) === Number(pagamento.ClienteId)
         );
 
         // ESTORNO quando delta < 0 -> precisamos tirar (-delta)
@@ -193,8 +211,10 @@ export function EditarPagamento() {
           const vendasEmAberto = vendasAtual
             .filter(
               (v) =>
-                Number(v.ClienteId ?? v.clienteId) === Number(pagamento.ClienteId) &&
-                Number(v.TotalPago ?? v.totalPago ?? 0) < Number(v.ValorTotal ?? v.valorTotal ?? 0)
+                Number(v.ClienteId ?? v.clienteId) ===
+                  Number(pagamento.ClienteId) &&
+                Number(v.TotalPago ?? v.totalPago ?? 0) <
+                  Number(v.ValorTotal ?? v.valorTotal ?? 0)
             )
             .sort(
               (a, b) =>
@@ -205,7 +225,9 @@ export function EditarPagamento() {
           for (const venda of vendasEmAberto) {
             if (restante <= 0) break;
 
-            const totalVenda = Number(venda.ValorTotal ?? venda.valorTotal ?? 0);
+            const totalVenda = Number(
+              venda.ValorTotal ?? venda.valorTotal ?? 0
+            );
             const pagoVenda = Number(venda.TotalPago ?? venda.totalPago ?? 0);
             const devidoVenda = totalVenda - pagoVenda;
 
@@ -229,33 +251,36 @@ export function EditarPagamento() {
         }
       }
 
-// 1) Preferir o VendaId que já está no pagamento anterior (se existir)
-const vendaIdAnterior =
-  pagamentoAnterior?.VendaId ?? pagamentoAnterior?.vendaId ?? null;
+      // 1) Preferir o VendaId que já está no pagamento anterior (se existir)
+      const vendaIdAnterior =
+        pagamentoAnterior?.VendaId ?? pagamentoAnterior?.vendaId ?? null;
 
-// 2) Se não houver, tentar encontrar uma venda do mesmo cliente (mais antiga)
-let vendaIdFallback = vendaIdAnterior;
-if (!vendaIdFallback) {
-  const vendasDoMesmoCliente = Array.isArray(vendas)
-    ? vendas.filter(
-        (v) =>
-          String(v.ClienteId ?? v.clienteId) ===
-          String(pagamento.ClienteId ?? pagamento.ClienteId ?? pagamento.ClienteId)
-      )
-    : [];
+      // 2) Se não houver, tentar encontrar uma venda do mesmo cliente (mais antiga)
+      let vendaIdFallback = vendaIdAnterior;
+      if (!vendaIdFallback) {
+        const vendasDoMesmoCliente = Array.isArray(vendas)
+          ? vendas.filter(
+              (v) =>
+                String(v.ClienteId ?? v.clienteId) ===
+                String(
+                  pagamento.ClienteId ??
+                    pagamento.ClienteId ??
+                    pagamento.ClienteId
+                )
+            )
+          : [];
 
-  if (vendasDoMesmoCliente.length) {
-    vendasDoMesmoCliente.sort(
-      (a, b) =>
-        new Date(a.DataVenda ?? a.dataVenda ?? 0) -
-        new Date(b.DataVenda ?? b.dataVenda ?? 0)
-    );
-    vendaIdFallback = vendasDoMesmoCliente[0].id;
-  } else {
-    vendaIdFallback = null; // ou 0 se sua API exigir número
-  }
-}
-
+        if (vendasDoMesmoCliente.length) {
+          vendasDoMesmoCliente.sort(
+            (a, b) =>
+              new Date(a.DataVenda ?? a.dataVenda ?? 0) -
+              new Date(b.DataVenda ?? b.dataVenda ?? 0)
+          );
+          vendaIdFallback = vendasDoMesmoCliente[0].id;
+        } else {
+          vendaIdFallback = null; // ou 0 se sua API exigir número
+        }
+      }
 
       const pagamentoBody = {
         id: Number(id),
@@ -284,14 +309,22 @@ if (!vendaIdFallback) {
       // Recalcula totais do cliente a partir das vendas atuais
       const vendasDoClienteAtualizadas = await fetch(linkVen)
         .then((r) => r.json())
-        .then((vs) => vs.filter((v) => Number(v.ClienteId ?? v.clienteId) === Number(pagamento.ClienteId)));
+        .then((vs) =>
+          vs.filter(
+            (v) =>
+              Number(v.ClienteId ?? v.clienteId) === Number(pagamento.ClienteId)
+          )
+        );
 
       const totalPagoCliente = vendasDoClienteAtualizadas.reduce(
         (acc, v) => acc + Number(v.TotalPago ?? v.totalPago ?? 0),
         0
       );
       const totalDevidoCliente = vendasDoClienteAtualizadas.reduce(
-        (acc, v) => acc + (Number(v.ValorTotal ?? v.valorTotal ?? 0) - Number(v.TotalPago ?? v.totalPago ?? 0)),
+        (acc, v) =>
+          acc +
+          (Number(v.ValorTotal ?? v.valorTotal ?? 0) -
+            Number(v.TotalPago ?? v.totalPago ?? 0)),
         0
       );
       const totalGastoCliente = vendasDoClienteAtualizadas.reduce(
@@ -300,7 +333,9 @@ if (!vendaIdFallback) {
       );
 
       // Busca cliente atual e atualiza de forma segura (spread)
-      const clienteAtual = await fetch(`${linkCli}/${pagamento.ClienteId}`).then((r) => r.json());
+      const clienteAtual = await fetch(
+        `${linkCli}/${pagamento.ClienteId}`
+      ).then((r) => r.json());
       const clienteAtualizado = {
         ...clienteAtual,
         TotalPago: totalPagoCliente,
@@ -335,6 +370,7 @@ if (!vendaIdFallback) {
     <div className="centroEditarPagamento">
       <div className="EditarPagamento">
         <h1 className="editarPagamentoTitulo">Editar Pagamento</h1>
+  
         <form className="editarPagamentoForm" onSubmit={handleSubmit}>
           <div>
             <select
@@ -377,7 +413,9 @@ if (!vendaIdFallback) {
               disabled
               placeholder="Total Devido"
               style={{ fontWeight: "bold" }}
-              value={`Total devido: R$ ${ (valorRestanteFixo + valorPagoAntes).toFixed(2) }`}
+              value={`Total devido: R$ ${(
+                valorRestanteFixo + valorPagoAntes
+              ).toFixed(2)}`}
             />
           </div>
 
@@ -449,13 +487,21 @@ if (!vendaIdFallback) {
             />
           </div>
 
-          <div>
-            <button className="btnEditarPagamentoSalvar" type="submit">
-              Salvar Alterações
+          <div className="botoesEditarPagamento">
+            <button
+              type="button"
+              className="btnPagamentoVoltar"
+              onClick={() => navigate(-1)}
+            >
+              Voltar
+            </button>
+            <button className="btnPagamentoSalvar" type="submit">
+              Salvar 
             </button>
           </div>
         </form>
       </div>
     </div>
+
   );
 }

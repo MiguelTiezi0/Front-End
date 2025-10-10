@@ -246,32 +246,15 @@ export function ListagemPagamento() {
       <div className="ListagemPagamento">
         <h1 className="tituloListagemPagamento">Relatorio de Pagamentos</h1>
            <div className="filtrosPagamento">
-        <select
-          className="inputTipoPesquisa"
-          style={{ display: inputVisivel ? "inline-block" : "none" }}
-          value={tipoPesquisa}
-          onChange={(e) => setTipoPesquisa(e.target.value)}
-        >
-          <option value="id">Id</option>
-          <option value="funcionario">Funcionário</option>
-          <option value="cliente">Cliente</option>
-          <option value="formaPagamento">Forma Pagamento</option>
-          <option value="dataPagamento">Data Pagamento</option>
-        </select>
-        <input
-          type="text"
-          className={`inputPesquisar ${inputVisivel ? "visivel" : ""}`}
-          value={pesquisa}
-          onChange={(e) => setPesquisa(e.target.value)}
-        />
-        <label>Data Inicial:</label>
+    
+        <label >Data Inicial:</label>
         <input
           type="date"
           value={dataInicio}
           max={dataFim || undefined}
           onChange={e => setDataInicio(e.target.value)}
         />
-        <label>Data Final:</label>
+        <label >Data Final:</label>
         <input
           type="date"
           value={dataFim}

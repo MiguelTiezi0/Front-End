@@ -29,7 +29,6 @@ body {
 .CadastroPagamento {
   padding: 0.5rem;
   max-height: 80vh;
-
 }
 .cadastroPagamentoTitulo {
   width: 100%;
@@ -45,8 +44,12 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(300px, 1fr));
+
   width: 100%;
-  max-width: 500px;
+  max-width: 1000px;
+  gap: 20px;
   max-height: 70vh;
   padding: 20px;
   background-color: var(--white-primary-color);
@@ -79,6 +82,34 @@ select.inputCadastroPagamento {
   color: var(--black-primary-color);
   border: none;
   border-radius: 16px;
+  cursor: pointer;
+}
+.botoesCadastroPagamento {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  grid-column: span 2;
+}
+.btnPagamentoSalvar {
+  background-color: var(--green);
+  color: var(--black-primary-color);
+  border: none;
+  border-radius: 16px;
+  width: 100px;
+  height: 50px;
+  font-size: 24px;
+  color: white;
+  cursor: pointer;
+}
+.btnPagamentoVoltar {
+  background-color: var(--red);
+  color: var(--black-primary-color);
+  border: none;
+  border-radius: 16px;
+  width: 100px;
+  height: 50px;
+  font-size: 24px;
+  color: white;
   cursor: pointer;
 }
 
@@ -182,7 +213,7 @@ select.inputCadastroPagamento {
   overflow-y: auto;
 }
 
-filtrosPagamento {
+.filtrosPagamento {
   display: flex;
   align-items: flex-end;
   gap: 1.2rem;
@@ -192,6 +223,8 @@ filtrosPagamento {
   max-width: 1000px;
   justify-content: flex-start;
   margin-left: 655px;
+  color: var(--white-primary-color);
+ 
 }
 
 .inputTipoPesquisa,
@@ -209,7 +242,7 @@ filtrosPagamento {
 }
 
 .filtrosPagamento label {
-  color: var(--black-primary-color);
+  color: var(--white-primary-color);
   font-weight: bold;
   margin-right: 4px;
 }
@@ -323,12 +356,10 @@ filtrosPagamento {
 }
 
 .centroEditarPagamento {
-  min-height: 88vh;
-  width: 100vw;
+  height: auto;
   display: flex;
   justify-content: center;
-  align-items: center;
-  background: #222;
+  padding: 1rem;
 }
 
 .olhoFechado {
@@ -339,30 +370,34 @@ filtrosPagamento {
   background-color: var(--blue);
 }
 .EditarPagamento {
-  background: var(--white-primary-color);
-  border-radius: 16px;
-  box-shadow: 0 0 16px rgba(0, 0, 0, 0.12);
-  padding: 40px 32px 32px 32px;
-  min-width: 400px;
-  max-width: 420px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  padding: 0.5rem;
+  max-height: 80vh;
 }
 
 .editarPagamentoTitulo {
   font-size: 2.2rem;
   font-weight: bold;
-  color: var(--black-primary-color);
+  color: var(--white-primary-color);
   margin-bottom: 32px;
   text-align: center;
 }
 
 .editarPagamentoForm {
-  width: 100%;
-  display: flex;
+display: flex;
   flex-direction: column;
-  gap: 18px;
+  align-items: center;
+  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(300px, 1fr));
+
+  width: 100%;
+  max-width: 1000px;
+  gap: 20px;
+  max-height: 70vh;
+  padding: 20px;
+  background-color: var(--white-primary-color);
+  border-radius: 10px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
 }
 
 .inputEditarPagamento {
@@ -421,7 +456,6 @@ filtrosPagamento {
   border-radius: 6px;
   padding: 0 10px;
   font-size: 2rem;
-
 }
 
 .filtrosRadioPagamentoDevedor {
@@ -555,14 +589,14 @@ filtrosPagamento {
   padding: 8px;
   border: 1px solid #e0c97f;
   text-align: center;
-    font-size: 1.6rem;
+  font-size: 1.6rem;
 }
 
 .tabelaCarteira td {
   padding: 8px;
   border: 1px solid #e0c97f;
   text-align: center;
-    font-size: 1.4rem;
+  font-size: 1.4rem;
 
   color: #000;
 }
@@ -592,12 +626,13 @@ filtrosPagamento {
   background-color: #d5f7d5 !important;
 }
 
-
-
 /* Modal de fundo escuro */
 .modalPagamentoDevedor {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: rgba(0, 0, 0, 0.45);
   display: flex;
   align-items: center;
@@ -664,7 +699,7 @@ filtrosPagamento {
   list-style: none;
   left: 3%;
   border-radius: 4px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 .listaBuscaCliente-modal li {
@@ -725,4 +760,33 @@ filtrosPagamento {
   font-size: 1.5em;
   cursor: pointer;
   color: #b41111;
+}
+
+.botoesEditarPagamento {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  grid-column: span 2;
+}
+
+.btnEditarPagamentoVoltar {
+  background-color: var(--red);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  width: 100px;
+  height: 50px;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.btnEditarPagamentoSalvar {
+  background-color: var(--green);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  width: 160px;
+  height: 50px;
+  font-size: 24px;
+  cursor: pointer;
 }

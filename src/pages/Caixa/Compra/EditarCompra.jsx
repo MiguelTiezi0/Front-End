@@ -6,6 +6,18 @@ import { linkCompra } from "./linkCompra";
 import { Link_Itens_Compra } from "../Itens_Compra/link_Itens_Compra";
 import "./Compra.css";
 
+// Função para formatar para input (datetime-local exige isso)
+function formatDateToInput(date) {
+  const d = new Date(date);
+  return d.toISOString().slice(0, 16);
+}
+
+// Função para salvar em PT-BR
+function formatDateToBR(dateString) {
+  const d = new Date(dateString);
+  return d.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+}
+
 export function EditarCompra() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -28,8 +40,8 @@ export function EditarCompra() {
         setCompra({
           ...dados,
           dataCompra: dados.dataCompra
-            ? new Date(dados.dataCompra).toISOString().slice(0, 16)
-            : new Date().toISOString().slice(0, 16),
+            ? formatDateToInput(dados.dataCompra)
+            : formatDateToInput(new Date()),
         });
       });
   }, [id]);
@@ -124,13 +136,13 @@ export function EditarCompra() {
 
     // Sempre enviar valores recalculados e incluir o ID
     const compraBody = {
-      id: Number(id), // 👈 necessário para atualizar a compra
+      id: Number(id),
       funcionarioId: Number(compra.funcionarioId),
       descricao: compra.descricao,
       quantidadeDeProduto: itens.reduce((acc, i) => acc + Number(i.quantidade), 0),
       quantidadeAtual: itens.reduce((acc, i) => acc + Number(i.quantidade), 0),
       valorDaCompra: itens.reduce((acc, i) => acc + Number(i.preçoCusto) * Number(i.quantidade), 0),
-      dataCompra: new Date(compra.dataCompra).toISOString(),
+      dataCompra: formatDateToBR(compra.dataCompra), // PT-BR aqui
       itens_Compra: itens.length,
     };
 
@@ -187,8 +199,8 @@ export function EditarCompra() {
 
   return (
     <div className="centroCadastroCompra">
+      <h1 className="cadastroCompraTitulo">Editar Compra</h1>
       <div className="cadastroCompraTela">
-        <h1 className="cadastroCompraTitulo">Editar Compra</h1>
         <form className="cadastroCompraForm" onSubmit={handleSubmit}>
           <div className="dividirInputCompra">
             <select
@@ -257,20 +269,22 @@ export function EditarCompra() {
             />
           </div>
 
-          <div className="cadastroCompraBtnDiv">
-            <button type="button" className="cadastroCompraBtn" onClick={handleAddItem}>
-              Adicionar Produto
-            </button>
-          </div>
+          <div className="btnGroupCompra">
+            <div className="cadastroCompraBtnDiv">
+              <button type="button" className="cadastroCompraBtn" onClick={handleAddItem}>
+                Adicionar Produto
+              </button>
+            </div>
 
-          <div className="cadastroCompraDivFinalizar dividirInputCompra">
-            <button
-              className="cadastroCompraBtnFinalizar"
-              type="submit"
-              disabled={itens.length === 0 || !compra.funcionarioId || !compra.descricao}
-            >
-              Salvar Alterações
-            </button>
+            <div className="cadastroCompraDivFinalizar dividirInputCompra">
+              <button
+                className="cadastroCompraBtnFinalizar"
+                type="submit"
+                disabled={itens.length === 0 || !compra.funcionarioId || !compra.descricao}
+              >
+                Salvar Alterações
+              </button>
+            </div>
           </div>
         </form>
 

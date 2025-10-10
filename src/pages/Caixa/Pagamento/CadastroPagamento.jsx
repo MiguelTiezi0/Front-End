@@ -187,108 +187,105 @@ export function CadastroPagamento() {
     }
   };
 
-  return (
-    <div className="centroCadastroPagamento">
-      <div className="CadastroPagamento">
-        <h1 className="cadastroPagamentoTitulo">Cadastro de Pagamento</h1>
-        <form className="cadastroPagamentoForm" onSubmit={handleSubmit}>
-          <div>
-            <select
-              className="inputCadastroPagamento"
-              name="funcionarioId"
-              required
-              value={pagamento.funcionarioId}
-              onChange={handleChange}
-            >
-              <option value="">Funcionário</option>
-              {funcionarios.map((f) => (
-                <option key={f.id} value={f.id}>
-                  {f.nome}
-                </option>
-              ))}
-            </select>
-          </div>
+ return (
+  <div className="centroCadastroPagamento">
+    <div className="CadastroPagamento">
+      <h1 className="cadastroPagamentoTitulo">Cadastro de Pagamento</h1>
 
-          <div>
-            <select
-              className="inputCadastroPagamento"
-              name="clienteId"
-              required
-              value={pagamento.clienteId}
-              onChange={handleChange}
-            >
-              <option value="">Cliente</option>
-              {clientes.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.nome}
-                </option>
-              ))}
-            </select>
-          </div>
+      <form className="cadastroPagamentoForm" onSubmit={handleSubmit}>
+          <select
+            className="inputCadastroPagamento"
+            name="funcionarioId"
+            required
+            value={pagamento.funcionarioId}
+            onChange={handleChange}
+          >
+            <option value="">Funcionário</option>
+            {funcionarios.map((f) => (
+              <option key={f.id} value={f.id}>{f.nome}</option>
+            ))}
+          </select>
 
-          <div>
-            <select
-              className="inputCadastroPagamento"
-              name="formaDePagamento"
-              required
-              value={pagamento.formaDePagamento}
-              onChange={handleChange}
-            >
-              <option value="">Forma de Pagamento</option>
-              <option value="Dinheiro">Dinheiro</option>
-              <option value="Débito">Débito</option>
-              <option value="Pix">Pix</option>
-              <option value="Crédito">Crédito</option>
-              <option value="Crediário">Crediário</option>
-              <option value="Consignação">Consignação</option>
-            </select>
-          </div>
+          <select
+            className="inputCadastroPagamento"
+            name="clienteId"
+            required
+            value={pagamento.clienteId}
+            onChange={handleChange}
+          >
+            <option value="">Cliente</option>
+            {clientes.map((c) => (
+              <option key={c.id} value={c.id}>{c.nome}</option>
+            ))}
+          </select>
+       
 
-          <div>
-            <input
-              className="inputCadastroPagamento"
-              type="number"
-              name="toTalDeVezes"
-              required
-              min={1}
-              value={pagamento.toTalDeVezes}
-              onChange={handleChange}
-              placeholder="Total de Vezes"
-            />
-          </div>
+          <select
+            className="inputCadastroPagamento"
+            name="formaDePagamento"
+            required
+            value={pagamento.formaDePagamento}
+            onChange={handleChange}
+          >
+            <option value="">Formas de pagamento</option>
+            <option value="Dinheiro">Dinheiro</option>
+            <option value="Débito">Débito</option>
+            <option value="Pix">Pix</option>
+            <option value="Crédito">Crédito</option>
+            <option value="Crediário">Crediário</option>
+            <option value="Consignação">Consignação</option>
+          </select>
 
-          <div>
-            <input
-              className="inputCadastroPagamento"
-              type="number"
-              name="totalPago"
-              required
-              min={0}
-              step="0.01"
-              value={pagamento.totalPago}
-              onChange={handleChange}
-              placeholder="Valor Pago"
-            />
-          </div>
+          <input
+            className="inputCadastroPagamento"
+            type="number"
+            name="toTalDeVezes"
+            required
+            min={1}
+            value={pagamento.toTalDeVezes}
+            onChange={handleChange}
+            placeholder="Total de vezes"
+          />
+  
 
-          <div>
-            <input
-              className="inputCadastroPagamento"
-              type="datetime-local"
-              name="dataPagamento"
-              required
-              value={pagamento.dataPagamento}
-              onChange={handleChange}
-            />
-          </div>
+          <input
+            className="inputCadastroPagamento"
+            type="number"
+            name="totalPago"
+            required
+            min={0}
+            step="0.01"
+            value={pagamento.totalPago}
+            onChange={handleChange}
+            placeholder="Valor pago"
+          />
 
-          <div>
-            <button className="btnCadastroPagamentoSalvar" type="submit">
-              Salvar Pagamento
-            </button>
-          </div>
-        </form>
-      </div>
+          <input
+            className="inputCadastroPagamento"
+            type="datetime-local"
+            name="dataPagamento"
+            required
+            value={pagamento.dataPagamento}
+            onChange={handleChange}
+            placeholder="Data"
+          />
+      
+
+        <div className="botoesCadastroPagamento">
+          <button
+            type="button"
+            className="btnPagamentoVoltar"
+            onClick={() => navigate(-1)}
+          >
+            Voltar
+          </button>
+          <button className="btnPagamentoSalvar" type="submit">
+            Salvar
+          </button>
+        </div>
+      </form>
     </div>
-  );
+  </div>
+);
+
 }
