@@ -72,8 +72,6 @@ export function CadastroFuncionario() {
   const [ativo, setAtivo] = useState(
     funcionarioClonado?.ativo !== undefined ? funcionarioClonado.ativo : true
   );
-  const [bairro, setBairro] = useState(funcionarioClonado?.bairro || "");
-  const [numero, setNumero] = useState(funcionarioClonado?.numeroDaCasa || "");
   const [usuario, setUsuario] = useState(funcionarioClonado?.usuario || "");
   const [senha, setSenha] = useState(funcionarioClonado?.senha || "");
   const [nivelAcesso] = useState("Funcionario"); // Sempre funcionário
@@ -120,8 +118,6 @@ export function CadastroFuncionario() {
       nome,
       cpf,
       endereço: endereco,
-      bairro,
-      numeroDaCasa: numero,
       dataContratação: toISODate(dataContratacao),
       telefone,
       salário: parseFloat(salario),
@@ -159,8 +155,6 @@ export function CadastroFuncionario() {
       setNome("");
       setCpf("");
       setEndereco("");
-      setBairro("");
-      setNumero("");
       setDataContratacao("");
       setTelefone("");
       setSalario("");
@@ -214,22 +208,6 @@ export function CadastroFuncionario() {
           <input
             type="text"
             required
-            placeholder="Bairro"
-            className="inputCadastroFuncionario"
-            value={bairro}
-            onChange={(e) => setBairro(e.target.value)}
-          />
-          <input
-            type="text"
-            required
-            placeholder="Número"
-            className="inputCadastroFuncionario"
-            value={numero}
-            onChange={(e) => setNumero(e.target.value)}
-          />
-          <input
-            type="text"
-            required
             placeholder="Telefone"
             className="inputCadastroFuncionario"
             value={telefone}
@@ -264,15 +242,7 @@ export function CadastroFuncionario() {
             value={salario}
             onChange={(e) => setSalario(e.target.value)}
           />
-          <label style={{ color: "#fff", marginTop: "10px" }}>
-            Ativo:
-            <input
-              type="checkbox"
-              checked={ativo}
-              onChange={(e) => setAtivo(e.target.checked)}
-              style={{ marginLeft: "10px" }}
-            />
-          </label>
+       
           <input
             type="text"
             required
@@ -296,6 +266,15 @@ export function CadastroFuncionario() {
             className="inputCadastroFuncionario"
             value={nivelAcesso}
           />
+             <label style={{ color: "#fff", marginTop: "10px" }}>
+            Ativo:
+            <input
+              type="checkbox"
+              checked={ativo}
+              onChange={(e) => setAtivo(e.target.checked)}
+              style={{ marginLeft: "10px" }}
+            />
+          </label>
           <div className="buttonsGroupFuncionario">
             <button type="button" className="btnFuncionario btnVoltarFuncionario">
               <Link to="/" className="linkCadastro">

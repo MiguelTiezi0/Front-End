@@ -183,7 +183,7 @@ export function DetalhesProduto() {
           disabled
           placeholder="Fornecedor/Marca"
           className="inputDetalhesProduto"
-          value={`Fornecedor/Marca: ${produto.fornecedorMarca}`}
+          value={`Fornecedor/Marca: ${produto.idFornecedor}`}
         />
         <input
           type="text"

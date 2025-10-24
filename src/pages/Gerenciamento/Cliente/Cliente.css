@@ -30,37 +30,35 @@ body {
 
 .CadastroCliente h1 {
   font-size: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--white-secondary-color);
 }
 
 .formCadastroCliente {
+}
+.divCadastroCliente {
   display: grid;
-  grid-template-columns: repeat(2, 180px);
+  grid-template-columns: repeat(3, 260px);
   grid-template-rows: repeat(4, 80px);
-  row-gap: .1rem;
+  
+  row-gap: 1rem;
   column-gap: 3rem;
 }
-
- .inputIdCliente {
-  grid-column-start: 1;
-  grid-row-start: 1;
-  grid-column-end: -1;
-}  
 
 .inputCadastroCliente {
   background-color: var(--white-secondary-color);
   border: none;
   height: 60px;
   border-radius: 0.5rem;
-  width: 210px;
+  width: 100%;
   font-size: 1.5rem;
-
 }
 
 .inputCadastroCliente::placeholder {
   color: var(--black-primary-color);
   font-size: 1.5rem;
-
 }
 
 .selectCadastroCliente {
@@ -75,8 +73,8 @@ body {
 
 .buttonsGroupCliente {
   display: flex;
-  width: 500px;
-  justify-content: space-around;
+  width: 100%;
+  justify-content: space-evenly;
   gap: 2rem;
 }
 
@@ -84,7 +82,7 @@ body {
   border: none;
   color: var(--black-primary-color);
   text-align: center;
-  font-size: 1rem;
+  font-size: 2rem;
   width: 200px;
   height: 60px;
   cursor: pointer;
@@ -108,10 +106,10 @@ body {
   background-color: var(--yellow-primary-color);
 }
 
-.linkCadastro {
+.linkCadastroCliente {
   text-decoration: none;
   color: var(--black-primary-color);
-  font-size: 1rem;
+  font-size: 2rem;
 }
 
 .top-nav {
@@ -168,7 +166,6 @@ body {
   background-color: var(--yellow-primary-color);
 }
 
-
 .inputPesquisar {
   background-color: var(--white-secondary-color);
   border-radius: 0.8rem;
@@ -179,7 +176,6 @@ body {
   right: 740px;
   height: 48px;
   font-size: 1.5rem;
-
 }
 
 .inputPesquisar.visivel {
@@ -198,8 +194,8 @@ body {
   overflow-y: auto;
   display: grid;
   justify-content: center;
-}	
-.ListagemCliente h1{
+}
+.ListagemCliente h1 {
   font-size: 3rem;
   color: var(--white-secondary-color);
   display: flex;
@@ -242,16 +238,6 @@ thead {
   font-size: 20px;
 }
 
-
-
-
-
-
-
-
-
-
-
 .centroEditarCliente {
   height: calc(100vh - 80px);
   width: 100%;
@@ -269,35 +255,32 @@ thead {
   font-size: 3rem;
   color: var(--white-secondary-color);
 }
-
+.FormEditarCliente{
+height: auto;
+}
 .divEditarCliente {
   display: grid;
-  grid-template-columns: repeat(2, 180px);
+  grid-template-columns: repeat(3, 220px);
   grid-template-rows: repeat(5, 80px);
-  row-gap: .1rem;
+  row-gap: 0.1rem;
   column-gap: 3rem;
+  height: 300px;
 }
 
- .inputIdEditarCliente {
-  grid-column-start: 1;
-  grid-row-start: 1;
-  grid-column-end: -1;
-}  
+
 
 .inputEditarCliente {
   background-color: var(--white-secondary-color);
   border: none;
   height: 60px;
   border-radius: 0.5rem;
-  width: 210px;
+  width: 220px;
   font-size: 1.5rem;
-
 }
 
 .inputEditarCliente::placeholder {
   color: var(--black-primary-color);
   font-size: 1.5rem;
-
 }
 
 .selectEditarCliente {
@@ -328,10 +311,6 @@ thead {
   border-radius: 0.8rem;
 }
 
-
-
-
-
 .centroDetalhesCliente {
   height: calc(100vh - 80px);
   width: 100%;
@@ -357,15 +336,15 @@ thead {
   display: grid;
   grid-template-columns: repeat(2, 180px);
   grid-template-rows: repeat(5, 80px);
-  row-gap: .1rem;
+  row-gap: 0.1rem;
   column-gap: 3rem;
 }
 
- .inputIdDetalhesCliente {
+.inputIdDetalhesCliente {
   grid-column-start: 1;
   grid-row-start: 1;
   grid-column-end: -1;
-}  
+}
 
 .inputDetalhesCliente {
   background-color: var(--white-secondary-color);
@@ -374,13 +353,11 @@ thead {
   border-radius: 0.5rem;
   width: 210px;
   font-size: 1.5rem;
-
 }
 
 .inputDetalhesCliente {
   color: var(--black-primary-color);
   font-size: 1.5rem;
-
 }
 
 .selectDetalhesCliente {
@@ -397,7 +374,6 @@ thead {
   display: flex;
   width: 500px;
   justify-content: space-around;
-  
 }
 
 .btnDetalhesCliente {
@@ -414,8 +390,7 @@ thead {
 .contentDetalhesCliente {
   width: 90%;
   display: flex;
-justify-content: space-between;
-
+  justify-content: space-between;
 }
 .detalhesClienteTabela {
   width: 100%;
@@ -444,11 +419,10 @@ justify-content: space-between;
 .detalhesClienteTotal td {
   color: var(--black-primary-color);
   text-align: center;
-  font-size: .9rem;
+  font-size: 0.9rem;
 }
 
-
-.btnDetalharVendaCliente{
+.btnDetalharVendaCliente {
   background-color: var(--yellow-secondary-color);
   border: none;
   border-radius: 0.8rem;
@@ -456,14 +430,13 @@ justify-content: space-between;
   height: 40px;
   cursor: pointer;
   font-size: 1.4rem;
-
 }
-.btnDetalharVendaClienteLink{
-    text-decoration: none;
+.btnDetalharVendaClienteLink {
+  text-decoration: none;
   color: var(--white-primary-color);
   color: var(--black-primary-color-);
 }
-.PagarDetalhesCliente{
+.PagarDetalhesCliente {
   background-color: var(--yellow-secondary-color);
   border: none;
   border-radius: 0.8rem;
@@ -476,12 +449,10 @@ justify-content: space-between;
   text-decoration: none;
   color: var(--white-primary-color);
   color: var(--black-primary-color-);
+}
 
-} 
-
-
-.inputTipoPesquisa{
-    cursor: pointer;
+.inputTipoPesquisa {
+  cursor: pointer;
   width: 100px;
   height: 50px;
   border-radius: 0.8rem;

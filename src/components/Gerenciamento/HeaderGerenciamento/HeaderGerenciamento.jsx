@@ -6,7 +6,8 @@ export const HeaderGerenciamento = () => {
   return (
     <header className="Header">
         <div className="divLogo">
-            <img src={LogoHelloPeople} alt="logo" className='Header-logo' />
+            {/* <img src={LogoHelloPeople} alt="logo" className='Header-logo' /> */}
+            <h1>Hello People</h1>
         </div>
         <NavGerenciamento />
     </header>   

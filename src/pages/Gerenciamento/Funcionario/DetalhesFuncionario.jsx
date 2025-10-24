@@ -23,7 +23,8 @@ export function DetalhesFuncionario() {
           headers: { "Content-Type": "application/json" },
         });
 
-        if (!response.ok) throw new Error("Erro ao buscar detalhes do funcionário");
+        if (!response.ok)
+          throw new Error("Erro ao buscar detalhes do funcionário");
 
         const data = await response.json();
         setFuncionario(data);
@@ -40,7 +41,8 @@ export function DetalhesFuncionario() {
           headers: { "Content-Type": "application/json" },
         });
 
-        if (!response.ok) throw new Error("Erro ao buscar vendas do funcionário");
+        if (!response.ok)
+          throw new Error("Erro ao buscar vendas do funcionário");
 
         const data = await response.json();
         const vendasDoFuncionario = data.filter(
@@ -68,7 +70,9 @@ export function DetalhesFuncionario() {
   const handleVoltar = () => navigate("/Funcionario/ListagemFuncionario");
   const handleEditar = () => navigate(`/Funcionario/EditarFuncionario/${id}`);
   const handleDelete = async () => {
-    const confirmDelete = window.confirm("Tem certeza que deseja deletar este funcionário?");
+    const confirmDelete = window.confirm(
+      "Tem certeza que deseja deletar este funcionário?"
+    );
     if (!confirmDelete) return;
 
     try {
@@ -91,7 +95,9 @@ export function DetalhesFuncionario() {
   );
 
   const vendasOrdenadas = [...vendas].sort(
-    (a, b) => new Date(b.dataVenda ?? b.DataVenda) - new Date(a.dataVenda ?? a.DataVenda)
+    (a, b) =>
+      new Date(b.dataVenda ?? b.DataVenda) -
+      new Date(a.dataVenda ?? a.DataVenda)
   );
 
   const vendasFiltradas = vendasOrdenadas.filter((v) => {
@@ -113,13 +119,25 @@ export function DetalhesFuncionario() {
     <div className="centroDetalhesFuncionario">
       <div className="top-nav">
         <div className="top-nav-buttons">
-          <button type="button" className="top-nav-button lixo" onClick={handleDelete}>
+          <button
+            type="button"
+            className="top-nav-button lixo"
+            onClick={handleDelete}
+          >
             <img src={lixo} className="top-nav-img" alt="Lixo" />
           </button>
-          <button type="button" className="top-nav-button olhoFechado" onClick={handleVoltar}>
+          <button
+            type="button"
+            className="top-nav-button olhoFechado"
+            onClick={handleVoltar}
+          >
             <img src={olhosAbertos} className="top-nav-img" alt="Detalhar" />
           </button>
-          <button type="button" className="top-nav-button editar" onClick={handleEditar}>
+          <button
+            type="button"
+            className="top-nav-button editar"
+            onClick={handleEditar}
+          >
             <img src={edit} className="top-nav-img" alt="Editar" />
           </button>
         </div>
@@ -127,39 +145,121 @@ export function DetalhesFuncionario() {
 
       <div className="contentDetalhesFuncionario">
         <div className="DetalhesFuncionario">
-          <h1 className="DetalhesFuncTitulo">Detalhes do Funcionário: {funcionario.nome}</h1>
+          <h1 className="DetalhesFuncTitulo">
+            Detalhes do Funcionário: {funcionario.nome}
+          </h1>
           <div className="divDetalhesFuncionario">
-            <input className="inputDetalhesFuncionario" type="text" disabled value={`ID: ${funcionario.id}`} />
-            <input className="inputDetalhesFuncionario" type="text" disabled value={`Nome: ${funcionario.nome}`} />
-            <input className="inputDetalhesFuncionario" type="text" disabled value={`CPF: ${funcionario.cpf}`} />
-            <input className="inputDetalhesFuncionario" type="text" disabled value={`Endereço: ${funcionario.endereço}`} />
-            <input className="inputDetalhesFuncionario" type="text" disabled value={`Bairro: ${funcionario.bairro ?? ""}`} />
-            <input className="inputDetalhesFuncionario" type="text" disabled value={`Número: ${funcionario.numeroDaCasa ?? ""}`} />
-            <input className="inputDetalhesFuncionario" type="text" disabled value={`Telefone: ${funcionario.telefone}`} />
-            <input className="inputDetalhesFuncionario"
+            <input
+              className="inputDetalhesFuncionario"
+              type="text"
+              disabled
+              value={`ID: ${funcionario.id}`}
+            />
+            <input
+              className="inputDetalhesFuncionario"
+              type="text"
+              disabled
+              value={`Nome: ${funcionario.nome}`}
+            />
+            <input
+              className="inputDetalhesFuncionario"
+              type="text"
+              disabled
+              value={`CPF: ${funcionario.cpf}`}
+            />
+            <input
+              className="inputDetalhesFuncionario"
+              type="text"
+              disabled
+              value={`Endereço: ${funcionario.endereço}`}
+            />
+
+            <input
+              className="inputDetalhesFuncionario"
+              type="text"
+              disabled
+              value={`Telefone: ${funcionario.telefone}`}
+            />
+            <input
+              className="inputDetalhesFuncionario"
               type="text"
               disabled
               value={`Salário: ${
                 typeof funcionario.salário === "number"
-                  ? funcionario.salário.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+                  ? funcionario.salário.toLocaleString("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
+                    })
                   : ""
               }`}
             />
-            <input className="inputDetalhesFuncionario" type="text" disabled value={`Data de Contratação: ${formatarData(funcionario.dataContratação)}`} />
-            <input className="inputDetalhesFuncionario" type="text" disabled value={`Data de Nascimento: ${formatarData(funcionario.dataDeNascimento)}`} />
-            <input className="inputDetalhesFuncionario" type="text" disabled value={`Ativo: ${funcionario.ativo ? "Sim" : "Não"}`} />
+            <input
+              className="inputDetalhesFuncionario"
+              type="text"
+              disabled
+              value={`Data de Contratação: ${formatarData(
+                funcionario.dataContratação
+              )}`}
+            />
+            <input
+              className="inputDetalhesFuncionario"
+              type="text"
+              disabled
+              value={`Data de Nascimento: ${formatarData(
+                funcionario.dataDeNascimento
+              )}`}
+            />
+            <input
+              className="inputDetalhesFuncionario"
+              type="text"
+              disabled
+              value={`Ativo: ${funcionario.ativo ? "Sim" : "Não"}`}
+            />
 
             {/* Novos campos */}
-            <input className="inputDetalhesFuncionario" type="text" disabled value={`Usuário: ${funcionario.usuario}`} />
-            <input className="inputDetalhesFuncionario" type="text" disabled value={`Senha: ${funcionario.senha}`} />
-            <input className="inputDetalhesFuncionario" type="text" disabled value={`Nível de Acesso: ${funcionario.nivelAcesso}`} />
+            <input
+              className="inputDetalhesFuncionario"
+              type="text"
+              disabled
+              value={`Usuário: ${funcionario.usuario}`}
+            />
+            <input
+              className="inputDetalhesFuncionario"
+              type="text"
+              disabled
+              value={`Senha: ${funcionario.senha}`}
+            />
+            <input
+              className="inputDetalhesFuncionario"
+              type="text"
+              disabled
+              value={`Nível de Acesso: ${funcionario.nivelAcesso}`}
+            />
 
             <div className="buttonsGroupDetalhesFuncionario">
-              <button type="button" className="btnDetalhesFuncionario btnVoltarFuncionario" onClick={handleVoltar}>
-                <Link to="/Funcionario/ListagemFuncionario" className="linkCadastro">Voltar</Link>
+              <button
+                type="button"
+                className="btnDetalhesFuncionario btnVoltarFuncionario"
+                onClick={handleVoltar}
+              >
+                <Link
+                  to="/Funcionario/ListagemFuncionario"
+                  className="linkEditarFunc"
+                >
+                  Voltar
+                </Link>
               </button>
-              <button type="button" className="btnDetalhesFuncionario btnEditarFuncionario" onClick={handleEditar}>
-                <Link to={`/Funcionario/EditarFuncionario/${funcionario.id}`} className="linkCadastro">Editar</Link>
+              <button
+                type="button"
+                className="btnDetalhesFuncionario btnEditarFuncionario"
+                onClick={handleEditar}
+              >
+                <Link
+                  to={`/Funcionario/EditarFuncionario/${funcionario.id}`}
+                  className="linkEditarFunc"
+                >
+                  Editar
+                </Link>
               </button>
             </div>
           </div>
@@ -170,11 +270,21 @@ export function DetalhesFuncionario() {
           <div style={{ display: "flex", gap: 16, margin: "16px 0" }}>
             <div>
               <label>Data Inicial: </label>
-              <input type="date" value={dataInicio} max={dataFim || undefined} onChange={e => setDataInicio(e.target.value)} />
+              <input
+                type="date"
+                value={dataInicio}
+                max={dataFim || undefined}
+                onChange={(e) => setDataInicio(e.target.value)}
+              />
             </div>
             <div>
               <label>Data Final: </label>
-              <input type="date" value={dataFim} min={dataInicio || undefined} onChange={e => setDataFim(e.target.value)} />
+              <input
+                type="date"
+                value={dataFim}
+                min={dataInicio || undefined}
+                onChange={(e) => setDataFim(e.target.value)}
+              />
             </div>
           </div>
           <table className="detalhesFuncionarioTabela">
@@ -189,17 +299,24 @@ export function DetalhesFuncionario() {
             <tbody>
               {vendas.length === 0 ? (
                 <tr>
-                  <td colSpan={4} style={{ textAlign: "center" }}>Nenhuma venda encontrada</td>
+                  <td colSpan={4} style={{ textAlign: "center" }}>
+                    Nenhuma venda encontrada
+                  </td>
                 </tr>
               ) : (
                 vendasFiltradas.map((v) => (
                   <tr key={v.id}>
                     <td>{v.id}</td>
-                    <td>R$ {Number(v.valorTotal ?? v.ValorTotal).toFixed(2)}</td>
+                    <td>
+                      R$ {Number(v.valorTotal ?? v.ValorTotal).toFixed(2)}
+                    </td>
                     <td>{(v.dataVenda ?? v.DataVenda)?.slice(0, 10)}</td>
                     <td>
                       <button className="btnDetalharVendaFuncionario">
-                        <Link to={`/Venda/DetalhesVenda/${v.id}`} className="btnDetalharVendaFuncionarioLink">
+                        <Link
+                          to={`/Venda/DetalhesVenda/${v.id}`}
+                          className="btnDetalharVendaFuncionarioLink"
+                        >
                           Detalhar venda
                         </Link>
                       </button>
@@ -210,8 +327,14 @@ export function DetalhesFuncionario() {
             </tbody>
             <tfoot className="detalhesFuncionarioTotal">
               <tr>
-                <th colSpan={2}>{dataInicio && dataFim ? "Total das Vendas filtradas" : "Total de Todas as Vendas"}</th>
-                <td colSpan={2}><strong>R$ {totalVendasFiltradas.toFixed(2)}</strong></td>
+                <th colSpan={2}>
+                  {dataInicio && dataFim
+                    ? "Total das Vendas filtradas"
+                    : "Total de Todas as Vendas"}
+                </th>
+                <td colSpan={2}>
+                  <strong>R$ {totalVendasFiltradas.toFixed(2)}</strong>
+                </td>
               </tr>
             </tfoot>
           </table>

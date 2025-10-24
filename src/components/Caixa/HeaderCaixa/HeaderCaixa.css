@@ -27,3 +27,12 @@ border-radius: 1rem;
 
    
 }
+
+.divLogo{
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+    font: bold 1.8rem 'Alex Brush';
+    color: var(--black-primary-color);
+}

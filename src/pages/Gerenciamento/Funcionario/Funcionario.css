@@ -35,17 +35,12 @@ body {
 
 .formCadastroFuncionario {
   display: grid;
-  grid-template-columns: repeat(2, 180px);
-  grid-template-rows: repeat(4, 80px);
+  grid-template-columns: repeat(3, 180px);
+  grid-template-rows: repeat(7, 80px);
   row-gap: .1rem;
   column-gap: 3rem;
 }
 
- .inputIdFuncionario {
-  grid-column-start: 1;
-  grid-row-start: 1;
-  grid-column-end: -1;
-}  
 
 .inputCadastroFuncionario {
   background-color: var(--white-secondary-color);
@@ -106,11 +101,12 @@ body {
   background-color: var(--yellow-primary-color);
 }
 
-.linkCadastro {
+.linkEditarFunc {
   text-decoration: none;
   color: var(--black-primary-color);
-  font-size: 1rem;
+  font-size: 2rem;
 }
+
 
 .top-nav {
   position: absolute;
@@ -267,24 +263,19 @@ thead {
 
 .divDetalhesFuncionario {
   display: grid;
-  grid-template-columns: repeat(2, 180px);
-  grid-template-rows: repeat(5, 80px);
+  grid-template-columns: repeat(2, 280px);
+  grid-template-rows: repeat(6, 80px);
   row-gap: .1rem;
-  column-gap: 3rem;
+  column-gap: .5rem;
 }
 
-.inputIdDetalhesFuncionario {
-  grid-column-start: 1;
-  grid-row-start: 1;
-  grid-column-end: -1;
-}
 
 .inputDetalhesFuncionario {
   background-color: var(--white-secondary-color);
   border: none;
   height: 60px;
   border-radius: 0.5rem;
-  width: 210px;
+  width: 260px;
   color: var(--black-primary-color);
   font-size: 1.5rem;
 }
@@ -299,7 +290,7 @@ thead {
   border: none;
   color: var(--black-primary-color);
   text-align: center;
-  font-size: 1rem;
+  font-size: 2rem;
   width: 200px;
   height: 60px;
   cursor: pointer;
@@ -388,17 +379,13 @@ thead {
 
 .divEditarFuncionario {
   display: grid;
-  grid-template-columns: repeat(2, 180px);
+  grid-template-columns: repeat(3, 220px);
   grid-template-rows: repeat(5, 80px);
   row-gap: .1rem;
   column-gap: 3rem;
 }
 
-.inputIdEditarFuncionario {
-  grid-column-start: 1;
-  grid-row-start: 1;
-  grid-column-end: -1;
-}
+
 
 .inputEditarFuncionario {
   background-color: var(--white-secondary-color);
@@ -457,11 +444,5 @@ thead {
 
 .btnClonarFuncionario {
   background-color: var(--yellow-primary-color);
-}
-
-.linkCadastro {
-  text-decoration: none;
-  color: var(--black-primary-color);
-  font-size: 1rem;
 }
 

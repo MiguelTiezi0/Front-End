@@ -32,9 +32,7 @@ export function EditarCliente() {
     nome: "",
     cpf: "",
     endereço: "",
-    número: "",
     telefone: "",
-    bairro: "",
     dataNascimento: "",
     limiteDeCrédito: "",
     usuario: "",
@@ -134,14 +132,15 @@ export function EditarCliente() {
 
       <div className="EditarCliente">
         <h1>Editar Cliente: {cliente.nome}</h1>
-        <form className="divEditarCliente" onSubmit={handleSubmit}>
+        <form className="FormEditarCliente" onSubmit={handleSubmit}>
+          <div className="divEditarCliente">
           <input
             type="text"
             name="id"
             readOnly
             value={cliente.id || ""}
             placeholder="Id"
-            className="inputEditarCliente inputIdEditarCliente"
+            className="inputEditarCliente"
           />
           <input
             type="text"
@@ -170,15 +169,7 @@ export function EditarCliente() {
             value={cliente.endereço}
             onChange={handleChange}
           />
-          <input
-            type="number"
-            name="número"
-            required
-            placeholder="Número"
-            className="inputEditarCliente"
-            value={cliente.número}
-            onChange={handleChange}
-          />
+      
           <input
             type="text"
             name="telefone"
@@ -188,15 +179,7 @@ export function EditarCliente() {
             value={cliente.telefone}
             onChange={handleChange}
           />
-          <input
-            type="text"
-            name="bairro"
-            required
-            placeholder="Bairro"
-            className="inputEditarCliente"
-            value={cliente.bairro}
-            onChange={handleChange}
-          />
+        
           <input
             type="date"
             name="dataNascimento"
@@ -232,6 +215,7 @@ export function EditarCliente() {
             value="Cliente"
             disabled
           />
+          </div>
 
           <div className="buttonsGroupCliente">
             <button type="button" className="btnCliente btnVoltarCliente" onClick={handleVoltar}>

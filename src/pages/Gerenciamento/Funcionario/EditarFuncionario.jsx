@@ -46,8 +46,6 @@ export function EditarFuncionario() {
     nome: "",
     cpf: "",
     endereco: "",
-    bairro: "",
-    numeroDaCasa: "",
     dataContratacao: "",
     telefone: "",
     salario: "",
@@ -71,7 +69,37 @@ export function EditarFuncionario() {
           throw new Error("Erro ao buscar os dados do funcionário");
 
         const data = await response.json();
-        setFuncionario(data);
+        // Mapear propriedades do backend para as chaves locais usadas no formulário
+        setFuncionario({
+          id: data.id ?? data.Id ?? "",
+          nome: data.nome ?? data.Nome ?? "",
+          cpf: data.cpf ?? data.CPF ?? "",
+          endereco:
+            data.endereço ??
+            data.Endereço ??
+            data.endereco ??
+            data.Endereco ??
+            "",
+          dataContratacao:
+            data.dataContratacao ??
+            data.dataContratação ??
+            data.DataContratacao ??
+            data.DataContratação ??
+            "",
+          telefone: data.telefone ?? data.Telefone ?? "",
+          salario:
+            data.salario ?? data.salário ?? data.Salário ?? data.Salário ?? 0,
+          dataDeNascimento:
+            data.dataDeNascimento ??
+            data.DataDeNascimento ??
+            data.dataDeNascimento ??
+            "",
+          ativo: data.ativo ?? data.Ativo ?? false,
+          usuario: data.usuario ?? data.Usuario ?? "",
+          senha: data.senha ?? data.Senha ?? "",
+          nivelAcesso:
+            data.nivelAcesso ?? data.NivelAcesso ?? data.NivelAcesso ?? 3,
+        });
       } catch (error) {
         console.error(error);
         alert("Erro ao carregar os dados do funcionário");
@@ -104,14 +132,26 @@ export function EditarFuncionario() {
     }
 
     try {
+      // Monta payload com os nomes que o backend espera (use strings para propriedades com acento)
+      const payload = {
+        Id: Number(funcionario.id) || undefined,
+        Nome: funcionario.nome,
+        CPF: funcionario.cpf,
+        Endereço: funcionario.endereco,
+        DataContratação: funcionario.dataContratacao,
+        Telefone: funcionario.telefone,
+        Salário: parseFloat(funcionario.salario) || 0,
+        DataDeNascimento: funcionario.dataDeNascimento,
+        Ativo: !!funcionario.ativo,
+        Usuario: funcionario.usuario,
+        Senha: funcionario.senha,
+        NivelAcesso: Number(funcionario.nivelAcesso),
+      };
+
       const response = await fetch(`${linkFun}/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...funcionario,
-          salario: parseFloat(funcionario.salario),
-          nivelAcesso: parseInt(funcionario.nivelAcesso),
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -188,7 +228,7 @@ export function EditarFuncionario() {
             readOnly
             value={funcionario.id || ""}
             placeholder="Id"
-            className="inputEditarFuncionario inputIdEditarFuncionario"
+            className="inputEditarFuncionario"
           />
           <input
             type="text"
@@ -217,24 +257,7 @@ export function EditarFuncionario() {
             value={funcionario.endereco}
             onChange={handleChange}
           />
-          <input
-            type="text"
-            name="bairro"
-            required
-            placeholder="Bairro"
-            className="inputEditarFuncionario"
-            value={funcionario.bairro}
-            onChange={handleChange}
-          />
-          <input
-            type="text"
-            name="numeroDaCasa"
-            required
-            placeholder="Número"
-            className="inputEditarFuncionario"
-            value={funcionario.numeroDaCasa}
-            onChange={handleChange}
-          />
+
           <input
             type="text"
             name="telefone"

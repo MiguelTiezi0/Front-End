@@ -78,9 +78,9 @@ export function DetalhesCliente() {
               nome: cliente.nome,
               cpf: cliente.cpf,
               endereço: cliente.endereço,
-              número: cliente.número,
+      
               telefone: cliente.telefone,
-              bairro: cliente.bairro,
+          
               dataNascimento: cliente.dataNascimento,
               limiteDeCrédito: cliente.limiteDeCrédito,
               totalGasto: totalGasto,
@@ -231,13 +231,7 @@ export function DetalhesCliente() {
               className="inputDetalhesCliente"
               value={`Endereço: ${cliente.endereço}`}
             />
-            <input
-              type="text"
-              disabled
-              placeholder="Número"
-              className="inputDetalhesCliente"
-              value={`Número: ${cliente.número}`}
-            />
+          
             <input
               type="text"
               disabled
@@ -245,13 +239,7 @@ export function DetalhesCliente() {
               className="inputDetalhesCliente"
               value={`Telefone: ${cliente.telefone}`}
             />
-            <input
-              type="text"
-              disabled
-              placeholder="Bairro"
-              className="inputDetalhesCliente"
-              value={`Bairro: ${cliente.bairro}`}
-            />
+     
             <input
               type="text"
               disabled

@@ -50,14 +50,13 @@ export function CadastroCliente() {
   const [nome, setNome] = useState("");
   const [cpf, setCpf] = useState("");
   const [endereco, setEndereco] = useState("");
-  const [numero, setNumero] = useState("");
   const [telefone, setTelefone] = useState("");
-  const [bairro, setBairro] = useState("");
   const [dataNascimento, setDataNascimento] = useState("");
   const [limiteDeCredito, setLimiteDeCredito] = useState("");
   const [usuario, setUsuario] = useState("");
   const [senha, setSenha] = useState("");
 
+  const [nivelAcesso] = useState("Cliente"); // Sempre funcionário
   useEffect(() => {
     const fetchClientes = async () => {
       try {
@@ -87,9 +86,7 @@ export function CadastroCliente() {
     if (!nome) camposFaltando.push("Nome");
     if (!cpf) camposFaltando.push("CPF");
     if (!endereco) camposFaltando.push("Endereço");
-    if (!numero) camposFaltando.push("Número");
     if (!telefone) camposFaltando.push("Telefone");
-    if (!bairro) camposFaltando.push("Bairro");
     if (!dataNascimento) camposFaltando.push("Data de Nascimento");
     if (!limiteDeCredito) camposFaltando.push("Limite de Crédito");
     if (!usuario) camposFaltando.push("Usuário");
@@ -114,9 +111,7 @@ export function CadastroCliente() {
       nome: nome || "não informado",
       cpf: cpf || "não informado",
       endereço: endereco || "não informado",
-      número: numero ? parseInt(numero) : 0,
       telefone: telefone || "não informado",
-      bairro: bairro || "não informado",
       dataNascimento: dataNascimento ? toISODate(dataNascimento) : "",
       limiteDeCrédito: limiteDeCredito ? parseFloat(limiteDeCredito) : 0,
       usuario: usuario || "não informado",
@@ -147,9 +142,7 @@ export function CadastroCliente() {
       setNome("");
       setCpf("");
       setEndereco("");
-      setNumero("");
       setTelefone("");
-      setBairro("");
       setDataNascimento("");
       setLimiteDeCredito("");
       setUsuario("");
@@ -165,92 +158,90 @@ export function CadastroCliente() {
       <div className="CadastroCliente">
         <h1>Cadastro de Clientes</h1>
         <form className="formCadastroCliente" onSubmit={handleSubmit}>
-          <input
+          <div className="divCadastroCliente">
+            <input
+              type="text"
+              name="id"
+              readOnly
+              value={id}
+              placeholder="Id"
+              className="inputCadastroCliente"
+            />
+            <input
+              type="text"
+              placeholder="Nome"
+              className="inputCadastroCliente"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+            />
+            <input
+              type="text"
+              placeholder="CPF"
+              className="inputCadastroCliente"
+              value={cpf}
+              onChange={(e) => setCpf(e.target.value)}
+            />
+            <input
+              type="text"
+              placeholder="Endereço"
+              className="inputCadastroCliente"
+              value={endereco}
+              onChange={(e) => setEndereco(e.target.value)}
+            />
+
+            <input
+              type="text"
+              placeholder="Telefone"
+              className="inputCadastroCliente"
+              value={telefone}
+              onChange={(e) => setTelefone(formatTelefoneInput(e.target.value))}
+              maxLength={15}
+            />
+
+            <input
+              type="text"
+              placeholder="Data de Nascimento (dd/mm/aaaa)"
+              className="inputCadastroCliente"
+              value={dataNascimento}
+              onChange={(e) =>
+                setDataNascimento(formatDateInput(e.target.value))
+              }
+              maxLength={10}
+            />
+            <input
+              type="number"
+              placeholder="Limite de Crédito"
+              className="inputCadastroCliente"
+              value={limiteDeCredito}
+              onChange={(e) => setLimiteDeCredito(e.target.value)}
+            />
+
+            {/* Novos campos de usuário e senha */}
+            <input
+              type="text"
+              placeholder="Usuário"
+              className="inputCadastroCliente"
+              value={usuario}
+              onChange={(e) => setUsuario(e.target.value)}
+            />
+            <input
+              type="password"
+              placeholder="Senha"
+              className="inputCadastroCliente"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+            />
+            {/* <input
             type="text"
-            name="id"
             readOnly
-            value={id}
-            placeholder="Id"
-            className="inputCadastroCliente inputIdCliente"
-          />
-          <input
-            type="text"
-            placeholder="Nome"
+            placeholder="Nível de Acesso"
             className="inputCadastroCliente"
-            value={nome}
-            onChange={(e) => setNome(e.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="CPF"
-            className="inputCadastroCliente"
-            value={cpf}
-            onChange={(e) => setCpf(e.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="Endereço"
-            className="inputCadastroCliente"
-            value={endereco}
-            onChange={(e) => setEndereco(e.target.value)}
-          />
-          <input
-            type="number"
-            placeholder="Número"
-            className="inputCadastroCliente"
-            value={numero}
-            onChange={(e) => setNumero(e.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="Telefone"
-            className="inputCadastroCliente"
-            value={telefone}
-            onChange={(e) => setTelefone(formatTelefoneInput(e.target.value))}
-            maxLength={15}
-          />
-          <input
-            type="text"
-            placeholder="Bairro"
-            className="inputCadastroCliente"
-            value={bairro}
-            onChange={(e) => setBairro(e.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="Data de Nascimento (dd/mm/aaaa)"
-            className="inputCadastroCliente"
-            value={dataNascimento}
-            onChange={(e) => setDataNascimento(formatDateInput(e.target.value))}
-            maxLength={10}
-          />
-          <input
-            type="number"
-            placeholder="Limite de Crédito"
-            className="inputCadastroCliente"
-            value={limiteDeCredito}
-            onChange={(e) => setLimiteDeCredito(e.target.value)}
-          />
-
-          {/* Novos campos de usuário e senha */}
-          <input
-            type="text"
-            placeholder="Usuário"
-            className="inputCadastroCliente"
-            value={usuario}
-            onChange={(e) => setUsuario(e.target.value)}
-          />
-          <input
-            type="password"
-            placeholder="Senha"
-            className="inputCadastroCliente"
-            value={senha}
-            onChange={(e) => setSenha(e.target.value)}
-          />
-
+            value={nivelAcesso}
+          /> */}
+          </div>
           <div className="buttonsGroupCliente">
             <button type="button" className="btnCliente btnVoltarCliente">
-              <Link to="/" className="linkCadastro">
+              <Link to="/" className="linkCadastroCliente">
                 Voltar
               </Link>
             </button>

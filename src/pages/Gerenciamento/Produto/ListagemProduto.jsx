@@ -69,13 +69,14 @@ export function ListagemProduto() {
     fetchProdutos();
     fetchCategorias();
   }, []);
-
+  
   useEffect(() => {
     const filtro = pesquisa.toLowerCase();
     const filtrados = produtos.filter((produto) => {
       if (tipoPesquisa === "id") {
         return String(produto.id).includes(filtro);
       }
+      console.log(produto)
       if (tipoPesquisa === "descricao") {
         return produto.descricao.toLowerCase().includes(filtro);
       }
@@ -87,7 +88,7 @@ export function ListagemProduto() {
         return (produto.tamanho || "").toLowerCase().includes(filtro);
       }
       if (tipoPesquisa === "fornecedor") {
-        return (produto.fornecedorMarca || "").toLowerCase().includes(filtro);
+        return (produto.idFornecedor || "").toLowerCase().includes(filtro);
       }
       if (tipoPesquisa === "preco") {
         return String(produto.preçoVenda).includes(filtro);
@@ -335,8 +336,8 @@ export function ListagemProduto() {
                     {produto.tamanho || "N/A"}
                   </td>
                   <td>
-                    {produto.fornecedorMarca
-                      ? produto.fornecedorMarca
+                    {produto.idFornecedor
+                      ? produto.idFornecedor
                       : "N/A"}
                   </td>
                   <td>

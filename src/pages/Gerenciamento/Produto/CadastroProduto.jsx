@@ -193,7 +193,7 @@ export function CadastroProduto() {
         }
 
         const novoFornec = await responseFornecedor.json();
-        fornecedorParaUsar = novoFornec.nome; // backend espera fornecedorMarca como string!
+        fornecedorParaUsar = novoFornec.nome; // backend espera idFornecedor como string!
         setFornecedores((prev) => [...prev, novoFornec]);
       } catch (error) {
         console.error(error);
@@ -209,7 +209,7 @@ export function CadastroProduto() {
     const produto = {
       id: Number(Id),
       descricao,
-      fornecedorMarca: fornecedorParaUsar, // string!
+      idFornecedor: fornecedorParaUsar, // string!
       cor,
       tamanho,
       quantidade: parseInt(quantidade),
