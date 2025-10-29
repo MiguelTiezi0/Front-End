@@ -10,9 +10,6 @@
   --green: #39862f;
 }
 
-
-
-
 /* Fundo geral */
 .Page {
   background: var(--black-primary-color);
@@ -53,8 +50,7 @@
   background: #f3c94a;
 }
 
-
-/* Cadastro     */
+/* Cadastro */
 
 .cadastroContainer {
   background: var(--yellow-primary-color);
@@ -95,21 +91,19 @@
   border: 2px solid var(--black-primary-color);
 }
 
-
-
 /* Wrapper do input + botão */
 .inputWrapperCadastro {
   position: relative;
   width: 100%;
   max-width: 350px; /* igual ao seu input */
- 
 }
+
 /* Botão do olho */
 .togglePasswordCadastro {
   position: absolute;
   right: 12px;
   top: 50%;
-  transform: translateY(-50%); 
+  transform: translateY(-50%);
   cursor: pointer;
   background: none;
   border: none;
@@ -129,11 +123,6 @@
 .togglePasswordCadastro img:hover {
   opacity: 1;
 }
-
-
-
-
-
 
 .cadastroButtons {
   grid-column: span 3;
@@ -175,8 +164,7 @@
   text-decoration: underline;
 }
 
-
-/* Login            */
+/* Login */
 
 .loginContainer {
   background: var(--yellow-primary-color);
@@ -190,7 +178,7 @@
 
 .loginContainer h1 {
   margin-block-start: 0em;
-    margin-block-end: 0.67em;
+  margin-block-end: 0.67em;
   font-size: 50px;
   color: var(--black);
 }
@@ -205,7 +193,7 @@
 .loginInput {
   width: 100%;
   min-width: 670px;
-   max-width: 600px; 
+  max-width: 600px;
   padding: 12px;
   border: none;
   border-radius: 5px;
@@ -213,7 +201,6 @@
   background: var(--white-secondary-color);
   outline: none;
   color: var(--black);
- 
 }
 
 .loginInput:focus {
@@ -226,7 +213,6 @@
   align-items: center;
   gap: 12px;
   margin-top: 20px;
-  
 }
 
 .loginBtn {
@@ -258,21 +244,19 @@
   text-decoration: underline;
 }
 
-
-
 /* Wrapper do input + botão */
 .inputWrapper {
   position: relative;
   width: 100%;
   max-width: 700px; /* igual ao seu input */
- 
 }
+
 /* Botão do olho */
 .togglePassword {
   position: absolute;
   right: 12px;
   top: 50%;
-  transform: translateY(-50%); 
+  transform: translateY(-50%);
   cursor: pointer;
   background: none;
   border: none;
@@ -291,4 +275,133 @@
 
 .togglePassword img:hover {
   opacity: 1;
+}
+
+.home-geral .home-main {
+  max-width: 1200px;
+  margin: 1.5rem auto;
+  padding: 0 1rem;
+}
+
+.hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  background: linear-gradient(90deg, #fbfbff, #f6fdff);
+  padding: 1.25rem;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(17, 24, 39, 0.04);
+  margin-bottom: 1rem;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: 1.4rem;
+  color: #0f172a;
+}
+
+.hero .lead {
+  margin: 6px 0 0;
+  color: #6b7280;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn {
+  padding: 0.55rem 0.9rem;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.btn.primary {
+  background: #0f172a;
+  color: #fff;
+}
+
+.btn.outline {
+  background: transparent;
+  border: 1px solid #e6e9ef;
+  color: #0f172a;
+}
+
+/* cards */
+.home-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.home-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 1rem;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 6px 18px rgba(17, 24, 39, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.home-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 30px rgba(17, 24, 39, 0.08);
+}
+
+.card-top {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.card-icon {
+  font-size: 1.6rem;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+  border-radius: 8px;
+}
+
+.card-desc {
+  color: #6b7280;
+  font-size: 0.95rem;
+  margin: 0;
+  flex: 1;
+}
+
+.card-footer {
+  color: #0f172a;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-align: right;
+}
+
+/* responsive small */
+@media (max-width: 720px) {
+  .hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .hero-actions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
 }

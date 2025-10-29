@@ -8,11 +8,12 @@ import { linkFor } from "../Fornecedor/linkFor";
 
 export function EditarProduto() {
   document.title = "Editar Produto";
+
   const { id } = useParams();
   const navigate = useNavigate();
   const alerta = useAlerta();
 
-  const [Id, setId] = useState("");
+  const [idState, setIdState] = useState("");
   const [descricao, setDescricao] = useState("");
   const [fornecedorId, setFornecedorId] = useState("");
   const [fornecedores, setFornecedores] = useState([]);
@@ -23,8 +24,8 @@ export function EditarProduto() {
     numTelefone: "",
   });
 
-  const [preçoCusto, setPreçoCusto] = useState("");
-  const [preçoVenda, setPreçoVenda] = useState("");
+  const [precoCusto, setPrecoCusto] = useState("");
+  const [precoVenda, setPrecoVenda] = useState("");
   const [tamanho, setTamanho] = useState("");
   const [cor, setCor] = useState("");
   const [quantidade, setQuantidade] = useState("");
@@ -32,78 +33,81 @@ export function EditarProduto() {
   const [categorias, setCategorias] = useState([]);
   const [outraCategoria, setOutraCategoria] = useState("");
   const [mostrarInputOutra, setMostrarInputOutra] = useState(false);
-
   const [dataCadastro, setDataCadastro] = useState("");
   const [idCompra, setIdCompra] = useState(0);
+  const [ativo, setAtivo] = useState(true);
 
+  // 🔹 Buscar produto, categorias e fornecedores
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchProduto = async () => {
       try {
-        const [resFor, resCat] = await Promise.all([
-          fetch(linkFor),
-          fetch(linkCat),
-        ]);
-        if (!resFor.ok || !resCat.ok)
-          throw new Error("Erro ao carregar fornecedores/categorias");
-        const [fornecedoresData, categoriasData] = await Promise.all([
-          resFor.json(),
-          resCat.json(),
-        ]);
-        setFornecedores(fornecedoresData);
-        setCategorias(categoriasData);
+        const response = await fetch(`${linkPro}/${id}`);
+        if (!response.ok) throw new Error("Erro ao buscar produto");
+        const data = await response.json();
 
-        const resProd = await fetch(`${linkPro}/${id}`);
-        if (!resProd.ok) throw new Error("Erro ao carregar produto");
-        const prod = await resProd.json();
-
-        setId(prod.id ?? "");
-        setDescricao(prod.descricao ?? "");
-        setPreçoCusto(prod["preçoCusto"] ?? "");
-        setPreçoVenda(prod["preçoVenda"] ?? "");
-        setTamanho(prod.tamanho ?? "");
-        setCor(prod.cor ?? "");
-        setQuantidade(prod.quantidade ?? "");
-        setDataCadastro(prod.dataCadastro ?? "");
-        setIdCompra(prod.idCompra ?? 0);
-
-        // fornecedor: produto.armazena idFornecedor (string). se existir fornecedor com esse nome, seleciona, senão abre novo fornecedor com nome preenchido
-        const fornecedorEncontrado = fornecedoresData.find(
-          (f) => f.nome === prod.idFornecedor
+        setIdState(data.id ?? data.Id ?? "");
+        setDescricao(data.descricao ?? data.Descricao ?? "");
+        setPrecoCusto(
+          data["preçoCusto"] ?? data.PreçoCusto ?? data.precoCusto ?? ""
         );
-        if (fornecedorEncontrado) {
-          setFornecedorId(fornecedorEncontrado.id);
-          setMostrarInputFornecedor(false);
-          setNovoFornecedor({ nome: "", cnpj: "", numTelefone: "" });
-        } else {
-          setMostrarInputFornecedor(true);
-          setNovoFornecedor((prev) => ({
-            ...prev,
-            nome: prod.idFornecedor ?? "",
-          }));
-          setFornecedorId("");
-        }
-
-        // categoria: se categoriaId existe na lista, seleciona; senão mostra input "Outra"
-        const existeCategoria = categoriasData.some(
-          (c) => Number(c.id) === Number(prod.categoriaId)
+        setPrecoVenda(
+          data["preçoVenda"] ?? data.PreçoVenda ?? data.precoVenda ?? ""
         );
-        if (existeCategoria) {
-          setCategoriaId(prod.categoriaId ?? "");
-          setMostrarInputOutra(false);
-          setOutraCategoria("");
-        } else {
-          setMostrarInputOutra(true);
-          setOutraCategoria("");
-          setCategoriaId("");
-        }
-      } catch (err) {
-        console.error(err);
-        alert("Erro ao carregar dados do produto / fornecedores / categorias");
+        setTamanho(data.tamanho ?? data.Tamanho ?? "");
+        setCor(data.cor ?? data.Cor ?? "");
+        setQuantidade(String(data.quantidade ?? data.Quantidade ?? ""));
+        setCategoriaId(data.categoriaId ?? data.CategoriaId ?? "");
+        setDataCadastro(data.dataCadastro ?? data.DataCadastro ?? "");
+        setIdCompra(data.idCompra ?? data.IdCompra ?? 0);
+        setFornecedorId(data.idFornecedor ?? data.IdFornecedor ?? "");
+        setAtivo(data.ativo ?? data.Ativo ?? true);
+      } catch (error) {
+        console.error(error);
+        alert("Erro ao carregar o produto");
       }
     };
 
-    fetchData();
+    const fetchCategorias = async () => {
+      try {
+        const response = await fetch(linkCat);
+        if (!response.ok) throw new Error("Erro ao buscar categorias");
+        const data = await response.json();
+        setCategorias(data);
+      } catch (error) {
+        console.error(error);
+        alert("Erro ao carregar categorias");
+      }
+    };
+
+    const fetchFornecedores = async () => {
+      try {
+        const response = await fetch(linkFor);
+        if (!response.ok) throw new Error("Erro ao buscar fornecedores");
+        const data = await response.json();
+        setFornecedores(data);
+      } catch (error) {
+        console.error(error);
+        alert("Erro ao carregar fornecedores");
+      }
+    };
+
+    fetchProduto();
+    fetchCategorias();
+    fetchFornecedores();
   }, [id]);
+
+  // 🔹 Handlers de seleção
+  const handleCategoriaChange = (e) => {
+    const value = e.target.value;
+    if (value === "outra") {
+      setMostrarInputOutra(true);
+      setCategoriaId("");
+    } else {
+      setMostrarInputOutra(false);
+      setCategoriaId(parseInt(value));
+      setOutraCategoria("");
+    }
+  };
 
   const handleFornecedorChange = (e) => {
     const value = e.target.value;
@@ -112,120 +116,95 @@ export function EditarProduto() {
       setFornecedorId("");
     } else {
       setMostrarInputFornecedor(false);
-      setFornecedorId(value ? parseInt(value) : "");
+      setFornecedorId(value); // Atualiza diretamente o fornecedorId
       setNovoFornecedor({ nome: "", cnpj: "", numTelefone: "" });
     }
   };
 
-  const handleCategoriaChange = (e) => {
-    const value = e.target.value;
-    if (value === "outra") {
-      setMostrarInputOutra(true);
-      setCategoriaId("");
-    } else {
-      setMostrarInputOutra(false);
-      setCategoriaId(value ? parseInt(value) : "");
-      setOutraCategoria("");
-    }
-  };
-
-  const handleNovoFornecedorChange = (e) => {
-    const { name, value } = e.target;
-    setNovoFornecedor((prev) => ({ ...prev, [name]: value }));
-  };
-
+  // 🔹 Submeter edição (PUT) — montar payload com as chaves que o backend espera
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    let categoriaParaUsar = categoriaId;
-    let fornecedorParaUsar = "";
+    let categoriaParaUsar = categoriaId ? Number(categoriaId) : 0;
+    let fornecedorParaUsar = fornecedorId ? Number(fornecedorId) : 0;
 
-    // cria categoria se necessário
-    if (mostrarInputOutra) {
-      if (!outraCategoria.trim()) {
-        alert("Digite a nova categoria");
-        return;
-      }
+    // criar nova categoria se necessário
+    if (mostrarInputOutra && outraCategoria.trim() !== "") {
       try {
-        const res = await fetch(linkCat, {
+        const responseCategoria = await fetch(linkCat, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ descricao: outraCategoria }),
         });
-        if (!res.ok) throw new Error("Erro ao cadastrar categoria");
-        const novaCat = await res.json();
-        categoriaParaUsar = novaCat.id;
-        setCategorias((prev) => [...prev, novaCat]);
-      } catch (err) {
-        console.error(err);
-        alert("Erro ao cadastrar categoria");
+        if (!responseCategoria.ok)
+          throw new Error("Erro ao cadastrar nova categoria");
+        const novaCategoria = await responseCategoria.json();
+        categoriaParaUsar = novaCategoria.id;
+      } catch (error) {
+        console.error(error);
+        alert("Erro ao cadastrar a nova categoria");
         return;
       }
     }
 
-    // cria fornecedor se necessário
-    if (mostrarInputFornecedor) {
-      if (!novoFornecedor.nome.trim()) {
-        alert("Preencha o nome do fornecedor");
-        return;
-      }
+    // Se criou novo fornecedor
+    if (
+      mostrarInputFornecedor &&
+      novoFornecedor.nome.trim() !== "" &&
+      novoFornecedor.cnpj.trim() !== "" &&
+      novoFornecedor.numTelefone.trim() !== ""
+    ) {
       try {
-        const res = await fetch(linkFor, {
+        const responseFornecedor = await fetch(linkFor, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            nome: novoFornecedor.nome,
-            cnpj: novoFornecedor.cnpj,
-            numTelefone: novoFornecedor.numTelefone,
-          }),
+          body: JSON.stringify(novoFornecedor),
         });
-        if (!res.ok) throw new Error("Erro ao cadastrar fornecedor");
-        const novoFor = await res.json();
-        fornecedorParaUsar = novoFor.nome;
-        setFornecedores((prev) => [...prev, novoFor]);
-      } catch (err) {
-        console.error(err);
-        alert("Erro ao cadastrar fornecedor");
+        if (!responseFornecedor.ok)
+          throw new Error("Erro ao cadastrar novo fornecedor");
+        const novoFornec = await responseFornecedor.json();
+        fornecedorParaUsar = novoFornec.id;
+      } catch (error) {
+        console.error(error);
+        alert("Erro ao cadastrar novo fornecedor");
         return;
-      }
-    } else {
-      // selecionou fornecedor existente -> passar nome para idFornecedor
-      if (fornecedorId) {
-        const f = fornecedores.find(
-          (x) => Number(x.id) === Number(fornecedorId)
-        );
-        fornecedorParaUsar = f ? f.nome : "";
-      } else {
-        fornecedorParaUsar = "";
       }
     }
 
-    const body = {
-      id: Number(Id),
-      descricao,
-      idFornecedor: fornecedorParaUsar,
-      cor,
-      tamanho,
-      quantidade: parseInt(quantidade) || 0,
-      preçoCusto: parseFloat(preçoCusto) || 0,
-      preçoVenda: parseFloat(preçoVenda) || 0,
-      ativo: (parseInt(quantidade) || 0) > 0,
-      categoriaId: categoriaParaUsar ? parseInt(categoriaParaUsar) : null,
+    const payload = {
+      id: Number(idState) || Number(id),
+      descricao: descricao || "",
+      cor: cor || "",
+      tamanho: tamanho || "",
+      quantidade: parseInt(quantidade, 10) || 0,
+      preçoCusto: parseFloat(precoCusto) || 0,
+      preçoVenda: parseFloat(precoVenda) || 0,
+      ativo: ativo,
+      categoriaId: Number(categoriaParaUsar) || 0,
       dataCadastro: dataCadastro || new Date().toISOString(),
-      idCompra: idCompra ?? 0,
+      idCompra: Number(idCompra) || 0,
+      idFornecedor: Number(fornecedorParaUsar) || 0, // Garante que o fornecedorId seja enviado corretamente
     };
 
     try {
-      const res = await fetch(`${linkPro}/${id}`, {
+      console.log("PUT produto payload:", payload);
+      const response = await fetch(`${linkPro}/${payload.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error("Erro ao atualizar produto");
+
+      if (!response.ok) {
+        const text = await response.text().catch(() => null);
+        console.error("PUT erro:", response.status, text);
+        throw new Error("Erro ao atualizar produto");
+      }
+
+      // navegar e forçar reload da listagem para refletir alteração
       alerta("Produto atualizado com sucesso!", "success");
       navigate("/Produto/ListagemProduto");
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error(error);
       alert("Erro ao atualizar o produto");
     }
   };
@@ -236,16 +215,11 @@ export function EditarProduto() {
         <h1>Editar Produto</h1>
         <form className="formCadastroProduto" onSubmit={handleSubmit}>
           <input
-            type="text"
-            name="Id"
-            id="Id"
             readOnly
-            value={Id}
-            placeholder="Id"
+            value={idState}
             className="inputCadastroProduto inputId"
           />
           <input
-            type="text"
             required
             placeholder="Descrição"
             className="inputCadastroProduto"
@@ -253,6 +227,7 @@ export function EditarProduto() {
             onChange={(e) => setDescricao(e.target.value)}
           />
 
+          {/* Fornecedor */}
           {!mostrarInputFornecedor ? (
             <select
               className="selectCadastroProduto"
@@ -260,93 +235,87 @@ export function EditarProduto() {
               onChange={handleFornecedorChange}
             >
               <option value="">Selecione um fornecedor</option>
-              {fornecedores.map((fornecedor) => (
-                <option key={fornecedor.id} value={fornecedor.id}>
-                  {fornecedor.nome}
+              {fornecedores.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.nome}
                 </option>
               ))}
               <option value="novo">Novo fornecedor</option>
             </select>
           ) : (
-            <div
-              style={{
-                display: "flex",
-                gap: "16px",
-                alignItems: "flex-start",
-                marginBottom: "12px",
-              }}
-            >
+            <div style={{ display: "flex", gap: 8 }}>
               <input
-                type="text"
                 name="nome"
                 required
-                placeholder="Nome do fornecedor"
+                placeholder="Nome fornecedor"
                 className="inputCadastroProduto"
                 value={novoFornecedor.nome}
-                onChange={handleNovoFornecedorChange}
+                onChange={(e) =>
+                  setNovoFornecedor((prev) => ({
+                    ...prev,
+                    nome: e.target.value,
+                  }))
+                }
               />
               <input
-                type="text"
                 name="cnpj"
-                required
                 placeholder="CNPJ"
                 className="inputCadastroProduto"
                 value={novoFornecedor.cnpj}
-                onChange={handleNovoFornecedorChange}
+                onChange={(e) =>
+                  setNovoFornecedor((prev) => ({
+                    ...prev,
+                    cnpj: e.target.value,
+                  }))
+                }
               />
               <input
-                type="text"
-                name="numTelefone"
-                required
+                name="telefone"
                 placeholder="Telefone"
                 className="inputCadastroProduto"
                 value={novoFornecedor.numTelefone}
-                onChange={handleNovoFornecedorChange}
+                onChange={(e) =>
+                  setNovoFornecedor((prev) => ({
+                    ...prev,
+                    numTelefone: e.target.value,
+                  }))
+                }
               />
             </div>
           )}
 
           <input
-            type="text"
-            required
             placeholder="Preço Custo"
             className="inputCadastroProduto"
-            value={preçoCusto}
-            onChange={(e) => setPreçoCusto(e.target.value)}
+            value={precoCusto}
+            onChange={(e) => setPrecoCusto(e.target.value)}
           />
           <input
-            type="text"
-            required
             placeholder="Preço Venda"
             className="inputCadastroProduto"
-            value={preçoVenda}
-            onChange={(e) => setPreçoVenda(e.target.value)}
+            value={precoVenda}
+            onChange={(e) => setPrecoVenda(e.target.value)}
           />
           <input
-            type="text"
-            required
             placeholder="Tamanho"
             className="inputCadastroProduto"
             value={tamanho}
             onChange={(e) => setTamanho(e.target.value)}
           />
           <input
-            type="text"
-            required
             placeholder="Cor"
             className="inputCadastroProduto"
             value={cor}
             onChange={(e) => setCor(e.target.value)}
           />
           <input
-            type="text"
-            required
             placeholder="Quantidade"
             className="inputCadastroProduto"
             value={quantidade}
             onChange={(e) => setQuantidade(e.target.value)}
           />
 
+          {/* Categoria */}
           {!mostrarInputOutra ? (
             <select
               className="selectCadastroProduto"
@@ -354,18 +323,16 @@ export function EditarProduto() {
               onChange={handleCategoriaChange}
             >
               <option value="">Selecione uma categoria</option>
-              {categorias.map((categoria) => (
-                <option key={categoria.id} value={categoria.id}>
-                  {categoria.descricao}
+              {categorias.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.descricao}
                 </option>
               ))}
               <option value="outra">Outra</option>
             </select>
           ) : (
             <input
-              type="text"
-              required
-              placeholder="Digite a nova categoria"
+              placeholder="Nova categoria"
               className="inputCadastroProduto"
               value={outraCategoria}
               onChange={(e) => setOutraCategoria(e.target.value)}
@@ -374,19 +341,12 @@ export function EditarProduto() {
 
           <div className="buttonsGroupProduto">
             <button type="button" className="btnProduto btnVoltarProduto">
-              <Link to="/" className="linkCadastro">
+              <Link to="/Produto/ListagemProduto" className="linkCadastro">
                 Voltar
               </Link>
             </button>
             <button type="submit" className="btnProduto btnSalvarProduto">
               Salvar
-            </button>
-            <button
-              type="button"
-              className="btnProduto btnEtiquetaProduto"
-              onClick={() => alert("Gerar etiqueta")}
-            >
-              Etiqueta
             </button>
           </div>
         </form>

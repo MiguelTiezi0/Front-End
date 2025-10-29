@@ -31,44 +31,263 @@
   text-align: center;
 }
 
-
-
-
-
-
-
-
-
-.CaixaOperacoes {
-  margin-top: 20px;
-  background: #222;
-  padding: 20px;
-  border-radius: 10px;
-  color: white;
-  box-shadow: 0 0 10px #444;
+.home-caixa {
+  min-height: 100vh;
+  background-color: var(--black-secondary-color);
 }
 
-.CaixaBtns {
+.home-caixa-clean {
+  min-height: 100vh;
+  background: var(--black-primary-color);
+  color: #233043;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 3rem;
+}
+
+.center-wrapper {
+  max-width: 980px;
+  margin: 1.5rem auto;
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 1.25rem;
+  align-items: start;
+  padding: 0 1rem;
+}
+
+.card-main {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 8px 24px rgba(35, 48, 67, 0.06);
   display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 1rem;
+  border: 1px solid transparent;
 }
 
-.CaixaBtns button {
-  background-color: #007bff;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 5px;
-  color: white;
+.card-main.open {
+  border-color: #c6f6d5;
+}
+.card-main.closed {
+  border-color: #ffe7e7;
+}
+
+.top-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #f44336;
+  box-shadow: 0 0 8px rgba(244, 67, 54, 0.12);
+}
+.card-main.open .status-dot {
+  background: #16a34a;
+  box-shadow: 0 0 10px rgba(22, 163, 74, 0.12);
+}
+
+.status-info {
+  flex: 1;
+}
+.status-label {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.status-sub {
+  font-size: 0.82rem;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.actions-small {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.main-value {
+  text-align: center;
+  padding: 0.75rem 0;
+  border-radius: 8px;
+  background: linear-gradient(
+    90deg,
+    rgba(99, 102, 241, 0.05),
+    rgba(16, 185, 129, 0.03)
+  );
+}
+.value-label {
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+.value-amount {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-top: 4px;
+}
+
+.footer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.btn {
+  padding: 0.5rem 0.8rem;
+  border-radius: 8px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.3s;
+  border: none;
+}
+.btn.small {
+  padding: 0.4rem 0.6rem;
+  font-size: 0.85rem;
+}
+.btn.primary {
+  background: #0f172a;
+  color: #fff;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+.btn.ghost {
+  background: transparent;
+  color: #374151;
+  border: 1px solid #e6e9ef;
+}
+.btn.danger {
+  background: #ef4444;
+  color: #fff;
+}
+.btn.outline {
+  background: transparent;
+  border: 1px solid #e6e9ef;
+  color: #374151;
 }
 
-.CaixaBtns button:hover {
-  background-color: #0056b3;
+.details-panel {
+  display: flex;
+  gap: 1rem;
+  padding: 0.8rem;
+  border-radius: 8px;
+  background: #fcfcfd;
+  border: 1px solid #f1f5f9;
+  align-items: center;
+}
+.detail-item {
+  flex: 1;
+}
+.d-title {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+.d-value {
+  font-weight: 700;
+  font-size: 1.05rem;
+  margin-top: 4px;
+}
+.detail-item.muted .d-value {
+  color: #6b7280;
+  font-weight: 600;
 }
 
-.MensagemCaixa {
-  margin-top: 15px;
-  color: #0f0;
+.toast {
+  margin-top: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  background: #fff7ed;
+  color: #92400e;
+  border-radius: 8px;
+  border: 1px solid #ffedd5;
+  font-size: 0.9rem;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.card {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.card.highlight {
+  border: 2px solid #2196f3;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.card-icon {
+  font-size: 2rem;
+  margin-right: 1rem;
+}
+
+.card h2 {
+  margin: 0;
+  color: black;
+}
+
+.card p {
+  color: black;
+  margin: 0.5rem 0 1rem 0;
+}
+
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.action-button {
+  padding: 0.5rem 1rem;
+  background-color: #2196f3;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.action-button:hover {
+  background-color: #1976d2;
+}
+
+@media (max-width: 768px) {
+  .content {
+    padding: 1rem;
+  }
+
+  .cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-actions {
+    flex-direction: column;
+  }
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .center-wrapper {
+    grid-template-columns: 1fr;
+  }
+  .main-value .value-amount {
+    font-size: 2rem;
+  }
 }

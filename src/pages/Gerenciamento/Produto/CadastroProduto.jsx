@@ -16,21 +16,31 @@ export function CadastroProduto() {
 
   const [Id, setId] = useState("");
   const [descricao, setDescricao] = useState(produtoClonado?.descricao || "");
-  const [fornecedorId, setFornecedorId] = useState(produtoClonado?.fornecedorId || "");
+  const [fornecedorId, setFornecedorId] = useState(
+    produtoClonado?.fornecedorId || ""
+  );
   const [fornecedores, setFornecedores] = useState([]);
   const [mostrarInputFornecedor, setMostrarInputFornecedor] = useState(false);
   const [novoFornecedor, setNovoFornecedor] = useState({
     nome: "",
     cnpj: "",
-    numTelefone: ""
+    numTelefone: "",
   });
 
-  const [preçoCusto, setPreçoCusto] = useState(produtoClonado?.preçoCusto || "");
-  const [preçoVenda, setPreçoVenda] = useState(produtoClonado?.preçoVenda || "");
+  const [preçoCusto, setPreçoCusto] = useState(
+    produtoClonado?.preçoCusto || ""
+  );
+  const [preçoVenda, setPreçoVenda] = useState(
+    produtoClonado?.preçoVenda || ""
+  );
   const [tamanho, setTamanho] = useState(produtoClonado?.tamanho || "");
   const [cor, setCor] = useState(produtoClonado?.cor || "");
-  const [quantidade, setQuantidade] = useState(produtoClonado?.quantidade || "");
-  const [categoriaId, setCategoriaId] = useState(produtoClonado?.categoriaId || "");
+  const [quantidade, setQuantidade] = useState(
+    produtoClonado?.quantidade || ""
+  );
+  const [categoriaId, setCategoriaId] = useState(
+    produtoClonado?.categoriaId || ""
+  );
   const [categorias, setCategorias] = useState([]);
   const [outraCategoria, setOutraCategoria] = useState("");
   const [mostrarInputOutra, setMostrarInputOutra] = useState(false);
@@ -50,7 +60,10 @@ export function CadastroProduto() {
         }
 
         const produtos = await response.json();
-        const maiorId = produtos.reduce((max, produto) => Math.max(max, produto.id), 0);
+        const maiorId = produtos.reduce(
+          (max, produto) => Math.max(max, produto.id),
+          0
+        );
         setId(maiorId + 1);
       } catch (error) {
         console.error(error);
@@ -148,16 +161,11 @@ export function CadastroProduto() {
       try {
         const responseCategoria = await fetch(linkCat, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ descricao: outraCategoria }),
         });
-
-        if (!responseCategoria.ok) {
+        if (!responseCategoria.ok)
           throw new Error("Erro ao cadastrar nova categoria");
-        }
-
         const novaCategoria = await responseCategoria.json();
         categoriaParaUsar = novaCategoria.id;
         setCategorias((prev) => [...prev, novaCategoria]);
@@ -178,22 +186,18 @@ export function CadastroProduto() {
       try {
         const responseFornecedor = await fetch(linkFor, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             nome: novoFornecedor.nome,
             cnpj: novoFornecedor.cnpj,
             numTelefone: novoFornecedor.numTelefone,
           }),
         });
-
-        if (!responseFornecedor.ok) {
+        if (!responseFornecedor.ok)
           throw new Error("Erro ao cadastrar novo fornecedor");
-        }
-
         const novoFornec = await responseFornecedor.json();
-        fornecedorParaUsar = novoFornec.nome; // backend espera idFornecedor como string!
+        // usar o ID retornado (numérico), não o nome
+        fornecedorParaUsar = Number(novoFornec.id);
         setFornecedores((prev) => [...prev, novoFornec]);
       } catch (error) {
         console.error(error);
@@ -201,64 +205,73 @@ export function CadastroProduto() {
         return;
       }
     } else if (fornecedorParaUsar) {
-      // Se selecionou da lista, pega o nome do fornecedor
-      const fornecedorObj = fornecedores.find(f => f.id === fornecedorParaUsar);
-      fornecedorParaUsar = fornecedorObj ? fornecedorObj.nome : "";
+      // Se selecionou da lista, pega o id do fornecedor (numérico)
+      const fornecedorObj = fornecedores.find(
+        (f) => Number(f.id) === Number(fornecedorParaUsar)
+      );
+      fornecedorParaUsar = fornecedorObj ? Number(fornecedorObj.id) : null;
+    } else {
+      fornecedorParaUsar = null;
     }
 
     const produto = {
-      id: Number(Id),
+      id: Number(Id) || 0,
       descricao,
-      idFornecedor: fornecedorParaUsar, // string!
+      idFornecedor:
+        fornecedorParaUsar !== null ? Number(fornecedorParaUsar) : null,
       cor,
       tamanho,
-      quantidade: parseInt(quantidade),
-      preçoCusto: parseFloat(preçoCusto),
-      preçoVenda: parseFloat(preçoVenda),
-      ativo: parseInt(quantidade) > 0,
-      categoriaId: categoriaParaUsar,
+      quantidade: Number.isFinite(Number(quantidade))
+        ? parseInt(quantidade, 10)
+        : 0,
+      preçoCusto: Number.isFinite(Number(preçoCusto))
+        ? parseFloat(preçoCusto)
+        : 0,
+      preçoVenda: Number.isFinite(Number(preçoVenda))
+        ? parseFloat(preçoVenda)
+        : 0,
+      ativo: (parseInt(quantidade, 10) || 0) > 0,
+      categoriaId: categoriaParaUsar ? Number(categoriaParaUsar) : null,
       dataCadastro: new Date().toISOString(),
-      idCompra: 0
+      idCompra: 0,
     };
 
     try {
       const response = await fetch(linkPro, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(produto),
       });
 
       if (!response.ok) {
+        console.log("Resposta do POST produto:", response);
         throw new Error("Erro ao cadastrar o produto");
       }
 
+      // atualizar next id e limpar campos mínimos
       const responseProdutos = await fetch(linkPro, {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       });
-
-      if (!responseProdutos.ok) {
-        throw new Error("Erro ao buscar produtos para calcular o próximo ID");
+      if (responseProdutos.ok) {
+        const produtos = await responseProdutos.json();
+        const maiorId = produtos.reduce(
+          (max, produto) => Math.max(max, produto.id),
+          0
+        );
+        setId(maiorId + 1);
       }
-
-      const produtos = await responseProdutos.json();
-      const maiorId = produtos.reduce((max, produto) => Math.max(max, produto.id), 0);
-      setId(maiorId + 1);
       setOutraCategoria("");
       setMostrarInputOutra(false);
       setNovoFornecedor({ nome: "", cnpj: "", numTelefone: "" });
       setMostrarInputFornecedor(false);
+
+      alerta("Produto cadastrado com sucesso!", "success");
     } catch (error) {
       console.error(error);
       alert("Erro ao cadastrar o produto");
       return;
     }
-
-    alerta("Produto cadastrado com sucesso!", "success");
   };
 
   return (
@@ -299,7 +312,14 @@ export function CadastroProduto() {
               <option value="novo">Novo fornecedor</option>
             </select>
           ) : (
-            <div style={{ display: "flex", gap: "16px", alignItems: "flex-start", marginBottom: "12px" }}>
+            <div
+              style={{
+                display: "flex",
+                gap: "16px",
+                alignItems: "flex-start",
+                marginBottom: "12px",
+              }}
+            >
               <input
                 type="text"
                 name="nome"
@@ -405,7 +425,11 @@ export function CadastroProduto() {
             <button type="submit" className="btnProduto btnSalvarProduto">
               Salvar
             </button>
-            <button type="button" className="btnProduto btnEtiquetaProduto" onClick={() => alert("Gerar etiqueta")}>
+            <button
+              type="button"
+              className="btnProduto btnEtiquetaProduto"
+              onClick={() => alert("Gerar etiqueta")}
+            >
               Etiqueta
             </button>
           </div>

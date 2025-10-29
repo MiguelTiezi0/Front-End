@@ -69,19 +69,20 @@ export function ListagemProduto() {
     fetchProdutos();
     fetchCategorias();
   }, []);
-  
+
   useEffect(() => {
     const filtro = pesquisa.toLowerCase();
     const filtrados = produtos.filter((produto) => {
       if (tipoPesquisa === "id") {
         return String(produto.id).includes(filtro);
       }
-      console.log(produto)
       if (tipoPesquisa === "descricao") {
         return produto.descricao.toLowerCase().includes(filtro);
       }
       if (tipoPesquisa === "categoria") {
-        const categoria = categorias.find((cat) => cat.id === produto.categoriaId);
+        const categoria = categorias.find(
+          (cat) => cat.id === produto.categoriaId
+        );
         return categoria?.descricao?.toLowerCase().includes(filtro);
       }
       if (tipoPesquisa === "tamanho") {
@@ -220,7 +221,6 @@ export function ListagemProduto() {
       alert("Erro ao deletar o produto");
     }
   };
-  console.table(produtos);
 
   return (
     <div className="centroListagemProduto">
@@ -239,10 +239,12 @@ export function ListagemProduto() {
           <select
             className="inputTipoPesquisa"
             id="tipoPesquisa"
-            style={{ display: inputVisivel ? "inline-block" : "none" , marginRight: 8 }}
+            style={{
+              display: inputVisivel ? "inline-block" : "none",
+              marginRight: 8,
+            }}
             value={tipoPesquisa}
             onChange={(e) => setTipoPesquisa(e.target.value)}
-            
           >
             <option value="id">Id</option>
             <option value="descricao">Descrição</option>
@@ -304,8 +306,6 @@ export function ListagemProduto() {
                 <th>Tamanho</th>
                 <th>Fornecedor</th>
                 <th>Preço</th>
-
-        
               </tr>
             </thead>
             <tbody>
@@ -331,19 +331,12 @@ export function ListagemProduto() {
                   <td>{produto.id}</td>
                   <td>{produto.descricao}</td>
                   <td>{produto.quantidade}</td>
-                 
-                  <td>
-                    {produto.tamanho || "N/A"}
-                  </td>
-                  <td>
-                    {produto.idFornecedor
-                      ? produto.idFornecedor
-                      : "N/A"}
-                  </td>
+
+                  <td>{produto.tamanho || "N/A"}</td>
+                  <td>{produto.idFornecedor ? produto.idFornecedor : "N/A"}</td>
                   <td>
                     {produto.preçoVenda ? produto.preçoVenda.toFixed(2) : "N/A"}
                   </td>
-
                 </tr>
               ))}
             </tbody>

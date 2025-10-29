@@ -1,180 +1,313 @@
-import React, { useEffect, useState } from "react"; 
-import { HeaderCaixa } from "../../components/Caixa/HeaderCaixa/HeaderCaixa.jsx";
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { HeaderCaixa } from "../../components/Caixa/HeaderCaixa/HeaderCaixa";
 import "./HomeCaixa.css";
 
 export function HomeCaixa() {
-  document.title = "Home";
+  document.title = "Caixa - Home";
   const [mensagemCaixa, setMensagemCaixa] = useState("");
-  const [caixa, setCaixa] = useState(null);
+  const [caixa, setCaixa] = useState({
+    aberto: false,
+    valorAtual: 0,
+    valorAbertura: 0,
+    totalMovimentacoes: 0,
+  });
+  const [detalhesVisiveis, setDetalhesVisiveis] = useState(false);
+  const baseUrl = "http://localhost:7172/api/Caixa";
 
-  // Consulta do caixa (chamada manualmente após cada operação)
+  const formatMoney = (v) =>
+    new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(Number(v) || 0);
+
   const consultarCaixa = async () => {
     try {
-      const res = await fetch("http://localhost:7172/api/Caixa/aberto");
-      if (!res.ok) {
-        setCaixa(null);
-        setMensagemCaixa("Caixa fechado ou erro ao consultar.");
+      const res = await fetch(`${baseUrl}/aberto`);
+      if (res.status === 404) {
+        setCaixa({
+          aberto: false,
+          valorAtual: 0,
+          valorAbertura: 0,
+          totalMovimentacoes: 0,
+        });
+        setMensagemCaixa("Nenhum caixa aberto.");
         return;
       }
-      const dados = await res.json();
-      setCaixa(dados);
+      if (!res.ok) throw new Error(`Status ${res.status}`);
+      const data = await res.json();
+      setCaixa({
+        aberto: true,
+        id: data.id ?? data.Id,
+        dataAbertura: data.dataAbertura ?? data.DataAbertura,
+        valorAbertura: Number(data.valorAbertura ?? data.ValorAbertura ?? 0),
+        totalMovimentacoes: Number(
+          data.totalMovimentacoes ?? data.TotalMovimentacoes ?? 0
+        ),
+        valorAtual: Number(data.valorAtual ?? data.ValorAtual ?? 0),
+      });
       setMensagemCaixa("");
-    } catch {
-      setCaixa(null);
-      setMensagemCaixa("Caixa fechado ou erro ao consultar.");
+    } catch (err) {
+      console.error("Erro ao consultar caixa:", err);
+      setCaixa({
+        aberto: false,
+        valorAtual: 0,
+        valorAbertura: 0,
+        totalMovimentacoes: 0,
+      });
+      setMensagemCaixa("Erro ao verificar o caixa.");
     }
   };
-useEffect(() => {
-    consultarCaixa(); // Consulta o caixa ao carregar a página
-}, []);
 
-  // Abrir caixa
+  useEffect(() => {
+    consultarCaixa();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleAbrirCaixa = async () => {
-    const valor = prompt("Informe o valor de abertura do caixa:");
-    if (!valor || isNaN(valor)) {
+    const valorStr = prompt("Valor de abertura:");
+    const valor = parseFloat(valorStr);
+    if (isNaN(valor)) {
       setMensagemCaixa("Valor inválido.");
       return;
     }
     try {
-      const res = await fetch("http://localhost:7172/api/Caixa/abrir", {
+      const res = await fetch(`${baseUrl}/abrir`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ valorAbertura: parseFloat(valor) }),
+        body: JSON.stringify({ valorAbertura: valor }),
       });
-      if (res.ok) setMensagemCaixa("Caixa aberto com sucesso.");
-      else setMensagemCaixa(`Erro ao abrir caixa. (${res.status})`);
-      await consultarCaixa(); // Atualiza o valor do caixa
-    } catch {
-      setMensagemCaixa("Falha na comunicação com o servidor.");
+      if (!res.ok) {
+        const txt = await res.text().catch(() => null);
+        setMensagemCaixa(`Erro: ${txt || res.status}`);
+        return;
+      }
+      await consultarCaixa();
+      setMensagemCaixa("Caixa aberto.");
+    } catch (err) {
+      console.error(err);
+      setMensagemCaixa("Falha ao abrir caixa.");
     }
   };
 
-  // Fechar caixa
   const handleFecharCaixa = async () => {
     try {
-      const res = await fetch("http://localhost:7172/api/Caixa/fechar", {
+      const valorFechamento = caixa.valorAtual ?? 0;
+      const res = await fetch(`${baseUrl}/fechar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          valorFechamento: caixa?.valorFinal ?? caixa?.valorAtual ?? 0,
-        }),
+        body: JSON.stringify({ valorFechamento }),
       });
-      if (res.ok) {
-        setMensagemCaixa("Caixa fechado com sucesso.");
-        setCaixa(null);
-      } else {
-        setMensagemCaixa(`Erro ao fechar caixa. (${res.status})`);
+      if (!res.ok) {
+        const txt = await res.text().catch(() => null);
+        setMensagemCaixa(`Erro: ${txt || res.status}`);
+        return;
       }
-      await consultarCaixa(); // Atualiza o valor do caixa
-    } catch {
-      setMensagemCaixa("Erro na conexão.");
+      await consultarCaixa();
+      setMensagemCaixa("Caixa fechado.");
+    } catch (err) {
+      console.error(err);
+      setMensagemCaixa("Falha ao fechar caixa.");
     }
   };
 
-  // Registrar entrada
   const handleEntrada = async () => {
-    const valor = prompt("Informe o valor da ENTRADA:");
-    const descricao = prompt("Informe uma descrição da ENTRADA:");
-    if (!valor || isNaN(valor) || !descricao) {
-      setMensagemCaixa("Preencha valor e descrição válidos.");
+    const valorStr = prompt("Valor da entrada:");
+    const descricao = prompt("Descrição:");
+    const valor = parseFloat(valorStr);
+    if (isNaN(valor) || !descricao) {
+      setMensagemCaixa("Entrada inválida.");
       return;
     }
     try {
-      const res = await fetch("http://localhost:7172/api/Caixa/entrada", {
+      const res = await fetch(`${baseUrl}/entrada`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          valor: parseFloat(valor),
-          descricao,
-          tipo: "Entrada", // <-- Adicione este campo
-        }),
+        body: JSON.stringify({ valor, descricao, tipo: "Entrada" }),
       });
-      if (res.ok) setMensagemCaixa("Entrada registrada.");
-      else setMensagemCaixa(`Erro ao registrar entrada. (${res.status})`);
+      if (!res.ok) {
+        const txt = await res.text().catch(() => null);
+        setMensagemCaixa(`Erro: ${txt || res.status}`);
+        return;
+      }
       await consultarCaixa();
-    } catch {
-      setMensagemCaixa("Erro ao registrar entrada.");
+      setMensagemCaixa("Entrada registrada.");
+    } catch (err) {
+      console.error(err);
+      setMensagemCaixa("Falha ao registrar entrada.");
     }
   };
 
-  // Registrar saída
   const handleSaida = async () => {
-    const valor = prompt("Informe o valor da SAÍDA:");
-    const descricao = prompt("Informe uma descrição da SAÍDA:");
-    if (!valor || isNaN(valor) || !descricao) {
-      setMensagemCaixa("Preencha valor e descrição válidos.");
+    const valorStr = prompt("Valor da saída:");
+    const descricao = prompt("Descrição:");
+    const valor = parseFloat(valorStr);
+    if (isNaN(valor) || !descricao) {
+      setMensagemCaixa("Saída inválida.");
       return;
     }
     try {
-      const res = await fetch("http://localhost:7172/api/Caixa/saida", {
+      const res = await fetch(`${baseUrl}/saida`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          valor: parseFloat(valor),
-          descricao,
-          tipo: "Saída", // <-- Adicione este campo, com acento!
-        }),
+        body: JSON.stringify({ valor, descricao, tipo: "Saída" }),
       });
-      if (res.ok) setMensagemCaixa("Saída registrada.");
-      else setMensagemCaixa(`Erro ao registrar saída. (${res.status})`);
+      if (!res.ok) {
+        const txt = await res.text().catch(() => null);
+        setMensagemCaixa(`Erro: ${txt || res.status}`);
+        return;
+      }
       await consultarCaixa();
-    } catch {
-      setMensagemCaixa("Erro ao registrar saída.");
+      setMensagemCaixa("Saída registrada.");
+    } catch (err) {
+      console.error(err);
+      setMensagemCaixa("Falha ao registrar saída.");
     }
   };
+
+  const menuItems = [
+    {
+      title: "Vendas",
+      icon: "💰",
+      description: "Gerenciar vendas e pagamentos",
+      links: [
+        { to: "/Venda/CadastroVenda", text: "Nova Venda" },
+        { to: "/Venda/ListagemVenda", text: "Ver Vendas" },
+      ],
+      highlight: true,
+    },
+    {
+      title: "Pagamentos",
+      icon: "💳",
+      description: "Controle de pagamentos e parcelas",
+      links: [
+        { to: "/Pagamento/CadastroPagamento", text: "Novo Pagamento" },
+        { to: "/Pagamento/ListagemPagamento", text: "Ver Pagamentos" },
+        { to: "/Pagamento/ListagemPagamentoDevedor", text: "Devedores" },
+      ],
+    },
+    {
+      title: "Compras",
+      icon: "🛍️",
+      description: "Registro de compras e fornecedores",
+      links: [
+        { to: "/Compra/CadastroCompra", text: "Nova Compra" },
+        { to: "/Compra/ListagemCompra", text: "Ver Compras" },
+      ],
+    },
+  ];
 
   return (
-    <div className="HomeCaixa">
+    <div className="home-caixa-clean">
       <HeaderCaixa />
-      <div className="AppHomeCaixa">
-        <div className="CaixaOperacoes">
-          <h2>Operações de Caixa</h2>
-          <div style={{ marginBottom: 16 }}>
-            <label htmlFor="valorCaixa" style={{ fontWeight: "bold" }}>
-              Valor atual no caixa:
-            </label>
-            <input
-              id="valorCaixa"
-              type="text"
-              readOnly
-              value={
-                caixa
-                  ? `R$ ${caixa.valorAtual?.toFixed(2) ?? caixa.valorFinal?.toFixed(2) ?? "0.00"}`
-                  : "Caixa fechado"
-              }
-              style={{
-                marginLeft: 12,
-                width: 140,
-                fontWeight: "bold",
-                fontSize: "1.2em",
-                background: "#f6fff6",
-                border: "1px solid #ccc",
-                borderRadius: 4,
-                padding: "6px 10px",
-              }}
-            />
+
+      <div className="center-wrapper">
+        <div className={`card-main ${caixa.aberto ? "open" : "closed"}`}>
+          <div className="top-row">
+            <div className="status-dot" aria-hidden />
+            <div className="status-info">
+              <div className="status-label">
+                {caixa.aberto ? "Caixa Aberto" : "Caixa Fechado"}
+              </div>
+              <div className="status-sub">
+                {caixa.aberto && caixa.dataAbertura
+                  ? new Date(caixa.dataAbertura).toLocaleString()
+                  : "—"}
+              </div>
+            </div>
+            <div className="actions-small">
+              {caixa.aberto ? (
+                <>
+                  <button className="btn small" onClick={handleEntrada}>
+                    + Entrada
+                  </button>
+                  <button className="btn small outline" onClick={handleSaida}>
+                    - Saída
+                  </button>
+                </>
+              ) : (
+                <button className="btn small" onClick={handleAbrirCaixa}>
+                  Abrir Caixa
+                </button>
+              )}
+            </div>
           </div>
-          <div className="CaixaBtns">
-            <button onClick={handleAbrirCaixa}>Abrir Caixa</button>
-            <button onClick={handleFecharCaixa}>Fechar Caixa</button>
-            <button onClick={handleEntrada}>Registrar Entrada</button>
-            <button onClick={handleSaida}>Registrar Saída</button>
+
+          <div className="main-value">
+            <div className="value-label">Valor Atual</div>
+            <div className="value-amount">{formatMoney(caixa.valorAtual)}</div>
           </div>
-          {mensagemCaixa && <p className="MensagemCaixa">{mensagemCaixa}</p>}
+
+          <div className="footer-row">
+            <div className="footer-left">
+              <button
+                className="btn ghost"
+                onClick={() => setDetalhesVisiveis((v) => !v)}
+              >
+                {detalhesVisiveis ? "Ocultar detalhes" : "Ver detalhes"}
+              </button>
+            </div>
+            <div className="footer-right">
+              {caixa.aberto ? (
+                <button className="btn danger" onClick={handleFecharCaixa}>
+                  Fechar Caixa
+                </button>
+              ) : (
+                <Link to="/Venda/CadastroVenda" className="btn primary">
+                  Registrar Venda
+                </Link>
+              )}
+            </div>
+          </div>
+
+          {detalhesVisiveis && (
+            <div className="details-panel">
+              <div className="detail-item">
+                <div className="d-title">Abertura</div>
+                <div className="d-value">
+                  {formatMoney(caixa.valorAbertura)}
+                </div>
+              </div>
+              <div className="detail-item">
+                <div className="d-title">Movimentações</div>
+                <div className="d-value">
+                  {formatMoney(caixa.totalMovimentacoes)}
+                </div>
+              </div>
+              <div className="detail-item muted">
+                <div className="d-title">ID do Caixa</div>
+                <div className="d-value">{caixa.id ?? "—"}</div>
+              </div>
+            </div>
+          )}
+
+          {mensagemCaixa && <div className="toast">{mensagemCaixa}</div>}
         </div>
-        <div className="CentroOp">
-          <div className="Opcoes">
-            <button className="OpcoesBtn">Opções</button>
-            <button className="OpcoesBtn">Rec. Clientes</button>
-            <button className="OpcoesBtn">Abrir Gaveta</button>
-            <button className="OpcoesBtn">Nova venda</button>
-            <button className="OpcoesBtn">Pendentes</button>
-            <button className="OpcoesBtn">Localizar</button>
-            <button className="OpcoesBtn">Reimpressão</button>
-            <button className="OpcoesBtn">Troca</button>
-            <button className="OpcoesBtn">Troca</button>
+      </div>
+
+      <div
+        className="cards-grid"
+        style={{ maxWidth: 980, margin: "1.25rem auto", padding: "0 1rem" }}
+      >
+        {menuItems.map((item, index) => (
+          <div
+            key={index}
+            className={`card ${item.highlight ? "highlight" : ""}`}
+          >
+            <div className="card-header">
+              <span className="card-icon">{item.icon}</span>
+              <h2>{item.title}</h2>
+            </div>
+            <p>{item.description}</p>
+            <div className="card-actions">
+              {item.links.map((link, linkIndex) => (
+                <Link key={linkIndex} to={link.to} className="action-button">
+                  {link.text}
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
+        ))}
       </div>
     </div>
   );
