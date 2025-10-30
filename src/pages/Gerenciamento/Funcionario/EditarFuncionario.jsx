@@ -343,6 +343,7 @@ export function EditarFuncionario() {
               className="btnFuncionario btnVoltarFuncionario"
               onClick={handleVoltar}
             >
+
               Voltar
             </button>
             <button

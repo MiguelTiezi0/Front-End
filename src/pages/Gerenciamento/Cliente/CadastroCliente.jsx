@@ -241,7 +241,7 @@ export function CadastroCliente() {
           </div>
           <div className="buttonsGroupCliente">
             <button type="button" className="btnCliente btnVoltarCliente">
-              <Link to="/" className="linkCadastroCliente">
+              <Link to="/Cliente/ListagemCliente" className="linkCadastroCliente">
                 Voltar
               </Link>
             </button>

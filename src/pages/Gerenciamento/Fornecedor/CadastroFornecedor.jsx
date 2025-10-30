@@ -125,7 +125,7 @@ export function CadastroFornecedor() {
           />
           <div className="buttonsGroupCategoria">
             <button type="button" className="btnCategoria btnVoltarCategoria">
-              <Link to="/" className="linkCadastro">
+              <Link to="/Fornecedor/ListagemFornecedor" className="linkCadastro">
                 Voltar
               </Link>
             </button>

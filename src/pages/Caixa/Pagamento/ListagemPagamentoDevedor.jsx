@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { linkPag } from "./linkPag";
 import { linkCli } from "../../Gerenciamento/Cliente/linkCli";
 import { linkVen } from "../Venda/linkVen";
@@ -120,16 +120,13 @@ export function ListagemPagamentoDevedor() {
     fetchData();
   }, []);
 
-  // Pesquisa dinâmica de clientes
-  useEffect(() => {
-    if (clienteBusca.trim() === "") {
-      setClienteSelecionado("");
-      return;
-    }
-    const filtrados = clientes.filter((c) =>
-      c.nome.toLowerCase().includes(clienteBusca.toLowerCase())
-    );
-    setClienteSelecionado(filtrados[0]?.id || "");
+  // Autocomplete: lista de sugestões baseada no clienteBusca
+  const clientesFiltrados = useMemo(() => {
+    const q = clienteBusca.trim().toLowerCase();
+    if (!q) return [];
+    return clientes
+      .filter((c) => String(c.nome).toLowerCase().includes(q))
+      .slice(0, 10); // limite de sugestões
   }, [clienteBusca, clientes]);
 
   // Abre modal de pagamento
@@ -143,7 +140,7 @@ export function ListagemPagamentoDevedor() {
     setModalPagamento(true);
   };
 
-  // Pagar
+  // Pagar (sem alterações)
   const handlePagamento = async () => {
     if (
       !pagamentoClienteId ||
@@ -158,7 +155,6 @@ export function ListagemPagamentoDevedor() {
     const valorTotalPagamento = Number(pagamentoValor);
     let valorRestanteParaDistribuir = valorTotalPagamento;
 
-    // 1. Registrar o Pagamento
     const pagamentoBody = {
       FuncionarioId: 1,
       ClienteId: Number(pagamentoClienteId),
@@ -174,11 +170,11 @@ export function ListagemPagamentoDevedor() {
       const resPagamento = await fetch(linkPag, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(pagamentoBody), // ✅ corrigido
+        body: JSON.stringify(pagamentoBody),
       });
 
       if (!resPagamento.ok) {
-        const errorData = await resPagamento.json();
+        const errorData = await resPagamento.json().catch(() => ({}));
         console.error("Erro ao registrar pagamento:", errorData);
         alert(
           `Erro ao registrar pagamento! Detalhes: ${
@@ -188,7 +184,6 @@ export function ListagemPagamentoDevedor() {
         return;
       }
 
-      // 2. Distribuir o pagamento nas vendas em aberto
       const vendasDoClienteAtualizadas = await fetch(linkVen)
         .then((r) => r.json())
         .then((vs) =>
@@ -236,7 +231,6 @@ export function ListagemPagamentoDevedor() {
         valorRestanteParaDistribuir -= valorParaPagarNestaVenda;
       }
 
-      // 3. Atualizar os totais do cliente
       const vendasDoClienteFinal = await fetch(linkVen)
         .then((r) => r.json())
         .then((vs) =>
@@ -279,7 +273,6 @@ export function ListagemPagamentoDevedor() {
         body: JSON.stringify(clienteAtualizado),
       });
 
-      // 4. Caixa
       if (pagamentoForma === "Dinheiro" && valorTotalPagamento > 0) {
         await fetch("http://localhost:7172/api/Caixa/entrada", {
           method: "POST",
@@ -305,11 +298,7 @@ export function ListagemPagamentoDevedor() {
     }
   };
 
-  // Filtros
-  const clientesFiltrados = clientes.filter((c) =>
-    c.nome.toLowerCase().includes(clienteBusca.toLowerCase())
-  );
-
+  // Filtragem de parcelas considerando clienteSelecionado
   const parcelasFiltradas = parcelasEmCarteira
     .filter((p) => {
       if (
@@ -353,6 +342,17 @@ export function ListagemPagamentoDevedor() {
     return "";
   };
 
+  // Seleciona um cliente quando clicado na sugestão
+  const handleSelectCliente = (cli) => {
+    setClienteSelecionado(cli.id);
+    setClienteBusca(cli.nome);
+  };
+
+  const handleClearCliente = () => {
+    setClienteSelecionado("");
+    setClienteBusca("");
+  };
+
   return (
     <div className="centroListagemPagamentoDevedor">
       <div className="ListagemPagamentoDevedor">
@@ -370,21 +370,100 @@ export function ListagemPagamentoDevedor() {
             style={{ position: "relative" }}
           >
             <label>Cliente:</label>
-            <input
-              type="text"
-              value={clienteBusca}
-              onChange={(e) => setClienteBusca(e.target.value)}
-              placeholder="Buscar cliente..."
-              style={{ width: 180 }}
-              autoComplete="off"
-            />
-            {clienteBusca && clientesFiltrados.length > 0 && (
-              <div
-                style={{ marginTop: 4, fontWeight: "bold", color: "#2ecc40" }}
-              >
-                {clientesFiltrados[0].nome}
-              </div>
-            )}
+            <div style={{ position: "relative", width: 260 }}>
+              <input
+                type="text"
+                value={clienteBusca}
+                className="inputFiltroCliente"
+                onChange={(e) => {
+                  setClienteBusca(e.target.value);
+                  // se o usuário está digitando, limpa seleção anterior
+                  setClienteSelecionado("");
+                }}
+                placeholder="Buscar cliente..."
+                style={{ width: "100%", boxSizing: "border-box" }}
+                autoComplete="off"
+              />
+              {clienteSelecionado ? (
+                <button
+                  onClick={handleClearCliente}
+                  title="Limpar seleção"
+                  style={{
+                    position: "absolute",
+                    right: 6,
+                    top: 6,
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "#c0392b",
+                    fontWeight: "bold",
+                  }}
+                >
+                  ✕
+                </button>
+              ) : null}
+
+              {/* Sugestões */}
+              {clienteBusca &&
+                !clienteSelecionado &&
+                clientesFiltrados.length > 0 && (
+                  <ul
+                    style={{
+                      position: "absolute",
+                      top: "38px",
+                      left: 0,
+                      right: 0,
+                      maxHeight: 200,
+                      overflowY: "auto",
+                      background: "#fff",
+                      border: "1px solid #ddd",
+                      borderRadius: 4,
+                      padding: 0,
+                      margin: 4,
+                      zIndex: 999,
+                      listStyle: "none",
+                    }}
+                  >
+                    {clientesFiltrados.map((c) => (
+                      <li
+                        key={c.id}
+                        onMouseDown={() => handleSelectCliente(c)} // onMouseDown evita conflito com blur
+                        style={{
+                          padding: "8px 10px",
+                          cursor: "pointer",
+                          borderBottom: "1px solid #f0f0f0",
+                        }}
+                      >
+                        <div style={{ fontWeight: 600 }}>{c.nome}</div>
+                        <div style={{ fontSize: 12, color: "#666" }}>
+                          CPF: {c.cpf ?? "—"} • ID: {c.id}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+              {/* Nenhuma sugestão */}
+              {clienteBusca &&
+                !clienteSelecionado &&
+                clientesFiltrados.length === 0 && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "38px",
+                      left: 0,
+                      right: 0,
+                      background: "#fff",
+                      border: "1px solid #ddd",
+                      borderRadius: 4,
+                      padding: "8px 10px",
+                      zIndex: 999,
+                    }}
+                  >
+                    Nenhum cliente encontrado
+                  </div>
+                )}
+            </div>
 
             <label>Status:</label>
             <select

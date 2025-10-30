@@ -78,9 +78,9 @@ export function DetalhesCliente() {
               nome: cliente.nome,
               cpf: cliente.cpf,
               endereço: cliente.endereço,
-      
+
               telefone: cliente.telefone,
-          
+
               dataNascimento: cliente.dataNascimento,
               limiteDeCrédito: cliente.limiteDeCrédito,
               totalGasto: totalGasto,
@@ -142,23 +142,6 @@ export function DetalhesCliente() {
       alert("Erro ao deletar o cliente");
     }
   };
-
-  // Calcule os totais dinamicamente SEM useState:
-  const totalGasto = vendas.reduce(
-    (acc, v) => acc + Number(v.valorTotal ?? v.ValorTotal ?? 0),
-    0
-  );
-  const totalPago = vendas.reduce(
-    (acc, v) => acc + Number(v.totalPago ?? v.TotalPago ?? 0),
-    0
-  );
-  const totalDevido = vendas.reduce(
-    (acc, v) =>
-      acc +
-      (Number(v.valorTotal ?? v.ValorTotal ?? 0) -
-        Number(v.totalPago ?? v.TotalPago ?? 0)),
-    0
-  );
 
   function getRowColor(venda) {
     const total = Number(venda.valorTotal ?? venda.ValorTotal ?? 0);
@@ -231,7 +214,7 @@ export function DetalhesCliente() {
               className="inputDetalhesCliente"
               value={`Endereço: ${cliente.endereço}`}
             />
-          
+
             <input
               type="text"
               disabled
@@ -239,7 +222,7 @@ export function DetalhesCliente() {
               className="inputDetalhesCliente"
               value={`Telefone: ${cliente.telefone}`}
             />
-     
+
             <input
               type="text"
               disabled
@@ -373,14 +356,18 @@ export function DetalhesCliente() {
               </tr>
               <tr>
                 <td>
-                  Total Gasto: <strong>R$ {totalGasto.toFixed(2)}</strong>
+                  Total Gasto:{" "}
+                  <strong>R$ {cliente.totalGasto.toFixed(2)}</strong>
                 </td>
                 <td>
-                  Total Pago: <strong>R$ {totalPago.toFixed(2)}</strong>
+                  Total Pago: <strong>R$ {cliente.totalPago.toFixed(2)}</strong>
                 </td>
+
                 <td>
-                  Total Devido: <strong>R$ {totalDevido.toFixed(2)}</strong>
+                  Total Devido:{" "}
+                  <strong>R$ {cliente.totalDevido.toFixed(2)}</strong>
                 </td>
+
                 <td>
                   <button className="PagarDetalhesCliente">
                     <Link className="PagarDetalhesClienteLink">Pagar</Link>

@@ -44,6 +44,7 @@ function toISODate(dateStr) {
   return `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
 }
 
+
 function formatarTelefone(valor) {
   return valor
     .replace(/\D/g, "")
@@ -74,7 +75,8 @@ export function CadastroFuncionario() {
   );
   const [usuario, setUsuario] = useState(funcionarioClonado?.usuario || "");
   const [senha, setSenha] = useState(funcionarioClonado?.senha || "");
-  const [nivelAcesso] = useState("Funcionario"); // Sempre funcionário
+  // const [nivelAcesso] = useState("Funcionario"); // Sempre funcionário
+  const [nivelAcesso] = useState(2); // se Funcionario for 1
 
   useEffect(() => {
     Inputmask("99/99/9999").mask(
@@ -113,19 +115,48 @@ export function CadastroFuncionario() {
       return;
     }
 
+    // const funcionario = {
+    //   id: parseInt(id),
+    //   nome,
+    //   cpf,
+    //   endereço: endereco,
+    //   dataContratação: toISODate(dataContratacao),
+    //   telefone,
+    //   salário: parseFloat(salario),
+    //   dataDeNascimento: toISODate(dataDeNascimento),
+    //   ativo,
+    //   usuario,
+    //   senha,
+    //   nivelAcesso, // Adicionado
+    // };
+    // const funcionario = {
+    //   Id: parseInt(id),
+    //   Nome: nome,
+    //   CPF: cpf,
+    //   Endereço: endereco, // com acento
+    //   DataContratação: toISODate(dataContratacao), // com acento
+    //   Telefone: telefone,
+    //   Salário: parseFloat(salario), // com acento
+    //   DataDeNascimento: toISODate(dataDeNascimento),
+    //   Ativo: ativo,
+    //   Usuario: usuario,
+    //   Senha: senha,
+    //   NivelAcesso: nivelAcesso,
+    // };
+
     const funcionario = {
       id: parseInt(id),
-      nome,
-      cpf,
-      endereço: endereco,
-      dataContratação: toISODate(dataContratacao),
-      telefone,
-      salário: parseFloat(salario),
+      nome: nome,
+      cpf: cpf,
+      endereço: endereco, // minúsculo e com acento
+      dataContratação: toISODate(dataContratacao), // minúsculo e com acento
+      telefone: telefone,
+      salário: parseFloat(salario), // minúsculo e com acento
       dataDeNascimento: toISODate(dataDeNascimento),
-      ativo,
-      usuario,
-      senha,
-      nivelAcesso, // Adicionado
+      ativo: ativo,
+      usuario: usuario,
+      senha: senha,
+      nivelAcesso: nivelAcesso, // minúsculo
     };
 
     try {
@@ -143,7 +174,9 @@ export function CadastroFuncionario() {
       });
 
       if (!responseFuncionarios.ok)
-        throw new Error("Erro ao buscar funcionários para calcular o próximo ID");
+        throw new Error(
+          "Erro ao buscar funcionários para calcular o próximo ID"
+        );
 
       const funcionarios = await responseFuncionarios.json();
       const maiorId = funcionarios.reduce(
@@ -220,7 +253,9 @@ export function CadastroFuncionario() {
             placeholder="Data de Contratação"
             className="inputCadastroFuncionario"
             value={dataContratacao}
-            onChange={(e) => setDataContratacao(formatDateInput(e.target.value))}
+            onChange={(e) =>
+              setDataContratacao(formatDateInput(e.target.value))
+            }
             maxLength={10}
             data-mask="date"
           />
@@ -230,7 +265,9 @@ export function CadastroFuncionario() {
             placeholder="Data de Nascimento"
             className="inputCadastroFuncionario"
             value={dataDeNascimento}
-            onChange={(e) => setDataDeNascimento(formatDateInput(e.target.value))}
+            onChange={(e) =>
+              setDataDeNascimento(formatDateInput(e.target.value))
+            }
             maxLength={10}
             data-mask="date"
           />
@@ -242,7 +279,7 @@ export function CadastroFuncionario() {
             value={salario}
             onChange={(e) => setSalario(e.target.value)}
           />
-       
+
           <input
             type="text"
             required
@@ -266,7 +303,7 @@ export function CadastroFuncionario() {
             className="inputCadastroFuncionario"
             value={nivelAcesso}
           />
-             <label style={{ color: "#fff", marginTop: "10px" }}>
+          <label style={{ color: "#fff", marginTop: "10px" }}>
             Ativo:
             <input
               type="checkbox"
@@ -276,12 +313,18 @@ export function CadastroFuncionario() {
             />
           </label>
           <div className="buttonsGroupFuncionario">
-            <button type="button" className="btnFuncionario btnVoltarFuncionario">
-              <Link to="/" className="linkCadastro">
+            <button
+              type="button"
+              className="btnFuncionario btnVoltarFuncionario"
+            >
+              <Link to="/Funcionario/ListagemFuncionario" className="linkCadastro">
                 Voltar
               </Link>
             </button>
-            <button type="submit" className="btnFuncionario btnSalvarFuncionario">
+            <button
+              type="submit"
+              className="btnFuncionario btnSalvarFuncionario"
+            >
               Salvar
             </button>
           </div>

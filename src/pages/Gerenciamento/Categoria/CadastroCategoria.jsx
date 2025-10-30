@@ -112,7 +112,7 @@ export function CadastroCategoria() {
         />
         <div className="buttonsGroupCategoria">
           <button type="button" className="btnCategoria btnVoltarCategoria">
-            <Link to="/" className="linkCadastro">
+            <Link to="/Categoria/ListagemCategoria" className="linkCadastro">
               Voltar
             </Link>
           </button>

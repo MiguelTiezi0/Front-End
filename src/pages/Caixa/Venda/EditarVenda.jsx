@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import "./Venda.css";
+import { useAlerta } from "../../../hooks/Alerta/useAlerta";
 
 import { linkVen } from "./linkVen";
 import { linkFun } from "../../Gerenciamento/Funcionario/linkFun";
@@ -8,6 +9,138 @@ import { linkCli } from "../../Gerenciamento/Cliente/linkCli";
 import { linkVenItens } from "../ItensVenda/linkVenItens";
 import { linkPro } from "../../Gerenciamento/Produto/linkPro";
 import { linkPag } from "../Pagamento/linkPag";
+
+// Funções auxiliares para estoque
+const atualizarEstoque = async (produtoId, quantidade, operacao = 'subtrair') => {
+  try {
+    // Buscar produto atual
+    const response = await fetch(`${linkPro}/${produtoId}`);
+    if (!response.ok) throw new Error(`Erro ao buscar produto ${produtoId}`);
+    const produto = await response.json();
+
+    // Calcular nova quantidade
+    const novaQuantidade = operacao === 'subtrair' 
+      ? produto.quantidade - quantidade
+      : produto.quantidade + quantidade;
+
+    if (novaQuantidade < 0) {
+      throw new Error(`Quantidade insuficiente para o produto ${produto.descricao}`);
+    }
+
+    // Atualizar estoque
+    const updateResponse = await fetch(`${linkPro}/${produtoId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...produto,
+        quantidade: novaQuantidade,
+        ativo: novaQuantidade > 0
+      })
+    });
+
+    if (!updateResponse.ok) throw new Error(`Erro ao atualizar estoque do produto ${produtoId}`);
+    return true;
+
+  } catch (error) {
+    console.error('Erro ao atualizar estoque:', error);
+    throw error;
+  }
+};
+
+// Funções de sincronização
+const sincronizarItensVenda = async (itensOriginais, itensEditados, id) => {
+  const alteracoes = [];
+
+  try {
+    // 1. Remover itens excluídos
+    for (const itemOriginal of itensOriginais) {
+      const itemEditado = itensEditados.find(i => i.id === itemOriginal.id);
+      
+      if (!itemEditado) {
+        // Item foi removido - devolver ao estoque
+        await atualizarEstoque(
+          itemOriginal.produtoId ?? itemOriginal.ProdutoId, 
+          itemOriginal.quantidade,
+          'somar'
+        );
+        await fetch(`${linkVenItens}/${itemOriginal.id}`, { method: 'DELETE' });
+        alteracoes.push({ tipo: 'removido', item: itemOriginal });
+      }
+    }
+
+    // 2. Atualizar itens existentes
+    for (const itemEditado of itensEditados) {
+      if (itemEditado.id > 0) {
+        const itemOriginal = itensOriginais.find(i => i.id === itemEditado.id);
+        if (itemOriginal) {
+          const diferenca = itemEditado.quantidade - itemOriginal.quantidade;
+          
+          if (diferenca !== 0) {
+            await atualizarEstoque(
+              itemEditado.produtoId,
+              Math.abs(diferenca),
+              diferenca < 0 ? 'somar' : 'subtrair'
+            );
+          }
+
+          await fetch(`${linkVenItens}/${itemEditado.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(itemEditado)
+          });
+          alteracoes.push({ tipo: 'atualizado', item: itemEditado });
+        }
+      }
+    }
+
+    // 3. Adicionar novos itens
+    for (const itemNovo of itensEditados.filter(i => i.id < 0)) {
+      // Reduzir estoque do novo item
+      await atualizarEstoque(itemNovo.produtoId, itemNovo.quantidade, 'subtrair');
+      
+      const response = await fetch(linkVenItens, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          VendaId: Number(id),
+          ProdutoId: Number(itemNovo.produtoId),
+          ValorDoItem: Number(itemNovo.valorDoItem),
+          quantidade: Number(itemNovo.quantidade)
+        })
+      });
+
+      if (!response.ok) throw new Error('Erro ao adicionar novo item');
+      alteracoes.push({ tipo: 'adicionado', item: itemNovo });
+    }
+
+    return alteracoes;
+
+  } catch (error) {
+    // Tentar reverter alterações em caso de erro
+    console.error('Erro na sincronização, tentando reverter:', error);
+    for (const alteracao of alteracoes) {
+      try {
+        if (alteracao.tipo === 'removido') {
+          await atualizarEstoque(
+            alteracao.item.produtoId,
+            alteracao.item.quantidade,
+            'subtrair'
+          );
+        } else if (alteracao.tipo === 'adicionado') {
+          await atualizarEstoque(
+            alteracao.item.produtoId,
+            alteracao.item.quantidade,
+            'somar'
+          );
+        }
+        // Para atualizações, voltamos à quantidade original
+      } catch (rollbackError) {
+        console.error('Erro ao reverter alterações:', rollbackError);
+      }
+    }
+    throw error;
+  }
+};
 
 export function EditarVenda() {
   const { id } = useParams();
@@ -42,6 +175,8 @@ export function EditarVenda() {
   // Para mostrar valor pago antes da edição e valor restante original
   const [valorPagoAntes, setValorPagoAntes] = useState(0);
   const [valorRestanteOriginal, setValorRestanteOriginal] = useState(0);
+
+  const alerta = useAlerta();
 
   useEffect(() => {
     fetch(`${linkVen}/${id}`)
@@ -192,195 +327,173 @@ export function EditarVenda() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (
-      (venda.clienteId === "0" || venda.clienteId === 0) &&
-      Number(totalPago) < Number(venda.valorTotal)
-    ) {
-      alert("Cliente anônimo deve pagar o valor total da venda!");
-      return;
-    }
-
-    // Calcule o desconto para enviar ao backend
-    const valorProdutos = itensEditados.reduce(
-      (acc, i) => acc + Number(i.valorDoItem) * Number(i.quantidade),
-      0
-    );
-    const valor = Number(descontoValor);
-    let desconto = 0;
-    if (descontoTipo === "porcentagem" && !isNaN(valor)) {
-      desconto = valorProdutos * (valor / 100);
-    } else if (descontoTipo === "decimal" && !isNaN(valor)) {
-      desconto = valor;
-    }
-
-    // Atualizar itens da venda (remover, atualizar, adicionar)
-    for (const item of itensOriginais) {
-      if (!itensEditados.find((i) => i.id === item.id)) {
-        await fetch(`${linkVenItens}/${item.id}`, { method: "DELETE" });
+    
+    try {
+      // 1. Validações iniciais
+      if ((venda.clienteId === "0" || venda.clienteId === 0) && 
+          Number(totalPago) < Number(venda.valorTotal)) {
+        throw new Error("Cliente anônimo deve pagar o valor total da venda!");
       }
-    }
-    for (const item of itensEditados) {
-      if (item.id > 0 && itensOriginais.find((i) => i.id === item.id)) {
-        await fetch(`${linkVenItens}/${item.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(item),
-        });
-      }
-    }
-    for (const item of itensEditados) {
-      if (item.id < 0) {
-        await fetch(linkVenItens, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            VendaId: Number(id),
-            ProdutoId: Number(item.produtoId),
-            ValorDoItem: Number(item.valorDoItem),
-            quantidade: Number(item.quantidade),
-          }),
-        });
-      }
-    }
 
-    // Atualizar pagamento relacionado, se existir
-    const pagamentosRes = await fetch(linkPag);
-    let pagamentos = [];
-    if (pagamentosRes.ok) {
-      pagamentos = await pagamentosRes.json();
-      const pagamento = pagamentos.find(
+      // 2. Sincronizar itens e estoque
+      await sincronizarItensVenda(itensOriginais, itensEditados, id);
+
+      // Calcule o desconto para enviar ao backend
+      const valorProdutos = itensEditados.reduce(
+        (acc, i) => acc + Number(i.valorDoItem) * Number(i.quantidade),
+        0
+      );
+      const valor = Number(descontoValor);
+      let desconto = 0;
+      if (descontoTipo === "porcentagem" && !isNaN(valor)) {
+        desconto = valorProdutos * (valor / 100);
+      } else if (descontoTipo === "decimal" && !isNaN(valor)) {
+        desconto = valor;
+      }
+
+      // Atualizar pagamento relacionado, se existir
+      const pagamentosRes = await fetch(linkPag);
+      let pagamentos = [];
+      if (pagamentosRes.ok) {
+        pagamentos = await pagamentosRes.json();
+        const pagamento = pagamentos.find(
+          (p) => Number(p.vendaId ?? p.VendaId) === Number(id)
+        );
+        if (pagamento) {
+          await fetch(`${linkPag}/${pagamento.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ...pagamento,
+              TotalPago: Number(totalPago),
+              ToTalDeVezes: Number(qtdParcelas),
+              FormaDePagamento: Array.isArray(venda.formaDePagamento)
+                ? venda.formaDePagamento
+                : [venda.formaDePagamento],
+              DataPagamento: new Date().toISOString(),
+            }),
+          });
+        }
+      }
+
+      // Atualizar cliente com TotalPago e TotalDevido
+      const clienteRes = await fetch(`${linkCli}/${venda.clienteId}`);
+      if (clienteRes.ok) {
+        const cliente = await clienteRes.json();
+        const vendasRes = await fetch(linkVen);
+        if (vendasRes.ok) {
+          const vendas = await vendasRes.json();
+          const vendasDoCliente = vendas.filter(
+            (v) => Number(v.clienteId ?? v.ClienteId) === Number(venda.clienteId)
+          );
+          const totalPagoCliente = vendasDoCliente.reduce(
+            (acc, v) => acc + Number(v.totalPago ?? v.TotalPago ?? 0),
+            0
+          );
+          const totalDevidoCliente = vendasDoCliente.reduce(
+            (acc, v) =>
+              acc +
+              (Number(v.valorTotal ?? v.ValorTotal ?? 0) -
+                Number(v.totalPago ?? v.TotalPago ?? 0)),
+            0
+          );
+          const totalGastoCliente = vendasDoCliente.reduce(
+            (acc, v) => acc + Number(v.valorTotal ?? v.ValorTotal ?? 0),
+            0
+          );
+          await fetch(`${linkCli}/${venda.clienteId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ...cliente,
+              totalPago: totalPagoCliente,
+              totalDevido: totalDevidoCliente,
+              totalGasto: totalGastoCliente,
+            }),
+          });
+        }
+      }
+
+      // Calcule a diferença do valor pago
+      const pagamentoAnterior = pagamentos.find(
         (p) => Number(p.vendaId ?? p.VendaId) === Number(id)
       );
-      if (pagamento) {
-        await fetch(`${linkPag}/${pagamento.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...pagamento,
-            TotalPago: Number(totalPago),
-            ToTalDeVezes: Number(qtdParcelas),
-            FormaDePagamento: Array.isArray(venda.formaDePagamento)
-              ? venda.formaDePagamento
-              : [venda.formaDePagamento],
-            DataPagamento: new Date().toISOString(),
-          }),
-        });
-      }
-    }
+      const valorPagoAntesLocal = pagamentoAnterior
+        ? Number(pagamentoAnterior.TotalPago ?? pagamentoAnterior.totalPago ?? 0)
+        : 0;
 
-    // Atualizar cliente com TotalPago e TotalDevido
-    const clienteRes = await fetch(`${linkCli}/${venda.clienteId}`);
-    if (clienteRes.ok) {
-      const cliente = await clienteRes.json();
-      const vendasRes = await fetch(linkVen);
-      if (vendasRes.ok) {
-        const vendas = await vendasRes.json();
-        const vendasDoCliente = vendas.filter(
-          (v) => Number(v.clienteId ?? v.ClienteId) === Number(venda.clienteId)
-        );
-        const totalPagoCliente = vendasDoCliente.reduce(
-          (acc, v) => acc + Number(v.totalPago ?? v.TotalPago ?? 0),
-          0
-        );
-        const totalDevidoCliente = vendasDoCliente.reduce(
-          (acc, v) =>
-            acc +
-            (Number(v.valorTotal ?? v.ValorTotal ?? 0) -
-              Number(v.totalPago ?? v.TotalPago ?? 0)),
-          0
-        );
-        const totalGastoCliente = vendasDoCliente.reduce(
-          (acc, v) => acc + Number(v.valorTotal ?? v.ValorTotal ?? 0),
-          0
-        );
-        await fetch(`${linkCli}/${venda.clienteId}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...cliente,
-            totalPago: totalPagoCliente,
-            totalDevido: totalDevidoCliente,
-            totalGasto: totalGastoCliente,
-          }),
-        });
-      }
-    }
-
-    // Calcule a diferença do valor pago
-    const pagamentoAnterior = pagamentos.find(
-      (p) => Number(p.vendaId ?? p.VendaId) === Number(id)
-    );
-    const valorPagoAntesLocal = pagamentoAnterior
-      ? Number(pagamentoAnterior.TotalPago ?? pagamentoAnterior.totalPago ?? 0)
-      : 0;
-
-    // Se for dinheiro, sempre subtrai o valor antigo e adiciona o novo
-    if (venda.formaDePagamento.includes("Dinheiro")) {
-      // Subtrai o valor antigo (se maior que zero)
-      if (valorPagoAntesLocal > 0) {
-        const caixaRes = await fetch("http://localhost:7172/api/Caixa/saida", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            valor: valorPagoAntesLocal,
-            descricao: `Estorno edição venda ${id}`,
-            tipo: "Saída",
-          }),
-        });
-        if (!caixaRes.ok) {
-          alert("Erro ao estornar valor do caixa!");
-          console.error("Erro ao estornar valor do caixa", await caixaRes.text());
-          return;
+      // Se for dinheiro, sempre subtrai o valor antigo e adiciona o novo
+      if (venda.formaDePagamento.includes("Dinheiro")) {
+        // Subtrai o valor antigo (se maior que zero)
+        if (valorPagoAntesLocal > 0) {
+          const caixaRes = await fetch("http://localhost:7172/api/Caixa/saida", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              valor: valorPagoAntesLocal,
+              descricao: `Estorno edição venda ${id}`,
+              tipo: "Saída",
+            }),
+          });
+          if (!caixaRes.ok) {
+            alert("Erro ao estornar valor do caixa!");
+            console.error("Erro ao estornar valor do caixa", await caixaRes.text());
+            return;
+          }
+        }
+        // Adiciona o valor novo (se maior que zero)
+        if (Number(totalPago) > 0) {
+          const caixaRes = await fetch("http://localhost:7172/api/Caixa/entrada", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              valor: Number(totalPago),
+              descricao: `Novo valor edição venda ${id}`,
+              tipo: "Entrada",
+            }),
+          });
+          if (!caixaRes.ok) {
+            alert("Erro ao adicionar valor ao caixa!");
+            console.error("Erro ao adicionar valor ao caixa", await caixaRes.text());
+            return;
+          }
         }
       }
-      // Adiciona o valor novo (se maior que zero)
-      if (Number(totalPago) > 0) {
-        const caixaRes = await fetch("http://localhost:7172/api/Caixa/entrada", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            valor: Number(totalPago),
-            descricao: `Novo valor edição venda ${id}`,
-            tipo: "Entrada",
-          }),
-        });
-        if (!caixaRes.ok) {
-          alert("Erro ao adicionar valor ao caixa!");
-          console.error("Erro ao adicionar valor ao caixa", await caixaRes.text());
-          return;
-        }
+
+      // Atualiza a venda por último (após todos os ajustes)
+      const vendaBody = {
+        Id: Number(id),
+        FuncionarioId: Number(venda.funcionarioId),
+        ClienteId: Number(venda.clienteId),
+        TotalDeItens: Number(venda.totalDeItens),
+        ValorTotal: Number(valorProdutos - desconto),
+        TotalPago: Number(totalPago),
+        FormaDePagamento: Array.isArray(venda.formaDePagamento)
+          ? venda.formaDePagamento
+          : [venda.formaDePagamento],
+        TotalDeVezes: Number(qtdParcelas),
+        DataVenda: new Date(venda.dataVenda).toISOString(),
+        desconto: desconto,
+        formaDeDesconto: descontoTipo ? [descontoTipo] : [],
+      };
+
+      const response = await fetch(`${linkVen}/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(vendaBody),
+      });
+      if (!response.ok) {
+        alert("Erro ao atualizar a venda");
+        return;
       }
+
+      alerta("Venda atualizada com sucesso!", "success");
+      navigate("/Venda/ListagemVenda");
+
+    } catch (error) {
+      console.error('Erro ao atualizar venda:', error);
+      alerta(error.message || "Erro ao atualizar venda", "error");
     }
-
-    // Atualiza a venda por último (após todos os ajustes)
-    const vendaBody = {
-      Id: Number(id),
-      FuncionarioId: Number(venda.funcionarioId),
-      ClienteId: Number(venda.clienteId),
-      TotalDeItens: Number(venda.totalDeItens),
-      ValorTotal: Number(valorProdutos - desconto),
-      TotalPago: Number(totalPago),
-      FormaDePagamento: Array.isArray(venda.formaDePagamento)
-        ? venda.formaDePagamento
-        : [venda.formaDePagamento],
-      TotalDeVezes: Number(qtdParcelas),
-      DataVenda: new Date(venda.dataVenda).toISOString(),
-      desconto: desconto,
-      formaDeDesconto: descontoTipo ? [descontoTipo] : [],
-    };
-
-    const response = await fetch(`${linkVen}/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(vendaBody),
-    });
-    if (!response.ok) {
-      alert("Erro ao atualizar a venda");
-      return;
-    }
-
-    navigate("/Venda/ListagemVenda");
   };
 
   const formasPagamento = [

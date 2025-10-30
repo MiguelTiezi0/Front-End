@@ -418,7 +418,7 @@ export function CadastroProduto() {
 
           <div className="buttonsGroupProduto">
             <button type="button" className="btnProduto btnVoltarProduto">
-              <Link to="/" className="linkCadastro">
+              <Link to="/Produto/ListagemProduto" className="linkCadastro">
                 Voltar
               </Link>
             </button>

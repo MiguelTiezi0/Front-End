@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import "./Produto.css";
 import lupa from "../../../assets/icons/lupa.svg";
 import lixo from "../../../assets/icons/lixo.svg";
@@ -8,160 +8,141 @@ import edit from "../../../assets/icons/edit.svg";
 import { useNavigate } from "react-router-dom";
 import { linkPro } from "./linkPro";
 import { linkCat } from "../Categoria/linkCat";
+import { linkFor } from "../Fornecedor/linkFor";
+import { useAlerta } from "../../../hooks/Alerta/useAlerta";
 
 export function ListagemProduto() {
   document.title = "Listagem de Produtos";
+  const navigate = useNavigate();
+  const alerta = useAlerta();
+
+  // Estados
   const [pesquisa, setPesquisa] = useState("");
   const [inputVisivel, setInputVisivel] = useState(false);
   const [btnVisivel, setbtnVisivel] = useState(true);
   const [produtos, setProdutos] = useState([]);
-  const [produtosFiltrados, setProdutosFiltrados] = useState([]);
-  const [produtoSelecionado, setProdutoSelecionado] = useState(null);
   const [categorias, setCategorias] = useState([]);
+  const [fornecedores, setFornecedores] = useState([]); // Novo estado
+  const [produtoSelecionado, setProdutoSelecionado] = useState(null);
   const [tipoPesquisa, setTipoPesquisa] = useState("descricao");
 
-  const navigate = useNavigate();
-
+  // Fetch inicial de dados
   useEffect(() => {
-    const fetchProdutos = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(linkPro, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Erro ao buscar produtos");
-        }
-
-        const data = await response.json();
-        setProdutos(data);
-        setProdutosFiltrados(data);
-      } catch (error) {
-        console.error(error);
-        alert("Erro ao carregar os produtos");
-      }
-    };
-
-    const fetchCategorias = async () => {
-      try {
-        const response = await fetch(linkCat, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Erro ao buscar categorias");
-        }
-
-        const categoriasData = await response.json();
-        setCategorias(categoriasData);
-      } catch (error) {
-        console.error(error);
-        alert("Erro ao carregar as categorias");
-      }
-    };
-
-    fetchProdutos();
-    fetchCategorias();
-  }, []);
-
-  useEffect(() => {
-    const filtro = pesquisa.toLowerCase();
-    const filtrados = produtos.filter((produto) => {
-      if (tipoPesquisa === "id") {
-        return String(produto.id).includes(filtro);
-      }
-      if (tipoPesquisa === "descricao") {
-        return produto.descricao.toLowerCase().includes(filtro);
-      }
-      if (tipoPesquisa === "categoria") {
-        const categoria = categorias.find(
-          (cat) => cat.id === produto.categoriaId
+        const [produtosRes, categoriasRes, fornecedoresRes] = await Promise.all(
+          [fetch(linkPro), fetch(linkCat), fetch(linkFor)]
         );
-        return categoria?.descricao?.toLowerCase().includes(filtro);
+
+        if (!produtosRes.ok) throw new Error("Erro ao buscar produtos");
+        if (!categoriasRes.ok) throw new Error("Erro ao buscar categorias");
+        if (!fornecedoresRes.ok) throw new Error("Erro ao buscar fornecedores");
+
+        const [produtosData, categoriasData, fornecedoresData] =
+          await Promise.all([
+            produtosRes.json(),
+            categoriasRes.json(),
+            fornecedoresRes.json(),
+          ]);
+
+        setProdutos(produtosData);
+        setCategorias(categoriasData);
+        setFornecedores(fornecedoresData);
+      } catch (error) {
+        console.error("Erro ao carregar dados:", error);
+        alerta(error.message, "error");
       }
-      if (tipoPesquisa === "tamanho") {
-        return (produto.tamanho || "").toLowerCase().includes(filtro);
+    };
+
+    fetchData();
+  }, [alerta]);
+
+  // Filtragem de produtos usando useMemo
+  const produtosFiltrados = useMemo(() => {
+    const filtro = pesquisa.toLowerCase().trim();
+    if (!filtro) return produtos;
+
+    return produtos.filter((produto) => {
+      switch (tipoPesquisa) {
+        case "id":
+          return String(produto.id).includes(filtro);
+
+        case "descricao":
+          return produto.descricao?.toLowerCase().includes(filtro);
+
+        case "categoria": {
+          const categoria = categorias.find(
+            (cat) => cat.id === produto.categoriaId
+          );
+          return categoria?.descricao?.toLowerCase().includes(filtro);
+        }
+
+        case "tamanho":
+          return String(produto.tamanho || "")
+            .toLowerCase()
+            .includes(filtro);
+
+        case "fornecedor": {
+          const fornecedor = fornecedores.find(
+            (f) => f.id === produto.idFornecedor
+          );
+          // Busca tanto por ID quanto por nome do fornecedor, convertendo CNPJ para string
+          return (
+            String(produto.idFornecedor).includes(filtro) ||
+            fornecedor?.nome?.toLowerCase().includes(filtro) ||
+            String(fornecedor?.cnpj || "")
+              .toLowerCase()
+              .includes(filtro)
+          );
+        }
+
+        case "preco":
+          return String(produto.preçoVenda || "").includes(filtro);
+
+        default:
+          return true;
       }
-      if (tipoPesquisa === "fornecedor") {
-        return (produto.idFornecedor || "").toLowerCase().includes(filtro);
-      }
-      if (tipoPesquisa === "preco") {
-        return String(produto.preçoVenda).includes(filtro);
-      }
-      return true;
     });
-    setProdutosFiltrados(filtrados);
-  }, [pesquisa, produtos, tipoPesquisa, categorias]);
+  }, [pesquisa, produtos, tipoPesquisa, categorias, fornecedores]);
 
-  function handleClickPesquisa() {
-    setInputVisivel(!inputVisivel);
-    setbtnVisivel(!btnVisivel);
+  // Handlers
+  const handleClickPesquisa = () => {
+    setInputVisivel((prev) => !prev);
+    setbtnVisivel((prev) => !prev);
     setPesquisa("");
-    setTimeout(() => {
-      const input = document.querySelector(".inputPesquisar");
-      if (input) input.focus();
-    }, 0);
-  }
-
-  const handleRowClick = (id) => {
-    setProdutoSelecionado(id);
+    setTimeout(() => document.querySelector(".inputPesquisar")?.focus(), 0);
   };
 
-  const handleDiminuirQuantidade = async () => {
+  const handleRowClick = (id) => setProdutoSelecionado(id);
+
+  const handleDelete = async () => {
     if (!produtoSelecionado) {
-      alert("Selecione um produto para diminuir a quantidade.");
-      return;
-    }
-    const produto = produtos.find((p) => p.id === produtoSelecionado);
-    if (!produto) return;
-
-    if (produto.quantidade <= 0) {
-      alert("O produto já está inutilizado.");
+      alerta("Selecione um produto para deletar.", "warning");
       return;
     }
 
-    const novaQuantidade = produto.quantidade - 1;
+    if (!window.confirm("Tem certeza que deseja deletar este produto?")) return;
 
     try {
       const response = await fetch(`${linkPro}/${produtoSelecionado}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ...produto, quantidade: novaQuantidade }),
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
       });
 
-      if (!response.ok) {
-        throw new Error("Erro ao atualizar a quantidade do produto");
-      }
+      if (!response.ok) throw new Error("Erro ao deletar o produto");
 
-      alert("Quantidade do produto atualizada com sucesso!");
-
-      setProdutos((prevProdutos) =>
-        prevProdutos.map((p) =>
-          p.id === produtoSelecionado ? { ...p, quantidade: novaQuantidade } : p
-        )
-      );
-      setProdutosFiltrados((prevProdutos) =>
-        prevProdutos.map((p) =>
-          p.id === produtoSelecionado ? { ...p, quantidade: novaQuantidade } : p
-        )
-      );
+      setProdutos((prev) => prev.filter((p) => p.id !== produtoSelecionado));
+      setProdutoSelecionado(null);
+      alerta("Produto deletado com sucesso!", "success");
     } catch (error) {
       console.error(error);
-      alert("Erro ao atualizar a quantidade do produto");
+      alerta("Erro ao deletar o produto", "error");
     }
   };
 
   const handleDetalhar = () => {
     if (!produtoSelecionado) {
-      alert("Selecione um produto para visualizar os detalhes.");
+      alerta("Selecione um produto para visualizar os detalhes.", "warning");
       return;
     }
     navigate(`/Produto/DetalhesProduto/${produtoSelecionado}`);
@@ -169,7 +150,7 @@ export function ListagemProduto() {
 
   const handleEditar = () => {
     if (!produtoSelecionado) {
-      alert("Selecione um produto para editar.");
+      alerta("Selecione um produto para editar.", "warning");
       return;
     }
     navigate(`/Produto/EditarProduto/${produtoSelecionado}`);
@@ -177,7 +158,7 @@ export function ListagemProduto() {
 
   const handleClonar = () => {
     if (!produtoSelecionado) {
-      alert("Selecione um produto para clonar.");
+      alerta("Selecione um produto para clonar.", "warning");
       return;
     }
     const produto = produtos.find((p) => p.id === produtoSelecionado);
@@ -186,40 +167,30 @@ export function ListagemProduto() {
     }
   };
 
-  const handleDelete = async () => {
-    if (!produtoSelecionado) {
-      alert("Selecione um produto para deletar.");
-      return;
-    }
-    const confirmDelete = window.confirm(
-      "Tem certeza que deseja deletar este produto?"
+  // Renderização da tabela
+  const renderProdutoRow = (produto) => {
+    const fornecedor = fornecedores.find((f) => f.id === produto.idFornecedor);
+    const isSelected = produtoSelecionado === produto.id;
+    const isOutOfStock = produto.quantidade <= 0;
+
+    return (
+      <tr
+        key={produto.id}
+        onClick={() => handleRowClick(produto.id)}
+        className={`
+          produto-row
+          ${isSelected ? "selected" : ""}
+          ${isOutOfStock ? "out-of-stock" : ""}
+        `}
+      >
+        <td>{produto.id}</td>
+        <td>{produto.descricao}</td>
+        <td>{produto.quantidade}</td>
+        <td>{produto.tamanho || "N/A"}</td>
+        <td>{fornecedor ? fornecedor.nome : "N/A"}</td>
+        <td>{produto.preçoVenda?.toFixed(2) || "N/A"}</td>
+      </tr>
     );
-    if (!confirmDelete) return;
-
-    try {
-      const response = await fetch(`${linkPro}/${produtoSelecionado}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Erro ao deletar o produto");
-      }
-
-      alert("Produto deletado com sucesso!");
-
-      // Remove o produto da lista local
-      setProdutos((prev) => prev.filter((p) => p.id !== produtoSelecionado));
-      setProdutosFiltrados((prev) =>
-        prev.filter((p) => p.id !== produtoSelecionado)
-      );
-      setProdutoSelecionado(null);
-    } catch (error) {
-      console.error(error);
-      alert("Erro ao deletar o produto");
-    }
   };
 
   return (
@@ -302,44 +273,12 @@ export function ListagemProduto() {
                 <th>Id</th>
                 <th>Descrição</th>
                 <th>Quantidade</th>
-
                 <th>Tamanho</th>
                 <th>Fornecedor</th>
                 <th>Preço</th>
               </tr>
             </thead>
-            <tbody>
-              {produtosFiltrados.map((produto) => (
-                <tr
-                  key={produto.id}
-                  onClick={() => handleRowClick(produto.id)}
-                  style={{
-                    backgroundColor:
-                      produtoSelecionado === produto.id
-                        ? "blue"
-                        : produto.quantidade <= 0
-                        ? "#b41111"
-                        : "transparent",
-                    color:
-                      produtoSelecionado === produto.id ||
-                      produto.quantidade <= 0
-                        ? "white"
-                        : "black",
-                    cursor: "pointer",
-                  }}
-                >
-                  <td>{produto.id}</td>
-                  <td>{produto.descricao}</td>
-                  <td>{produto.quantidade}</td>
-
-                  <td>{produto.tamanho || "N/A"}</td>
-                  <td>{produto.idFornecedor ? produto.idFornecedor : "N/A"}</td>
-                  <td>
-                    {produto.preçoVenda ? produto.preçoVenda.toFixed(2) : "N/A"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+            <tbody>{produtosFiltrados.map(renderProdutoRow)}</tbody>
           </table>
         </div>
       </div>
