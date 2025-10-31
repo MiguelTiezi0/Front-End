@@ -2,8 +2,9 @@ import React from "react";
 import { HeaderGerenciamento } from "../../components/Gerenciamento/HeaderGerenciamento/HeaderGerenciamento.jsx";
 import { Link } from "react-router-dom";
 import "./HomeGerenciamento.css";
-
+import { useRequireAuth } from "../../hooks/RequireAuth/useRequireAuth.jsx";
 export function HomeGerenciamento() {
+  useRequireAuth("Funcionario");
   document.title = "Gerenciamento - Home";
 
   const menuItems = [

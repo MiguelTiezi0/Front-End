@@ -4,8 +4,9 @@ import "./Categoria.css";
 
 
 import {linkCat} from "./linkCat";
-
+import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 export function CadastroCategoria() {
+  useRequireAuth("Funcionario");
   document.title = "Cadastro de Categorias";
   const location = useLocation();
   const categoriaClonada = location.state?.categoria || null;
@@ -89,9 +90,9 @@ export function CadastroCategoria() {
   };
 
   return (
-    <div className="centro">
-    <div className="CadastroCategoria">
+    <div className="centroCategoria">
       <h1>Cadastro de Categorias</h1>
+    <div className="CadastroCategoria">
       <form className="formCadastroCategoria" onSubmit={handleSubmit}>
         <input
           type="text"
@@ -110,7 +111,7 @@ export function CadastroCategoria() {
           value={descricao}
           onChange={(e) => setDescricao(e.target.value)}
         />
-        <div className="buttonsGroupCategoria">
+       
           <button type="button" className="btnCategoria btnVoltarCategoria">
             <Link to="/Categoria/ListagemCategoria" className="linkCadastro">
               Voltar
@@ -119,7 +120,7 @@ export function CadastroCategoria() {
           <button type="submit" className="btnCategoria btnSalvarCategoria">
             Salvar
           </button>
-        </div>
+    
       </form>
     </div>
     </div>

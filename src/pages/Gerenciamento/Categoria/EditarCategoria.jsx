@@ -3,8 +3,9 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import "./Categoria.css";
 
 import {linkCat} from "./linkCat";
-
+import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 export function EditarCategoria() {
+  useRequireAuth("Funcionario");
   document.title = "Editar Categoria";
   const { id } = useParams();
   const navigate = useNavigate();

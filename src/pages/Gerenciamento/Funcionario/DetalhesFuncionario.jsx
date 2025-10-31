@@ -6,8 +6,10 @@ import edit from "../../../assets/icons/edit.svg";
 import "./Funcionario.css";
 import { linkFun } from "./linkFun";
 import { linkVen } from "../../Caixa/Venda/linkVen";
+import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 
 export function DetalhesFuncionario() {
+  useRequireAuth("Funcionario");
   const { id } = useParams();
   const [funcionario, setFuncionario] = useState(null);
   const [vendas, setVendas] = useState([]);

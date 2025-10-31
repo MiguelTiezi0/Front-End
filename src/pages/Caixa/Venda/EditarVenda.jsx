@@ -9,7 +9,7 @@ import { linkCli } from "../../Gerenciamento/Cliente/linkCli";
 import { linkVenItens } from "../ItensVenda/linkVenItens";
 import { linkPro } from "../../Gerenciamento/Produto/linkPro";
 import { linkPag } from "../Pagamento/linkPag";
-
+import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 // Funções auxiliares para estoque
 const atualizarEstoque = async (produtoId, quantidade, operacao = 'subtrair') => {
   try {
@@ -26,7 +26,7 @@ const atualizarEstoque = async (produtoId, quantidade, operacao = 'subtrair') =>
     if (novaQuantidade < 0) {
       throw new Error(`Quantidade insuficiente para o produto ${produto.descricao}`);
     }
-
+    
     // Atualizar estoque
     const updateResponse = await fetch(`${linkPro}/${produtoId}`, {
       method: 'PUT',
@@ -37,10 +37,10 @@ const atualizarEstoque = async (produtoId, quantidade, operacao = 'subtrair') =>
         ativo: novaQuantidade > 0
       })
     });
-
+    
     if (!updateResponse.ok) throw new Error(`Erro ao atualizar estoque do produto ${produtoId}`);
     return true;
-
+    
   } catch (error) {
     console.error('Erro ao atualizar estoque:', error);
     throw error;
@@ -50,7 +50,7 @@ const atualizarEstoque = async (produtoId, quantidade, operacao = 'subtrair') =>
 // Funções de sincronização
 const sincronizarItensVenda = async (itensOriginais, itensEditados, id) => {
   const alteracoes = [];
-
+  
   try {
     // 1. Remover itens excluídos
     for (const itemOriginal of itensOriginais) {
@@ -67,7 +67,7 @@ const sincronizarItensVenda = async (itensOriginais, itensEditados, id) => {
         alteracoes.push({ tipo: 'removido', item: itemOriginal });
       }
     }
-
+    
     // 2. Atualizar itens existentes
     for (const itemEditado of itensEditados) {
       if (itemEditado.id > 0) {
@@ -82,7 +82,7 @@ const sincronizarItensVenda = async (itensOriginais, itensEditados, id) => {
               diferenca < 0 ? 'somar' : 'subtrair'
             );
           }
-
+          
           await fetch(`${linkVenItens}/${itemEditado.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -92,7 +92,7 @@ const sincronizarItensVenda = async (itensOriginais, itensEditados, id) => {
         }
       }
     }
-
+    
     // 3. Adicionar novos itens
     for (const itemNovo of itensEditados.filter(i => i.id < 0)) {
       // Reduzir estoque do novo item
@@ -108,7 +108,7 @@ const sincronizarItensVenda = async (itensOriginais, itensEditados, id) => {
           quantidade: Number(itemNovo.quantidade)
         })
       });
-
+      
       if (!response.ok) throw new Error('Erro ao adicionar novo item');
       alteracoes.push({ tipo: 'adicionado', item: itemNovo });
     }
@@ -143,6 +143,7 @@ const sincronizarItensVenda = async (itensOriginais, itensEditados, id) => {
 };
 
 export function EditarVenda() {
+  useRequireAuth("Funcionario");
   const { id } = useParams();
   const navigate = useNavigate();
   document.title = "Editar Venda";

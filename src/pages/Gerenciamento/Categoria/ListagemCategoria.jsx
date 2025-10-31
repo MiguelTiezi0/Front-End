@@ -7,8 +7,9 @@ import { useNavigate } from "react-router-dom";
 
 import { linkCat } from "./linkCat";
 import { linkPro } from "../Produto/linkPro"; 
-
+import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 export function ListagemCategoria() {
+  useRequireAuth("Funcionario");
   document.title = "Listagem de Categorias";
   const [pesquisa, setPesquisa] = useState("");
   const [inputVisivel, setInputVisivel] = useState(false);

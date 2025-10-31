@@ -10,8 +10,9 @@ import lixo from "../../../assets/icons/lixo.svg";
 import edit from "../../../assets/icons/edit.svg";
 import olho from "../../../assets/icons/olhoFechado.svg";
 import { useAlerta } from "../../../hooks/Alerta/useAlerta";
-
+import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 export function ListagemPagamento() {
+  useRequireAuth("Funcionario");
   const navigate = useNavigate();
   const [pagamentos, setPagamentos] = useState([]);
   const [funcionarios, setFuncionarios] = useState([]);

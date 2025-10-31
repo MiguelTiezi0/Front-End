@@ -3,7 +3,7 @@ import { linkPag } from "./linkPag";
 import { linkCli } from "../../Gerenciamento/Cliente/linkCli";
 import { linkVen } from "../Venda/linkVen";
 import "./Pagamento.css";
-
+import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 function getDiasParaVencimento(vencimento) {
   if (!vencimento) return null;
   const hoje = new Date();
@@ -14,6 +14,7 @@ function getDiasParaVencimento(vencimento) {
 }
 
 export function ListagemPagamentoDevedor() {
+  useRequireAuth("Funcionario");
   const [clientes, setClientes] = useState([]);
   const [vendas, setVendas] = useState([]);
   const [clienteBusca, setClienteBusca] = useState("");

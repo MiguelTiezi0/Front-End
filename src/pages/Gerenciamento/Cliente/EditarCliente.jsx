@@ -5,7 +5,7 @@ import lixo from "../../../assets/icons/lixo.svg";
 import olhoFechado from "../../../assets/icons/olhoFechado.svg";
 import edit from "../../../assets/icons/edit.svg";
 import { linkCli } from "./linkCli";
-
+import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 // Função de validação de CPF
 function validarCPF(cpf) {
   cpf = cpf.replace(/[^\d]+/g, '');
@@ -20,11 +20,12 @@ function validarCPF(cpf) {
   const numeros = cpf.split('').map(Number);
   const dv1 = calcularDV(numeros.slice(0, 9), 10);
   const dv2 = calcularDV(numeros.slice(0, 10), 11);
-
+  
   return dv1 === numeros[9] && dv2 === numeros[10];
 }
 
 export function EditarCliente() {
+  useRequireAuth("Funcionario");
   document.title = "Editar Cliente";
   const { id } = useParams();
   const navigate = useNavigate();

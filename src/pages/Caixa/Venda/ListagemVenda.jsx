@@ -11,7 +11,9 @@ import { linkCli } from "../../Gerenciamento/Cliente/linkCli";
 import { linkVenItens } from "../ItensVenda/linkVenItens";
 import { linkPro } from "../../Gerenciamento/Produto/linkPro";
 
+import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 export function ListagemVenda() {
+  useRequireAuth("Funcionario");
   document.title = "Listagem de Vendas";
   const [pesquisa, setPesquisa] = useState("");
   const [inputVisivel, setInputVisivel] = useState(false);
@@ -26,10 +28,9 @@ export function ListagemVenda() {
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
   const [tipoPesquisa, setTipoPesquisa] = useState("id");
+const navigate = useNavigate();
 
-  const navigate = useNavigate();
-
-  useEffect(() => {
+useEffect(() => {
     const fetchAll = async () => {
       try {
         const [resVendas, resFuncs, resClientes, resItens, resProdutos] = await Promise.all([
@@ -44,7 +45,7 @@ export function ListagemVenda() {
         const clientesData = await resClientes.json();
         const itensData = await resItens.json();
         const produtosData = await resProdutos.json();
-
+        
         setVendas(vendasData);
         setVendasFiltradas(vendasData);
         setFuncionarios(funcsData);
@@ -105,7 +106,7 @@ export function ListagemVenda() {
           venda.id.toString().includes(pesquisa) ||
           (cliente &&
             cliente.nome.toLowerCase().includes(pesquisa.toLowerCase())) ||
-          (funcionario &&
+            (funcionario &&
             funcionario.nome.toLowerCase().includes(pesquisa.toLowerCase()))
         );
       });
@@ -115,10 +116,10 @@ export function ListagemVenda() {
     if (dataInicio && dataFim) {
       const [diaIni, mesIni, anoIni] = dataInicio.split("-").reverse();
       const [diaFim, mesFim, anoFim] = dataFim.split("-").reverse();
-
+      
       const dataIni = new Date(`${anoIni}-${mesIni}-${diaIni}T00:00:00`);
       const dataFinal = new Date(`${anoFim}-${mesFim}-${diaFim}T23:59:59`);
-
+      
       filtradas = filtradas.filter((venda) => {
         if (!venda.dataVenda) return false;
         const [diaVenda, mesVenda, anoVenda] = venda.dataVenda
@@ -134,7 +135,7 @@ export function ListagemVenda() {
     filtradas = filtradas.slice().sort(
       (a, b) => new Date(b.dataVenda) - new Date(a.dataVenda)
     );
-
+    
     setVendasFiltradas(filtradas);
   }, [pesquisa, tipoPesquisa, vendas, clientes, funcionarios, dataInicio, dataFim]);
 

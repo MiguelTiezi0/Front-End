@@ -5,8 +5,9 @@ import { linkFun } from "../../Gerenciamento/Funcionario/linkFun";
 import { linkCli } from "../../Gerenciamento/Cliente/linkCli";
 import { linkVen } from "../Venda/linkVen";
 import "./Pagamento.css";
-
+import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 export function DetalhesPagamento() {
+  useRequireAuth("Funcionario");
   const { id } = useParams();
   const navigate = useNavigate();
 

@@ -1,4 +1,13 @@
+/* Reset / variables (keeps your existing variables) */
 :root {
+  --bg: #f6f8fb;
+  --card-bg: #ffffff;
+  --muted: #6b7280;
+  --accent: #0b57d0;
+  --danger: #c0392b;
+  --success: #2e8b57;
+  --input-border: #e6eef5;
+  --radius: 10px;
   --yellow-primary-color: #fdda76;
   --yellow-secondary-color: #f9c74f;
   --black-primary-color: #252525;
@@ -10,12 +19,23 @@
   --green: #39862f;
 }
 
+/* Page layout */
+.cat-page {
+  min-height: calc(100vh - 80px);
+  padding: 28px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background: var(--bg);
+  box-sizing: border-box;
+}
+
 html,
 body {
   max-height: 100vh;
 }
 
-.centro {
+.centroCategoria {
   height: calc(100vh - 80px);
   width: 100%;
 }
@@ -25,27 +45,32 @@ body {
   height: 100%;
   overflow-y: auto;
   display: grid;
+
   justify-content: center;
 }
 
-.CadastroCategoria h1 {
+.centroCategoria h1 {
   font-size: 3rem;
   color: var(--white-secondary-color);
+  display: flex;
+  justify-content: center;
+  height: 80px;
+  margin: 32px ;
 }
+
 
 .formCadastroCategoria {
+  width: 600px;
+  height: 200px;
+  display: flex;
+  justify-content: center;
   display: grid;
   grid-template-columns: repeat(2, 180px);
-  grid-template-rows: repeat(4, 80px);
-  row-gap: .1rem;
-  column-gap: 3rem;
+  grid-template-rows: repeat(2, 80px);
+  row-gap: 1rem;
+  column-gap: 5em;
+  margin-top: 0rem;
 }
-
- .inputId {
-  grid-column-start: 1;
-  grid-row-start: 1;
-  grid-column-end: -1;
-}  
 
 .inputCadastroCategoria {
   background-color: var(--white-secondary-color);
@@ -54,41 +79,32 @@ body {
   border-radius: 0.5rem;
   width: 210px;
   font-size: 1.5rem;
-
 }
 
 .inputCadastroCategoria::placeholder {
   color: var(--black-primary-color);
   font-size: 1.5rem;
-
-}
-
-.selectCadastroCategoria {
-  border: none;
-  background-color: var(--white-secondary-color);
-  font-size: 1rem;
-  width: 210px;
-  color: var(--black-primary-color);
-  border-radius: 0.5rem;
-  height: 60px;
 }
 
 .buttonsGroupCategoria {
   display: flex;
-  width: 500px;
+  width: 600px;
   justify-content: space-around;
   gap: 2rem;
+  background-color: white;
 }
 
 .btnCategoria {
   border: none;
   color: var(--black-primary-color);
   text-align: center;
-  font-size: 1rem;
-  width: 200px;
-  height: 60px;
   cursor: pointer;
   border-radius: 0.8rem;
+  border: none;
+  height: 60px;
+  border-radius: 0.5rem;
+  width: 210px;
+  font-size: 1.5rem;
 }
 
 .btnVoltarCategoria {
@@ -111,7 +127,7 @@ body {
 .linkCadastro {
   text-decoration: none;
   color: var(--black-primary-color);
-  font-size: 1rem;
+  
 }
 
 .top-nav {
@@ -177,7 +193,6 @@ body {
   right: 740px;
   height: 48px;
   font-size: 1.5rem;
-
 }
 
 .inputPesquisar.visivel {
@@ -185,7 +200,6 @@ body {
   width: 160px;
   height: 48px;
   font-size: 1.5rem;
-
 }
 
 .ListagemCategoria {
@@ -194,8 +208,8 @@ body {
   overflow-y: auto;
   display: grid;
   justify-content: center;
-}	
-.ListagemCategoria h1{
+}
+.ListagemCategoria h1 {
   font-size: 3rem;
   color: var(--white-secondary-color);
   display: flex;
@@ -238,7 +252,6 @@ thead {
   font-size: 20px;
 }
 
-
 .centroDetalhesCategoria {
   height: calc(100vh - 80px);
   width: 100%;
@@ -261,15 +274,15 @@ thead {
   display: grid;
   grid-template-columns: repeat(2, 180px);
   grid-template-rows: repeat(5, 80px);
-  row-gap: .1rem;
+  row-gap: 0.1rem;
   column-gap: 3rem;
 }
 
- .inputIdDetalhesCategoria {
+.inputIdDetalhesCategoria {
   grid-column-start: 1;
   grid-row-start: 1;
   grid-column-end: -1;
-}  
+}
 
 .inputDetalhesCategoria {
   background-color: var(--white-secondary-color);
@@ -278,13 +291,11 @@ thead {
   border-radius: 0.5rem;
   width: 210px;
   font-size: 1.5rem;
-
 }
 
 .inputDetalhesCategoria {
   color: var(--black-primary-color);
   font-size: 1.5rem;
-
 }
 
 .selectDetalhesCategoria {
@@ -301,7 +312,6 @@ thead {
   display: flex;
   width: 500px;
   justify-content: space-around;
-  
 }
 
 .btnDetalhesCategoria {
@@ -313,15 +323,7 @@ thead {
   height: 60px;
   cursor: pointer;
   border-radius: 0.8rem;
-  margin: 0.5rem;
 }
-
-
-
-
-
-
-
 
 .centroEditarCategoria {
   height: calc(100vh - 80px);
@@ -345,15 +347,15 @@ thead {
   display: grid;
   grid-template-columns: repeat(2, 180px);
   grid-template-rows: repeat(5, 80px);
-  row-gap: .1rem;
+  row-gap: 0.1rem;
   column-gap: 3rem;
 }
 
- .inputIdEditarCategoria {
+.inputIdEditarCategoria {
   grid-column-start: 1;
   grid-row-start: 1;
   grid-column-end: -1;
-}  
+}
 
 .inputEditarCategoria {
   background-color: var(--white-secondary-color);
@@ -362,13 +364,11 @@ thead {
   border-radius: 0.5rem;
   width: 210px;
   font-size: 1.5rem;
-
 }
 
 .inputEditarCategoria::placeholder {
   color: var(--black-primary-color);
   font-size: 1.5rem;
-
 }
 
 .selectEditarCategoria {
@@ -399,3 +399,13 @@ thead {
   border-radius: 0.8rem;
 }
 
+/* Responsive */
+@media (max-width: 760px) {
+  .cat-card {
+    width: 92%;
+    padding: 16px;
+  }
+  .cat-actions {
+    justify-content: center;
+  }
+}

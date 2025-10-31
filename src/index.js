@@ -8,6 +8,7 @@ import { Inicio } from './pages/Inicio';
 import { Cadastro } from './pages/Cadastro';
 import { Login } from './pages/Login';
 import { Contato } from './pages/Contato';
+import Relatorio from './pages/Relatorio';
 
 
 import { HomeGerenciamento } from './pages/Gerenciamento/HomeGerenciamento';
@@ -81,6 +82,7 @@ root.render(
           <Route path="/cadastro" element={<Cadastro />} />
           <Route path="/login" element={<Login />} />
           <Route path="/contato" element={<Contato />} />
+          <Route path="/Relatorio" element={<Relatorio />} />
 
           {/* Home Pages */}
           <Route path="/Gerenciamento/HomeGerenciamento" element={<HomeGerenciamento />} />

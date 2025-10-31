@@ -7,8 +7,9 @@ import olhoFechado from "../../../assets/icons/olhoFechado.svg";
 
 import { useNavigate } from "react-router-dom";
 import { linkFun } from "./linkFun";
-
+import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 export function ListagemFuncionario() {
+  useRequireAuth("Funcionario");
   document.title = "Listagem de Funcionários";
   const [pesquisa, setPesquisa] = useState("");
   const [inputVisivel, setInputVisivel] = useState(false);

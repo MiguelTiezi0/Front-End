@@ -37,10 +37,9 @@ body {
   display: grid;
   grid-template-columns: repeat(3, 180px);
   grid-template-rows: repeat(7, 80px);
-  row-gap: .1rem;
+  row-gap: 0.1rem;
   column-gap: 3rem;
 }
-
 
 .inputCadastroFuncionario {
   background-color: var(--white-secondary-color);
@@ -107,7 +106,6 @@ body {
   font-size: 2rem;
 }
 
-
 .top-nav {
   position: absolute;
   right: 40px;
@@ -171,7 +169,6 @@ body {
   right: 740px;
   height: 48px;
   font-size: 1.5rem;
-
 }
 
 .inputPesquisar.visivel {
@@ -186,8 +183,8 @@ body {
   overflow-y: auto;
   display: grid;
   justify-content: center;
-}	
-.ListagemFuncionario h1{
+}
+.ListagemFuncionario h1 {
   font-size: 3rem;
   color: var(--white-secondary-color);
   display: flex;
@@ -230,7 +227,6 @@ thead {
   font-size: 20px;
 }
 
-
 .centroDetalhesFuncionario {
   height: calc(100vh - 80px);
   width: 100%;
@@ -247,7 +243,6 @@ thead {
 }
 
 .DetalhesFuncionario {
-  
   width: 100%;
   height: 100%;
   overflow-y: auto;
@@ -265,10 +260,9 @@ thead {
   display: grid;
   grid-template-columns: repeat(2, 280px);
   grid-template-rows: repeat(6, 80px);
-  row-gap: .1rem;
-  column-gap: .5rem;
+  row-gap: 0.1rem;
+  column-gap: 0.5rem;
 }
-
 
 .inputDetalhesFuncionario {
   background-color: var(--white-secondary-color);
@@ -307,7 +301,6 @@ thead {
 }
 
 .detalhesFuncionarioTabela {
-  
   width: 100%;
   min-width: 750px;
   border-collapse: collapse;
@@ -316,7 +309,6 @@ thead {
   overflow-y: auto;
   display: block;
   background-color: var(--white-primary-color);
-  
 }
 
 .detalhesFuncionarioTabela th,
@@ -338,9 +330,8 @@ thead {
   color: var(--black-primary-color);
   text-align: center;
   font-size: 1.5rem;
-
 }
-.detalhesFuncionarioTotal th{
+.detalhesFuncionarioTotal th {
   grid-template-areas: span 2;
 }
 .btnDetalharVendaFuncionario {
@@ -381,11 +372,9 @@ thead {
   display: grid;
   grid-template-columns: repeat(3, 220px);
   grid-template-rows: repeat(5, 80px);
-  row-gap: .1rem;
+  row-gap: 0.1rem;
   column-gap: 3rem;
 }
-
-
 
 .inputEditarFuncionario {
   background-color: var(--white-secondary-color);
@@ -446,3 +435,98 @@ thead {
   background-color: var(--yellow-primary-color);
 }
 
+/* Toggle switch for "Ativo" */
+.field-ativo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 4px;
+}
+
+/* Wrapper */
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 56px;
+  height: 32px;
+  vertical-align: middle;
+}
+
+/* Hide default checkbox */
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+/* Slider */
+.toggle .slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: #e6eef5;
+  border-radius: 999px;
+  transition: background 200ms cubic-bezier(0.2, 0.9, 0.2, 1);
+  box-shadow: inset 0 -2px 6px rgba(11, 35, 77, 0.04);
+}
+
+/* Knob */
+.toggle .slider::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  width: 24px;
+  height: 24px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 4px 10px rgba(11, 35, 77, 0.12);
+  transition: transform 200ms cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+/* Checked state */
+.toggle input:checked + .slider {
+  background: linear-gradient(90deg, #27ae60, #1b8c4a);
+}
+.toggle input:checked + .slider::before {
+  transform: translateX(24px);
+}
+
+/* Focus visible for accessibility */
+.toggle input:focus + .slider {
+  box-shadow: 0 0 0 4px rgba(39, 98, 255, 0.12),
+    inset 0 -2px 6px rgba(11, 35, 77, 0.04);
+}
+
+/* Toggle text */
+.toggle-text {
+  font-weight: 700;
+  font-size: 14px;
+  color: #374151;
+}
+.toggle-text.on {
+  color: #1e7b30;
+}
+.toggle-text.off {
+  color: #9aa3ad;
+}
+
+/* Small screens */
+@media (max-width: 760px) {
+  .toggle {
+    width: 48px;
+    height: 28px;
+  }
+  .toggle .slider::before {
+    width: 20px;
+    height: 20px;
+    left: 4px;
+    top: 4px;
+  }
+  .toggle input:checked + .slider::before {
+    transform: translateX(20px);
+  }
+}

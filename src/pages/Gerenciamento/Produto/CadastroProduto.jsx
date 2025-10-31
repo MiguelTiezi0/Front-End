@@ -7,8 +7,9 @@ import "./Produto.css";
 import { linkPro } from "./linkPro";
 import { linkCat } from "../Categoria/linkCat";
 import { linkFor } from "../Fornecedor/linkFor";
-
+import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 export function CadastroProduto() {
+  useRequireAuth("Funcionario");
   document.title = "Cadastro de Produtos";
   const location = useLocation();
   const produtoClonado = location.state?.produto || null;

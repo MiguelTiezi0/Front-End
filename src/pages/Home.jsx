@@ -6,6 +6,7 @@ import "./Pages.css";
 import { HeaderGeral } from "../components/Geral/HeaderGeral/HeaderGeral.jsx";
 import { useRequireAuth } from "../hooks/RequireAuth/useRequireAuth.jsx";
 
+
 export function Home() {
   document.title = "Home";
 
@@ -16,13 +17,13 @@ export function Home() {
       title: "Gerenciamento",
       icon: "⚙️",
       description: "Produtos, categorias, fornecedores",
-      to: "/Gerenciamento",
+      to: "/Gerenciamento/HomeGerenciamento",
     },
     {
       title: "Caixa",
       icon: "💵",
       description: "Abrir/fechar caixa, entradas/saídas",
-      to: "/Caixa",
+      to: "/Caixa/HomeCaixa",
     },
     {
       title: "Vendas",
@@ -46,13 +47,14 @@ export function Home() {
       title: "Relatórios",
       icon: "📊",
       description: "Relatórios rápidos do sistema",
-      to: "/Relatorios",
+      to: "/Relatorio",
     },
   ];
 
   return (
-    <div className="homeContainer home-geral">
+    <div >
       <HeaderGeral />
+    <div className="homeContainer home-geral">
       <main className="home-main">
         <section className="hero">
           <div>
@@ -85,5 +87,7 @@ export function Home() {
         </section>
       </main>
     </div>
+    </div>
+   
   );
 }

@@ -6,8 +6,9 @@ import edit from "../../../assets/icons/edit.svg";
 import { useNavigate } from "react-router-dom";
 
 import { linkFor } from "./linkFor";
-
+import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 export function ListagemFornecedor() {
+  useRequireAuth("Funcionario");
   document.title = "Listagem de Fornecedores";
   const [pesquisa, setPesquisa] = useState("");
   const [inputVisivel, setInputVisivel] = useState(false);

@@ -5,7 +5,7 @@ import { linkPro } from "../../Gerenciamento/Produto/linkPro";
 import { linkCompra } from "./linkCompra";
 import { Link_Itens_Compra } from "../Itens_Compra/link_Itens_Compra";
 import "./Compra.css";
-
+import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 // Função para formatar para input (datetime-local exige isso)
 function formatDateToInput(date) {
   const d = new Date(date);
@@ -19,6 +19,7 @@ function formatDateToBR(dateString) {
 }
 
 export function EditarCompra() {
+  useRequireAuth("Funcionario");
   const navigate = useNavigate();
   const { id } = useParams();
 
@@ -108,6 +109,23 @@ export function EditarCompra() {
       return;
     }
 
+    const produto = produtos.find((p) => p.id === produtoId);
+    if (!produto) {
+      alert("Produto não encontrado.");
+      return;
+    }
+
+    // Verifica se não está tentando adicionar mais do que o estoque disponível
+    const jaAdicionado = itens
+      .filter((i) => i.produtoId === produtoId)
+      .reduce((acc, i) => acc + Number(i.quantidade), 0);
+    const disponivel = Number(produto.quantidade || 0) - jaAdicionado;
+
+    if (quantidadeNum > disponivel) {
+      alert(`Estoque insuficiente! Disponível: ${disponivel}`);
+      return;
+    }
+
     setItens([
       ...itens,
       {
@@ -134,15 +152,49 @@ export function EditarCompra() {
       return;
     }
 
-    // Sempre enviar valores recalculados e incluir o ID
+    // Calcula diferença de estoque (delta)
+    const deltas = {};
+    for (const novo of itens) {
+      const original = itensOriginais.find((o) => o.id === novo.id);
+      const delta = original
+        ? Number(novo.quantidade) - Number(original.quantidade)
+        : Number(novo.quantidade);
+      deltas[novo.produtoId] = (deltas[novo.produtoId] || 0) + delta;
+    }
+    for (const original of itensOriginais) {
+      if (!itens.find((n) => n.id === original.id)) {
+        deltas[original.produtoId] =
+          (deltas[original.produtoId] || 0) - Number(original.quantidade);
+      }
+    }
+
+    // Verifica se há estoque suficiente
+    for (const [produtoIdStr, delta] of Object.entries(deltas)) {
+      const produto = produtos.find((p) => p.id === Number(produtoIdStr));
+      if (!produto) continue;
+      const novoEstoque = Number(produto.quantidade || 0) - delta;
+      if (novoEstoque < 0) {
+        alert(
+          `Estoque insuficiente para "${produto.descricao}". Estoque atual: ${produto.quantidade}, necessário: ${
+            -delta
+          }`
+        );
+        return;
+      }
+    }
+
+    // Atualiza a compra
     const compraBody = {
       id: Number(id),
       funcionarioId: Number(compra.funcionarioId),
       descricao: compra.descricao,
       quantidadeDeProduto: itens.reduce((acc, i) => acc + Number(i.quantidade), 0),
       quantidadeAtual: itens.reduce((acc, i) => acc + Number(i.quantidade), 0),
-      valorDaCompra: itens.reduce((acc, i) => acc + Number(i.preçoCusto) * Number(i.quantidade), 0),
-      dataCompra: formatDateToBR(compra.dataCompra), // PT-BR aqui
+      valorDaCompra: itens.reduce(
+        (acc, i) => acc + Number(i.preçoCusto) * Number(i.quantidade),
+        0
+      ),
+      dataCompra: compra.dataCompra,
       itens_Compra: itens.length,
     };
 
@@ -152,7 +204,7 @@ export function EditarCompra() {
       body: JSON.stringify(compraBody),
     });
 
-    // Atualizar itens
+    // Atualizar itens (POST/PUT/DELETE)
     for (const i of itens) {
       if (!i.id) {
         await fetch(Link_Itens_Compra, {
@@ -168,7 +220,10 @@ export function EditarCompra() {
         });
       } else {
         const original = itensOriginais.find((o) => o.id === i.id);
-        if (original.quantidade !== i.quantidade || original.preçoCusto !== i.preçoCusto) {
+        if (
+          original.quantidade !== i.quantidade ||
+          original.preçoCusto !== i.preçoCusto
+        ) {
           await fetch(`${Link_Itens_Compra}/${i.id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -189,6 +244,25 @@ export function EditarCompra() {
       if (!itens.find((i) => i.id === o.id)) {
         await fetch(`${Link_Itens_Compra}/${o.id}`, { method: "DELETE" });
       }
+    }
+
+    // Atualiza estoque (subtrai delta)
+    for (const [produtoIdStr, delta] of Object.entries(deltas)) {
+      const produtoId = Number(produtoIdStr);
+      const produto = produtos.find((p) => p.id === produtoId);
+      if (!produto) continue;
+
+      const novaQuantidade = Number(produto.quantidade || 0) - delta;
+
+      await fetch(`${linkPro}/${produtoId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...produto,
+          quantidade: novaQuantidade,
+          ativo: novaQuantidade > 0,
+        }),
+      });
     }
 
     alert("Compra atualizada com sucesso!");

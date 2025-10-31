@@ -1,0 +1,239 @@
+/* Container */
+.rel-container {
+  max-width: 1150px;
+  margin: 18px auto;
+  padding: 18px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 10px 28px rgba(10, 20, 40, 0.06);
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+  color: #222;
+}
+
+/* Header left (title + description) */
+.rel-header {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.rel-header-left {
+  flex: 1;
+}
+.rel-title {
+  margin: 0 0 6px 0;
+  font-size: 22px;
+  color: #0b2b6b;
+}
+.rel-desc {
+  margin: 0;
+  color: #596374;
+  font-size: 13px;
+}
+
+/* Filters layout */
+.rel-filters {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.rel-filter-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rel-label {
+  font-size: 12px;
+  color: #516176;
+}
+.rel-input {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #e6edf5;
+  background: #fff;
+  font-size: 13px;
+  min-width: 160px;
+}
+.rel-input:focus {
+  outline: none;
+  border-color: #7aa2ff;
+  box-shadow: 0 6px 18px rgba(122, 162, 255, 0.06);
+}
+.rel-input-small {
+  width: 80px;
+}
+
+/* Top actions */
+.rel-actions-top {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-left: 6px;
+}
+.rel-btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-weight: 600;
+  background: #0b2b6b;
+  color: #fff;
+}
+.rel-btn:hover {
+  opacity: 0.95;
+}
+.rel-btn-export {
+  background: #2762ff;
+}
+.rel-btn-ghost {
+  background: transparent;
+  border: 1px solid #d6dbe6;
+  color: #1f2a44;
+}
+.rel-btn-small {
+  padding: 6px 8px;
+  font-size: 13px;
+}
+
+/* KPIs */
+.rel-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 14px 0;
+}
+.kpi {
+  padding: 12px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #fbfdff, #f8fbff);
+  border: 1px solid #eef5ff;
+}
+.kpi-label {
+  font-size: 12px;
+  color: #566677;
+  margin-bottom: 6px;
+}
+.kpi-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0b2b6b;
+}
+.kpi-help {
+  font-size: 12px;
+  color: #8b98a8;
+  margin-top: 6px;
+}
+
+/* Sections */
+.rel-section {
+  margin-top: 18px;
+}
+.rel-section-title {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  color: #0b2b6b;
+}
+
+/* Tables */
+.rel-table-wrap {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #eef4fb;
+  background: #fff;
+}
+.rel-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 480px;
+}
+.rel-table thead th {
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #333;
+  background: #fbfdff;
+  border-bottom: 1px solid #eef6ff;
+}
+.rel-table tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f6f8fb;
+  vertical-align: middle;
+  font-size: 14px;
+  color: #222;
+}
+.rel-empty {
+  text-align: center;
+  color: #777;
+  padding: 18px;
+}
+.rel-col-valor,
+.rel-col-estoque,
+.rel-col-percent,
+.rel-col-orders,
+.rel-col-action {
+  text-align: right;
+  white-space: nowrap;
+}
+.rel-col-valor {
+  width: 160px;
+}
+.rel-col-estoque {
+  width: 120px;
+}
+
+/* Badges and low stock highlight */
+.badge {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 13px;
+  min-width: 44px;
+  text-align: center;
+}
+.badge-low {
+  background: #ffe6e6;
+  color: #c0392b;
+  border: 1px solid #ffcccc;
+}
+.badge-ok {
+  background: #f0fbf4;
+  color: #1e7b30;
+  border: 1px solid #daf6dd;
+}
+.row-low-stock {
+  background: #fff7f7;
+}
+
+/* Actions row */
+.rel-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Small responsive tweaks */
+@media (max-width: 980px) {
+  .rel-kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .rel-filters {
+    gap: 6px;
+  }
+}
+@media (max-width: 640px) {
+  .rel-kpis {
+    grid-template-columns: 1fr;
+  }
+  .rel-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .rel-input {
+    min-width: auto;
+    width: 100%;
+  }
+}

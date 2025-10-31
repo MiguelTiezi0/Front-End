@@ -5,8 +5,9 @@ import { Link_Itens_Compra } from "../Itens_Compra/link_Itens_Compra";
 import { linkFun } from "../../Gerenciamento/Funcionario/linkFun";
 import { linkPro } from "../../Gerenciamento/Produto/linkPro";
 import "./Compra.css";
-
+import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 export function DetalhesCompra() {
+  useRequireAuth("Funcionario");
   const { id } = useParams();
   const [compra, setCompra] = useState(null);
   const [funcionario, setFuncionario] = useState(null);

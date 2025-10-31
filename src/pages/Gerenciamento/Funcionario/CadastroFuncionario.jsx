@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import "./Funcionario.css";
 import { linkFun } from "./linkFun";
 import Inputmask from "inputmask";
-
+import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 // Função de validação de CPF
 function validarCPF(cpf) {
   cpf = cpf.replace(/[^\d]+/g, "");
@@ -44,16 +44,16 @@ function toISODate(dateStr) {
   return `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
 }
 
-
 function formatarTelefone(valor) {
   return valor
-    .replace(/\D/g, "")
-    .replace(/^(\d{2})(\d)/g, "($1) $2")
-    .replace(/(\d{5})(\d)/, "$1-$2")
-    .replace(/(-\d{4})\d+?$/, "$1");
+  .replace(/\D/g, "")
+  .replace(/^(\d{2})(\d)/g, "($1) $2")
+  .replace(/(\d{5})(\d)/, "$1-$2")
+  .replace(/(-\d{4})\d+?$/, "$1");
 }
 
 export function CadastroFuncionario() {
+  useRequireAuth("Funcionario");
   document.title = "Cadastro de Funcionários";
   const location = useLocation();
   const funcionarioClonado = location.state?.funcionario || null;
@@ -115,34 +115,7 @@ export function CadastroFuncionario() {
       return;
     }
 
-    // const funcionario = {
-    //   id: parseInt(id),
-    //   nome,
-    //   cpf,
-    //   endereço: endereco,
-    //   dataContratação: toISODate(dataContratacao),
-    //   telefone,
-    //   salário: parseFloat(salario),
-    //   dataDeNascimento: toISODate(dataDeNascimento),
-    //   ativo,
-    //   usuario,
-    //   senha,
-    //   nivelAcesso, // Adicionado
-    // };
-    // const funcionario = {
-    //   Id: parseInt(id),
-    //   Nome: nome,
-    //   CPF: cpf,
-    //   Endereço: endereco, // com acento
-    //   DataContratação: toISODate(dataContratacao), // com acento
-    //   Telefone: telefone,
-    //   Salário: parseFloat(salario), // com acento
-    //   DataDeNascimento: toISODate(dataDeNascimento),
-    //   Ativo: ativo,
-    //   Usuario: usuario,
-    //   Senha: senha,
-    //   NivelAcesso: nivelAcesso,
-    // };
+
 
     const funcionario = {
       id: parseInt(id),
@@ -303,21 +276,29 @@ export function CadastroFuncionario() {
             className="inputCadastroFuncionario"
             value={nivelAcesso}
           />
-          <label style={{ color: "#fff", marginTop: "10px" }}>
-            Ativo:
-            <input
-              type="checkbox"
-              checked={ativo}
-              onChange={(e) => setAtivo(e.target.checked)}
-              style={{ marginLeft: "10px" }}
-            />
-          </label>
+          <div className="field-ativo" style={{ marginTop: 8 }}>
+            <label className="toggle" aria-label="Ativar funcionário">
+              <input
+                type="checkbox"
+                checked={ativo}
+                onChange={(e) => setAtivo(e.target.checked)}
+                aria-checked={ativo}
+              />
+              <span className="slider" />
+            </label>
+            <span className={`toggle-text ${ativo ? "on" : "off"}`}>
+              {ativo ? "Ativo" : "Inativo"}
+            </span>
+          </div>
           <div className="buttonsGroupFuncionario">
             <button
               type="button"
               className="btnFuncionario btnVoltarFuncionario"
             >
-              <Link to="/Funcionario/ListagemFuncionario" className="linkCadastro">
+              <Link
+                to="/Funcionario/ListagemFuncionario"
+                className="linkCadastro"
+              >
                 Voltar
               </Link>
             </button>

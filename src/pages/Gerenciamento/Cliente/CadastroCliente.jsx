@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "./Cliente.css";
 import { linkCli } from "./linkCli";
-
+import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 function validarCPF(cpf) {
   cpf = cpf.replace(/[^\d]+/g, "");
   if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
@@ -37,15 +37,16 @@ function toISODate(dateStr) {
 
 function formatTelefoneInput(value) {
   return value
-    .replace(/\D/g, "")
-    .replace(/^(\d{2})(\d)/g, "($1) $2")
+  .replace(/\D/g, "")
+  .replace(/^(\d{2})(\d)/g, "($1) $2")
     .replace(/(\d{5})(\d)/, "$1-$2")
     .replace(/(-\d{4})\d+?$/, "$1");
 }
 
 export function CadastroCliente() {
+  useRequireAuth("Funcionario");
   document.title = "Cadastro de Clientes";
-
+  
   const [id, setId] = useState("");
   const [nome, setNome] = useState("");
   const [cpf, setCpf] = useState("");

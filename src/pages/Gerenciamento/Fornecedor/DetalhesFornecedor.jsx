@@ -5,8 +5,9 @@ import olhoFechado from "../../../assets/icons/olhoFechado.svg";
 import edit from "../../../assets/icons/edit.svg";
 import "./Fornecedor.css";
 import { linkFor } from "./linkFor";
-
+import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 export function DetalhesFornecedor() {
+  useRequireAuth("Funcionario");
   const { id } = useParams();
   const [fornecedor, setFornecedor] = useState(null);
   const navigate = useNavigate();

@@ -15,89 +15,127 @@ body {
   max-height: 100vh;
 }
 
-.centro {
-  height: calc(100vh - 80px);
-  width: 100%;
+
+/* Wrapper central (usa .centro se presente) */
+.centroFornecedor {
+  min-height: calc(100vh - 80px);
+  display: flex;
+  align-items: center; /* vertical center */
+  justify-content: center; /* horizontal center */
+  padding: 24px;
 }
 
+/* Card principal do cadastro/listagem */
 .CadastroFornecedor {
   width: 100%;
-  height: 100%;
-  overflow-y: auto;
-  display: grid;
-  justify-content: center;
+  max-width: 1100px; /* largura máxima centralizada */
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+  justify-content: flex-start;
+ 
+  border-radius: var(--radius);
+  box-shadow: 0 10px 30px rgba(11, 35, 77, 0.06);
+  padding: 20px;
+  box-sizing: border-box;
 }
 
+/* Título centralizado */
 .CadastroFornecedor h1 {
   font-size: 3rem;
-  color: var(--white-secondary-color);
-}
-
-.formCadastroFornecedor {
-  display: grid;
-  grid-template-columns: repeat(2, 180px);
-  grid-template-rows: repeat(4, 80px);
-  row-gap: .1rem;
-  column-gap: 3rem;
-}
-
-.inputIdFornecedor {
-  grid-column-start: 1;
-  grid-row-start: 1;
-  grid-column-end: -1;
-}  
-
-.inputCadastroFornecedor {
-  background-color: var(--white-secondary-color);
-  border: none;
-  height: 60px;
-  border-radius: 0.5rem;
-  width: 210px;
-  font-size: 1.5rem;
-}
-
-.inputCadastroFornecedor::placeholder {
-  color: var(--black-primary-color);
-  font-size: 1.5rem;
-}
-
-.selectCadastroFornecedor {
-  border: none;
-  background-color: var(--white-secondary-color);
-  font-size: 1rem;
-  width: 210px;
-  color: var(--black-primary-color);
-  border-radius: 0.5rem;
-  height: 60px;
-}
-
-.buttonsGroupFornecedor {
-  display: flex;
-  width: 500px;
-  justify-content: space-around;
-  gap: 2rem;
-}
-
-.btnFornecedor {
-  border: none;
-  color: var(--black-primary-color);
+  color: var(--white-primary-color);
+  margin: 0;
   text-align: center;
+}
+
+/* Form layout: grid alinhado e responsivo */
+.formCadastroFornecedor {
+  width: 600px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(200px, 1fr));
+  grid-auto-rows: 72px;
+  gap: 16px 28px;
+  align-items: center;
+  box-sizing: border-box;
+  margin: 0 auto;
+}
+
+/* Input que ocupa toda linha (ID, endereço longo etc) */
+
+
+.inputCadastroFornecedor,
+.selectCadastroFornecedor,
+.inputDetalhesFornecedor,
+.inputEditarFornecedor {
+  width: 100%;
+  height: 56px;
+  padding: 12px 14px;
   font-size: 1rem;
-  width: 200px;
-  height: 60px;
+  border-radius: 10px;
+  border: 1px solid rgba(11, 35, 77, 0.06);
+  background: var(--white-secondary-color);
+  color: var(--black-primary-color);
+  box-sizing: border-box;
+}
+
+/* Placeholder */
+.inputCadastroFornecedor::placeholder,
+.inputEditarFornecedor::placeholder {
+  color: rgba(37, 37, 37, 0.7);
+  font-size: 1.5rem;
+}
+
+/* Select */
+.selectCadastroFornecedor,
+.selectDetalhesFornecedor,
+.selectEditarFornecedor {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 36px;
+  box-sizing: border-box;
+}
+
+/* Botões: centralizados e com espaçamento */
+.buttonsGroupFornecedor,
+.buttonsGroupDetalhesFornecedor{
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  padding-top: 6px;
+}
+
+/* Botões com estilos consistentes */
+.btnFornecedor,
+.btnDetalhesFornecedor{
+  min-width: 250px;
+  max-width: 260px;
+  height: 56px;
+  border: none;
+  color: var(--black-primary-color);
+  text-decoration: none;
+  font-size: 2rem;
   cursor: pointer;
-  border-radius: 0.8rem;
+  border-radius: 10px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 18px rgba(11, 35, 77, 0.06);
 }
 
 .btnVoltarFornecedor {
   background-color: var(--red);
-}
 
+  border: none;
+}
 .btnSalvarFornecedor,
 .btnEditarFornecedor {
   background-color: var(--green);
+  
 }
-
 .btnEtiquetaFornecedor {
   background-color: var(--blue);
 }
@@ -327,6 +365,8 @@ thead {
   grid-template-rows: repeat(5, 80px);
   row-gap: .1rem;
   column-gap: 3rem;
+  width: 400px;
+  height: auto;
 }
 
 .inputIdEditarFornecedor {
@@ -361,17 +401,17 @@ thead {
 
 .buttonsGroupEditarFornecedor {
   display: flex;
-  width: 500px;
-  justify-content: space-around;
-  gap: 2rem;
+  width: 438px;
+  justify-content: center;
+ gap: 1rem;
 }
 
-.btnEditarFornecedor {
+.btnFornecedorEditar {
   border: none;
   color: var(--black-primary-color);
   text-align: center;
   font-size: 1rem;
-  width: 200px;
+  width: 180px;
   height: 60px;
   cursor: pointer;
   border-radius: 0.8rem;

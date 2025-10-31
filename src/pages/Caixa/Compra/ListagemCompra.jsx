@@ -8,8 +8,9 @@ import { useNavigate } from "react-router-dom";
 import { linkCompra } from "./linkCompra";
 import { linkFun } from "../../Gerenciamento/Funcionario/linkFun";
 import { linkPro } from "../../Gerenciamento/Produto/linkPro";
-
+import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 export function ListagemCompra() {
+  useRequireAuth("Funcionario");
   document.title = "Listagem de Compras";
   const [pesquisa, setPesquisa] = useState("");
   const [inputVisivel, setInputVisivel] = useState(false);

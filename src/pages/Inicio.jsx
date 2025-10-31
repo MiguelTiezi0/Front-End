@@ -5,8 +5,8 @@ import { useRequireAuth } from "../hooks/RequireAuth/useRequireAuth.jsx";
 
 export function Inicio() {
   document.title = "Início";
+  useRequireAuth("Cliente"); 
 
-      useRequireAuth("Cliente"); 
 
   return (
     <div className="inicioContainer">

@@ -4,8 +4,10 @@ import "./Pages.css";
 
 import olhosAbertos from "../assets/icons/olhosAbertos.svg";
 import olhosFechados from "../assets/icons/olhoFechado.svg";
+import { useRequireAuth } from "../hooks/RequireAuth/useRequireAuth.jsx";
 
 export function Login() {
+  useRequireAuth("Cliente"); 
   document.title = "Login";
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const navigate = useNavigate();

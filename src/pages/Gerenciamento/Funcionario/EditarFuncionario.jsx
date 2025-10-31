@@ -5,7 +5,7 @@ import { linkFun } from "./linkFun";
 import lixo from "../../../assets/icons/lixo.svg";
 import olhoFechado from "../../../assets/icons/olhoFechado.svg";
 import edit from "../../../assets/icons/edit.svg";
-
+import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 // Função de validação de CPF
 function validarCPF(cpf) {
   cpf = cpf.replace(/[^\d]+/g, "");
@@ -34,9 +34,10 @@ function formatarTelefone(valor) {
     .replace(/^(\d{2})(\d)/g, "($1) $2")
     .replace(/(\d{5})(\d)/, "$1-$2")
     .replace(/(-\d{4})\d+?$/, "$1");
-}
-
+  }
+  
 export function EditarFuncionario() {
+  useRequireAuth("Funcionario");
   document.title = "Editar Funcionário";
   const { id } = useParams();
   const navigate = useNavigate();

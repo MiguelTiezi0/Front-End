@@ -3,8 +3,10 @@ import "./Pages.css";
 
 import olhosAbertos from "../assets/icons/olhosAbertos.svg";
 import olhosFechados from "../assets/icons/olhoFechado.svg";
+import { useRequireAuth } from "../hooks/RequireAuth/useRequireAuth.jsx";
 
 export function Cadastro() {
+  useRequireAuth("Cliente"); 
   document.title = "Cadastro";
   const [mostrarSenha, setMostrarSenha] = useState(false);
 

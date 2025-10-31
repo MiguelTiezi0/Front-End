@@ -9,8 +9,9 @@ import { linkVenItens } from "../ItensVenda/linkVenItens";
 import { linkPag } from "../Pagamento/linkPag";
 import { CadastroCliente } from "../../Gerenciamento/Cliente/CadastroCliente";
 import "./Venda.css";
-
+import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 export function CadastroVenda() {
+  useRequireAuth("Funcionario");
   const navigate = useNavigate();
   const { id } = useParams();
 

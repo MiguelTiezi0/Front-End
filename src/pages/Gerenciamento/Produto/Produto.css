@@ -244,6 +244,30 @@ thead {
   font-size: 20px;
 }
 
+/* Estilos para as linhas da tabela */
+.tableProduto tr {
+  transition: background-color 0.2s ease;
+}
+
+/* Linha sem estoque */
+.tableProduto tr.sem-estoque {
+  background-color: rgba(180, 17, 17, 0.1); /* vermelho suave */
+  color: var(--red);
+   /* background-color: var(--red);  */
+  /* color:var(--black-primary-color); */
+}
+
+/* Linha selecionada */
+.tableProduto tr.selecionado {
+  background-color: var(--blue); /* azul suave */
+  outline: 2px solid rgba(41, 116, 215, 0.1);
+}
+
+/* Hover nas linhas */
+.tableProduto tr:hover:not(.sem-estoque):not(.selecionado) {
+  background-color: rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+}
 
 .centroDetalhesProduto {
   height: calc(100vh - 80px);
@@ -320,13 +344,6 @@ thead {
   border-radius: 0.8rem;
   margin: 0.5rem;
 }
-
-
-
-
-
-
-
 
 .centroEditarProduto {
   height: calc(100vh - 80px);

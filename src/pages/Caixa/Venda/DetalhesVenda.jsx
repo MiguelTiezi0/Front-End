@@ -7,8 +7,9 @@ import { linkFun } from "../../Gerenciamento/Funcionario/linkFun";
 import { linkCli } from "../../Gerenciamento/Cliente/linkCli";
 import { linkVenItens } from "../ItensVenda/linkVenItens";
 import { linkPro } from "../../Gerenciamento/Produto/linkPro";
-
+import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 export function DetalhesVenda() {
+  useRequireAuth("Funcionario");
   const { id } = useParams();
   const [venda, setVenda] = useState(null);
   const [funcionario, setFuncionario] = useState(null);

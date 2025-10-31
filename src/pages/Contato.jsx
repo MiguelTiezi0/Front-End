@@ -1,7 +1,9 @@
 import './Pages.css';
 import React from "react";
+import { useRequireAuth } from "../hooks/RequireAuth/useRequireAuth.jsx";
 
 export function Contato() {
+  useRequireAuth("Cliente"); 
   document.title = "Contato";
 
   return (

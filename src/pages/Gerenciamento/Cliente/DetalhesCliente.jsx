@@ -6,8 +6,9 @@ import edit from "../../../assets/icons/edit.svg";
 import "./Cliente.css";
 import { linkCli } from "./linkCli";
 import { linkVen } from "../../Caixa/Venda/linkVen";
-
+import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 export function DetalhesCliente() {
+  useRequireAuth("Funcionario");
   const { id } = useParams();
   const [cliente, setCliente] = useState(null);
   const [vendas, setVendas] = useState([]);

@@ -7,8 +7,9 @@ import edit from "../../../assets/icons/edit.svg";
 import "./Produto.css";
 import { linkPro } from "./linkPro";
 import { linkCat } from "../Categoria/linkCat";
-
+import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 export function DetalhesProduto() {
+  useRequireAuth("Funcionario");
   const { id } = useParams();
   const [produto, setProduto] = useState(null);
   const [categoriaDescricao, setCategoriaDescricao] = useState("");

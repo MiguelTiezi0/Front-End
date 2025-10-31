@@ -7,8 +7,9 @@ import olhoFechado from "../../../assets/icons/olhoFechado.svg";
 import { useNavigate } from "react-router-dom";
 
 import { linkCli } from "./linkCli";
-
+import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 export function ListagemCliente() {
+  useRequireAuth("Funcionario");
   document.title = "Listagem de Clientes";
   const [pesquisa, setPesquisa] = useState("");
   const [inputVisivel, setInputVisivel] = useState(false);

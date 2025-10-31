@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { HeaderCaixa } from "../../components/Caixa/HeaderCaixa/HeaderCaixa";
 import "./HomeCaixa.css";
-
+import { useRequireAuth } from "../../hooks/RequireAuth/useRequireAuth.jsx";
 export function HomeCaixa() {
+  useRequireAuth("Funcionario");
   document.title = "Caixa - Home";
   const [mensagemCaixa, setMensagemCaixa] = useState("");
   const [caixa, setCaixa] = useState({

@@ -10,8 +10,9 @@ import { linkPro } from "./linkPro";
 import { linkCat } from "../Categoria/linkCat";
 import { linkFor } from "../Fornecedor/linkFor";
 import { useAlerta } from "../../../hooks/Alerta/useAlerta";
-
+import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 export function ListagemProduto() {
+  useRequireAuth("Funcionario");
   document.title = "Listagem de Produtos";
   const navigate = useNavigate();
   const alerta = useAlerta();
@@ -175,13 +176,15 @@ export function ListagemProduto() {
 
     return (
       <tr
-        key={produto.id}
-        onClick={() => handleRowClick(produto.id)}
-        className={`
-          produto-row
-          ${isSelected ? "selected" : ""}
-          ${isOutOfStock ? "out-of-stock" : ""}
+
+      
+      
+      key={produto.id}
+      className={`
+        ${produto.quantidade <= 0 ? "sem-estoque" : ""}
+          ${produtoSelecionado === produto.id ? "selecionado" : ""}
         `}
+        onClick={() => setProdutoSelecionado(produto.id)}
       >
         <td>{produto.id}</td>
         <td>{produto.descricao}</td>

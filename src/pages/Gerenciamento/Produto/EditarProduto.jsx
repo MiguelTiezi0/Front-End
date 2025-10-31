@@ -5,8 +5,9 @@ import "./Produto.css";
 import { linkPro } from "./linkPro";
 import { linkCat } from "../Categoria/linkCat";
 import { linkFor } from "../Fornecedor/linkFor";
-
+import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 export function EditarProduto() {
+  useRequireAuth("Funcionario");
   document.title = "Editar Produto";
 
   const { id } = useParams();

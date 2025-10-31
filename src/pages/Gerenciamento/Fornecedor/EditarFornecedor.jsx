@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import "./Fornecedor.css";
 import { linkFor } from "./linkFor";
-
+import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 export function EditarFornecedor() {
+  useRequireAuth("Funcionario");
   document.title = "Editar Fornecedor";
   const { id } = useParams();
   const navigate = useNavigate();
@@ -77,9 +78,9 @@ export function EditarFornecedor() {
   };
 
   return (
-    <div className="EditarCategoria">
+    <div className="EditarFornecedor">
       <h1>Editar Fornecedor</h1>
-      <form className="divEditarCategoria" onSubmit={handleSubmit}>
+      <form className="divEditarFornecedor" onSubmit={handleSubmit}>
         <input
           type="text"
           name="id"
@@ -87,14 +88,14 @@ export function EditarFornecedor() {
           readOnly
           value={fornecedor.id || ""}
           placeholder="Id"
-          className="inputEditarCategoria"
+          className="inputEditarFornecedor"
         />
         <input
           type="text"
           name="nome"
           required
           placeholder="Nome"
-          className="inputEditarCategoria"
+          className="inputEditarFornecedor"
           value={fornecedor.nome}
           onChange={handleChange}
         />
@@ -103,7 +104,7 @@ export function EditarFornecedor() {
           name="cnpj"
           required
           placeholder="CNPJ"
-          className="inputEditarCategoria"
+          className="inputEditarFornecedor"
           value={fornecedor.cnpj}
           onChange={handleChange}
         />
@@ -112,17 +113,17 @@ export function EditarFornecedor() {
           name="numTelefone"
           required
           placeholder="Telefone"
-          className="inputEditarCategoria"
+          className="inputEditarFornecedor"
           value={fornecedor.numTelefone}
           onChange={handleChange}
         />
-        <div className="buttonsGroupEditarCategoria">
-          <button type="button" className="btnCategoria btnVoltarCategoria">
+        <div className="buttonsGroupEditarFornecedor">
+          <button type="button" className="btnFornecedorEditar btnVoltarFornecedor">
             <Link to="/Fornecedor/ListagemFornecedor" className="linkCadastro">
               Voltar
             </Link>
           </button>
-          <button type="submit" className="btnCategoria btnSalvarCategoria">
+          <button type="submit" className="btnFornecedorEditar btnSalvarFornecedor">
             Salvar
           </button>
         </div>

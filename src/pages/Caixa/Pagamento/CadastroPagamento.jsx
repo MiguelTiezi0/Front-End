@@ -5,8 +5,9 @@ import { linkFun } from "../../Gerenciamento/Funcionario/linkFun";
 import { linkCli } from "../../Gerenciamento/Cliente/linkCli";
 import { linkVen } from "../Venda/linkVen";
 import "./Pagamento.css";
-
+import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 export function CadastroPagamento() {
+  useRequireAuth("Funcionario");
   const navigate = useNavigate();
 
   const [funcionarios, setFuncionarios] = useState([]);

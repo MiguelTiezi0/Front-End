@@ -5,15 +5,11 @@ import { linkPro } from "../../Gerenciamento/Produto/linkPro";
 import { linkCompra } from "./linkCompra";
 import { Link_Itens_Compra } from "../Itens_Compra/link_Itens_Compra";
 import "./Compra.css";
-
+import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 /* Helpers de formatação */
 function formatDateToInput(date) {
   const d = new Date(date);
   return d.toISOString().slice(0, 16);
-}
-function formatDateToBR(dateString) {
-  const d = new Date(dateString);
-  return d.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
 }
 function currency(v) {
   return Number(v || 0).toFixed(2);
@@ -21,6 +17,7 @@ function currency(v) {
 
 /* Componente */
 export function CadastroCompra() {
+  useRequireAuth("Funcionario");
   const navigate = useNavigate();
 
   const [funcionarios, setFuncionarios] = useState([]);
@@ -39,15 +36,19 @@ export function CadastroCompra() {
   const [item, setItem] = useState({ produtoId: "", quantidade: "", valorUnitario: "" });
   const [saving, setSaving] = useState(false);
 
+  // Carregar funcionários e produtos
   useEffect(() => {
     fetch(linkFun).then((r) => r.json()).then(setFuncionarios).catch(console.error);
     fetch(linkPro).then((r) => r.json()).then(setProdutos).catch(console.error);
   }, []);
 
-  /* Totais atualizados automaticamente quando itens mudam */
+  // Atualiza totais automaticamente
   useEffect(() => {
     const quantidadeDeProduto = itens.reduce((acc, i) => acc + Number(i.quantidade), 0);
-    const valorDaCompra = itens.reduce((acc, i) => acc + Number(i.valorUnitario) * Number(i.quantidade), 0);
+    const valorDaCompra = itens.reduce(
+      (acc, i) => acc + Number(i.valorUnitario) * Number(i.quantidade),
+      0
+    );
     setCompra((c) => ({
       ...c,
       quantidadeDeProduto,
@@ -57,13 +58,13 @@ export function CadastroCompra() {
     }));
   }, [itens]);
 
-  /* Produto selecionado completo */
+  // Produto selecionado
   const produtoSelecionado = useMemo(() => {
     const id = Number(item.produtoId);
     return produtos.find((p) => p.id === id) ?? null;
   }, [item.produtoId, produtos]);
 
-  /* Quantidade já adicionada desse produto na lista atual (compra em construção) */
+  // Quantidade já adicionada desse produto
   const quantidadeJaAdicionada = useMemo(() => {
     const pid = Number(item.produtoId);
     if (!pid) return 0;
@@ -72,18 +73,17 @@ export function CadastroCompra() {
       .reduce((acc, it) => acc + Number(it.quantidade), 0);
   }, [item.produtoId, itens]);
 
-  /* Estoque disponível considerando itens já adicionados */
+  // Estoque disponível (considerando já adicionados)
   const estoqueDisponivel = produtoSelecionado
     ? Math.max(0, Number(produtoSelecionado.quantidade || 0) - quantidadeJaAdicionada)
     : 0;
 
-  /* Validação antes de permitir adicionar item */
+  // Permissão para adicionar item
   const canAddItem = useMemo(() => {
     const produtoIdNum = Number(item.produtoId);
     const quantidadeNum = Number(item.quantidade);
     const valorUnit = Number(item.valorUnitario);
-    if (!produtoIdNum) return false;
-    if (!produtoSelecionado) return false;
+    if (!produtoIdNum || !produtoSelecionado) return false;
     if (!quantidadeNum || quantidadeNum <= 0 || isNaN(quantidadeNum)) return false;
     if (isNaN(valorUnit) || valorUnit <= 0) return false;
     if (quantidadeNum > estoqueDisponivel) return false;
@@ -105,34 +105,25 @@ export function CadastroCompra() {
     const quantidadeNum = Number(item.quantidade);
     const valorUnitarioNum = Number(item.valorUnitario);
 
-    // Validações básicas e conversões
-    if (!produtoId || isNaN(quantidadeNum) || quantidadeNum <= 0 || isNaN(valorUnitarioNum) || valorUnitarioNum <= 0) {
+    if (!produtoId || quantidadeNum <= 0 || valorUnitarioNum <= 0) {
       alert("Selecione produto, quantidade e valor válidos.");
       return;
     }
 
     const produto = produtos.find((p) => p.id === produtoId);
     if (!produto) {
-      alert("Produto selecionado não existe.");
+      alert("Produto não encontrado.");
       return;
     }
 
-    // Quantidade já adicionada na compra atual para esse produto
-    const quantidadeAdicionada = itens
-      .filter((it) => Number(it.produtoId) === produtoId)
-      .reduce((acc, it) => acc + Number(it.quantidade), 0);
+    // Verifica estoque disponível
+    const jaAdicionado = itens
+      .filter((i) => Number(i.produtoId) === produtoId)
+      .reduce((acc, i) => acc + Number(i.quantidade), 0);
+    const disponivelRestante = Math.max(0, Number(produto.quantidade || 0) - jaAdicionado);
 
-    const disponivelRestante = Math.max(0, Number(produto.quantidade || 0) - quantidadeAdicionada);
-
-    // Validação crítica: não permitir exceder estoque disponível
     if (quantidadeNum > disponivelRestante) {
-      alert(`Não é possível adicionar ${quantidadeNum} unidades. Estoque disponível: ${disponivelRestante}`);
-      return;
-    }
-
-    // Não permitir adicionar se não houver estoque
-    if (disponivelRestante <= 0) {
-      alert("Este produto não possui estoque disponível.");
+      alert(`Estoque insuficiente. Disponível: ${disponivelRestante}`);
       return;
     }
 
@@ -152,9 +143,15 @@ export function CadastroCompra() {
     setItens((prev) => prev.filter((i) => i.tempId !== tempId));
   };
 
-  /* Verifica estoque final antes de salvar (proteção extra) */
-  const validarEstoqueAntesSalvar = () => {
-    // Agrupa quantidades por produto na compra
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!compra.funcionarioId || !compra.descricao || itens.length === 0) {
+      alert("Preencha todos os campos obrigatórios e adicione pelo menos um item.");
+      return;
+    }
+
+    // Validação de estoque final
     const requiredByProduct = itens.reduce((acc, it) => {
       const pid = Number(it.produtoId);
       acc[pid] = (acc[pid] || 0) + Number(it.quantidade);
@@ -165,39 +162,26 @@ export function CadastroCompra() {
       const pid = Number(pidStr);
       const produto = produtos.find((p) => p.id === pid);
       if (!produto) {
-        return { ok: false, mensagem: `Produto ${pid} não encontrado.` };
+        alert(`Produto ${pid} não encontrado.`);
+        return;
       }
       const requerido = requiredByProduct[pid];
       const disponivel = Number(produto.quantidade || 0);
       if (requerido > disponivel) {
-        return {
-          ok: false,
-          mensagem: `Quantidade do produto "${produto.descricao}" excede estoque. Disponível: ${disponivel}, solicitado: ${requerido}`,
-        };
+        alert(
+          `Estoque insuficiente para "${produto.descricao}". Disponível: ${disponivel}, solicitado: ${requerido}`
+        );
+        return;
       }
-    }
-    return { ok: true };
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!compra.funcionarioId || !compra.descricao || itens.length === 0) {
-      alert("Preencha todos os campos obrigatórios e adicione pelo menos um item.");
-      return;
-    }
-
-    // Validação final antes de enviar
-    const validar = validarEstoqueAntesSalvar();
-    if (!validar.ok) {
-      alert(validar.mensagem);
-      return;
     }
 
     setSaving(true);
     try {
       const quantidadeDeProduto = itens.reduce((acc, i) => acc + Number(i.quantidade), 0);
-      const valorDaCompra = itens.reduce((acc, i) => acc + Number(i.valorUnitario) * Number(i.quantidade), 0);
+      const valorDaCompra = itens.reduce(
+        (acc, i) => acc + Number(i.valorUnitario) * Number(i.quantidade),
+        0
+      );
 
       const compraBody = {
         funcionarioId: Number(compra.funcionarioId),
@@ -205,7 +189,7 @@ export function CadastroCompra() {
         quantidadeDeProduto,
         quantidadeAtual: quantidadeDeProduto,
         valorDaCompra,
-        dataCompra: formatDateToBR(compra.dataCompra),
+        dataCompra: compra.dataCompra,
         itens_Compra: itens.length,
       };
 
@@ -215,17 +199,14 @@ export function CadastroCompra() {
         body: JSON.stringify(compraBody),
       });
 
-      if (!resCompra.ok) {
-        const txt = await resCompra.text().catch(() => "");
-        throw new Error(`Erro ao salvar compra. ${txt}`);
-      }
+      if (!resCompra.ok) throw new Error("Erro ao salvar compra.");
 
       const compraSalva = await resCompra.json();
       const compraId = compraSalva.id;
 
-      // 1) Enviar itens
-      const itensPromises = itens.map((it) =>
-        fetch(Link_Itens_Compra, {
+      // Salvar itens
+      for (const it of itens) {
+        await fetch(Link_Itens_Compra, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -235,36 +216,25 @@ export function CadastroCompra() {
             valorUnitario: Number(it.valorUnitario),
             subtotal: Number(it.subtotal),
           }),
-        })
-      );
-
-      const itensResponses = await Promise.all(itensPromises);
-      for (const r of itensResponses) {
-        if (!r.ok) {
-          const txt = await r.text().catch(() => "");
-          throw new Error(`Erro ao salvar item da compra: ${txt}`);
-        }
+        });
       }
 
-      // 2) Atualizar estoque agrupando por produto (uma única PUT por produto)
+      // Atualizar estoque (subtrair quantidades compradas)
       const totalsByProduct = itens.reduce((acc, it) => {
         const pid = Number(it.produtoId);
         acc[pid] = (acc[pid] || 0) + Number(it.quantidade);
         return acc;
       }, {});
 
-      const updatePromises = Object.entries(totalsByProduct).map(async ([pidStr, addedQty]) => {
+      for (const [pidStr, usedQty] of Object.entries(totalsByProduct)) {
         const pid = Number(pidStr);
-        // Buscar estado atual do produto antes de atualizar
         const produtoResp = await fetch(`${linkPro}/${pid}`);
-        if (!produtoResp.ok) {
-          console.warn(`Não foi possível buscar produto ${pid} para atualizar estoque.`);
-          return;
-        }
+        if (!produtoResp.ok) continue;
         const produtoAtual = await produtoResp.json();
-        const novaQuantidade = Number(produtoAtual.quantidade || 0) + Number(addedQty);
 
-        const updateProdResp = await fetch(`${linkPro}/${pid}`, {
+        const novaQuantidade = Math.max(0, Number(produtoAtual.quantidade || 0) - Number(usedQty));
+
+        await fetch(`${linkPro}/${pid}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -273,13 +243,7 @@ export function CadastroCompra() {
             ativo: novaQuantidade > 0,
           }),
         });
-
-        if (!updateProdResp.ok) {
-          console.warn(`Falha ao atualizar estoque do produto ${pid}.`);
-        }
-      });
-
-      await Promise.all(updatePromises);
+      }
 
       alert("Compra cadastrada com sucesso!");
       navigate("../Compra/ListagemCompra");
@@ -374,7 +338,6 @@ export function CadastroCompra() {
                 className="cadastroCompraBtn"
                 onClick={handleAddItem}
                 disabled={!canAddItem}
-                title={!canAddItem ? "Selecione produto/quantidade válida e verifique estoque" : "Adicionar produto"}
               >
                 Adicionar Produto
               </button>
