@@ -201,8 +201,9 @@ export function HomeCaixa() {
   return (
     <div className="home-caixa-clean">
       <HeaderCaixa />
-
+    
       <div className="center-wrapper">
+        <div/>
         <div className={`card-main ${caixa.aberto ? "open" : "closed"}`}>
           <div className="top-row">
             <div className="status-dot" aria-hidden />
@@ -284,6 +285,7 @@ export function HomeCaixa() {
 
           {mensagemCaixa && <div className="toast">{mensagemCaixa}</div>}
         </div>
+         <div/>
       </div>
 
       <div

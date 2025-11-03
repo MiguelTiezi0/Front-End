@@ -60,7 +60,7 @@ export function HomeGerenciamento() {
       <HeaderGerenciamento />
 
       <div className="content">
-        <h1>Sistema de Gestão MiguelTiera</h1>
+        <h1>Sistema de Gestão da Hello People</h1>
         <p className="welcome-text">Selecione uma área para gerenciar:</p>
 
         <div className="cards-grid">
