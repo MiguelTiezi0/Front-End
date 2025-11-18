@@ -426,13 +426,6 @@ export function CadastroProduto() {
             <button type="submit" className="btnProduto btnSalvarProduto">
               Salvar
             </button>
-            <button
-              type="button"
-              className="btnProduto btnEtiquetaProduto"
-              onClick={() => alert("Gerar etiqueta")}
-            >
-              Etiqueta
-            </button>
           </div>
         </form>
       </div>
