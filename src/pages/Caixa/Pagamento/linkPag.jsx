@@ -1,1 +1,2 @@
-export const linkPag = ("http://localhost:7172/api/Pagamento");
+import { API_BASE } from "../../../utils/apiFetch";
+export const linkPag = `${API_BASE}/api/pagamento`;

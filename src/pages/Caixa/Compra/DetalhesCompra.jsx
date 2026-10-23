@@ -1,135 +1,98 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { ArrowLeft, Pencil } from "lucide-react";
 import { linkCompra } from "./linkCompra";
 import { Link_Itens_Compra } from "../Itens_Compra/link_Itens_Compra";
 import { linkFun } from "../../Gerenciamento/Funcionario/linkFun";
 import { linkPro } from "../../Gerenciamento/Produto/linkPro";
-import "./Compra.css";
 import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
+
+function currency(v) {
+  return Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
 export function DetalhesCompra() {
   useRequireAuth("Funcionario");
+  document.title = "Detalhes da Compra";
   const { id } = useParams();
+  const navigate = useNavigate();
   const [compra, setCompra] = useState(null);
   const [funcionario, setFuncionario] = useState(null);
   const [itens, setItens] = useState([]);
   const [produtos, setProdutos] = useState([]);
-  const navigate = useNavigate();
 
   useEffect(() => {
-    // Busca compra
     fetch(`${linkCompra}/${id}`)
       .then((r) => r.json())
       .then((data) => {
         setCompra(data);
-        // Busca funcionário
-        fetch(`${linkFun}/${data.funcionarioId}`)
-          .then((r) => r.json())
-          .then(setFuncionario);
+        if (data.funcionarioId) {
+          fetch(`${linkFun}/${data.funcionarioId}`).then((r) => r.json()).then(setFuncionario).catch(() => {});
+        }
       });
 
-    // Busca itens da compra
-    fetch(`${Link_Itens_Compra}`)
+    fetch(`${Link_Itens_Compra}/compra/${id}`)
       .then((r) => r.json())
-      .then((data) => {
-        // Filtra só os itens da compra atual
-        setItens(data.filter((item) => item.compraId === Number(id)));
-      });
+      .then((data) => setItens(Array.isArray(data) ? data : []));
 
-    // Busca produtos
-    fetch(linkPro)
-      .then((r) => r.json())
-      .then(setProdutos);
+    fetch(linkPro).then((r) => r.json()).then((d) => setProdutos(Array.isArray(d) ? d : []));
   }, [id]);
 
-  if (!compra) return <div>Carregando...</div>;
+  if (!compra) return <p className="pdv-empty">Carregando detalhes da compra…</p>;
 
   return (
-    <div className="detalhesCompraContainer">
-      <h1 className="detalhesCompraTitulo">Detalhes da Compra</h1>
-      <div className="detalhescontainer">
-     
-      <div className="detalhesCompraInfo">
-        <input
-          disabled
-          value={`ID: ${compra.id}`}
-          className="inputDetalhes"
-        />
-        <input
-          disabled
-          value={`Funcionário: ${
-            funcionario?.nome || compra.funcionarioId
-          }`}
-          className="inputDetalhes"
-        />
-        <input
-          disabled
-          value={`Descrição: ${compra.descricao}`}
-          className="inputDetalhes"
-        />
-        <input
-          disabled
-          value={`Data: ${new Date(compra.dataCompra).toLocaleString("pt-BR")}`}
-          className="inputDetalhes"
-        />
-        <input
-          disabled
-          value={`Valor Total: R$ ${Number(compra.valorDaCompra).toFixed(2)}`}
-          className="inputDetalhes"
-        />
-        <input
-          disabled
-          value={`Qtd Produtos: ${compra.quantidadeDeProduto}`}
-          className="inputDetalhes"
-        />
-      </div>
-      <div className="detalhesCompraTabelaWrapper">
-        <table className="detalhesCompraTabela">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Produto</th>
-              <th>Qtd</th>
-              <th>Valor uni</th>
-              <th>Subtotal</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Array.isArray(itens) && itens.length > 0 ? (
-              itens.map((item) => {
-                const produto = produtos.find((p) => p.id === item.produtoId);
-                return (
-                  <tr key={item.id}>
-                    <td>{item.id}</td>
-                    <td>{produto ? produto.descricao : item.produtoId}</td>
-                    <td>{item.quantidade}</td>
-                    <td>R$ {Number(item.valorUnitario).toFixed(2)}</td>
-                    <td>R$ {Number(item.subtotal).toFixed(2)}</td>
-                  </tr>
-                );
-              })
-            ) : (
-              <tr>
-                <td colSpan={5} style={{ textAlign: "center" }}>
-                  Nenhum item
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>   
-      <div className="btnGroupDetalhesCompra">
-        <button className="detalhesCompraBtnVoltar" onClick={() => navigate(-1)}>
-          Voltar
+    <div className="pdv-page">
+      <div className="pdv-header">
+        <div>
+          <Link to="/Compra/ListagemCompra" className="pdv-btn pdv-btn--ghost pdv-btn--sm" style={{ marginBottom: 10 }}>
+            <ArrowLeft size={14} /> Voltar para compras
+          </Link>
+          <h1 className="pdv-title">{compra.descricao}</h1>
+          <p className="pdv-subtitle">Compra #{compra.id}</p>
+        </div>
+        <button type="button" className="pdv-btn pdv-btn--primary" onClick={() => navigate(`/Compra/EditarCompra/${compra.id}`)}>
+          <Pencil size={16} /> Editar compra
         </button>
-        <button
-          className="detalhesCompraBtnEditar"
-          onClick={() => navigate(`/Compra/EditarCompra/${compra.id}`)}
-        >
-          Editar
-        </button>
-      
       </div>
+
+      <div className="pdv-card" style={{ padding: 22 }}>
+        <dl className="pdv-detail-grid">
+          <div className="pdv-detail-item"><dt>Funcionário</dt><dd>{funcionario?.nome || compra.funcionarioId || "—"}</dd></div>
+          <div className="pdv-detail-item"><dt>Data</dt><dd>{compra.dataCompra ? new Date(compra.dataCompra).toLocaleString("pt-BR") : "—"}</dd></div>
+        </dl>
       </div>
+
+      <div className="pdv-stat-row">
+        <dl className="pdv-stat"><dt>Qtd. de produtos</dt><dd>{compra.quantidadeDeProduto}</dd></dl>
+        <dl className="pdv-stat"><dt>Valor total</dt><dd>{currency(compra.valorDaCompra)}</dd></dl>
+      </div>
+
+      <div>
+        <h2 className="pdv-section-title">Itens da compra</h2>
+        <div className="pdv-card">
+          <div className="pdv-table-scroll">
+            <table className="pdv-table">
+              <thead>
+                <tr><th>Produto</th><th>Qtd</th><th>Valor unitário</th><th>Subtotal</th></tr>
+              </thead>
+              <tbody>
+                {itens.map((item) => {
+                  const produto = produtos.find((p) => p.id === item.produtoId);
+                  return (
+                    <tr key={item.id}>
+                      <td>{produto ? produto.descricao : item.produtoId}</td>
+                      <td>{item.quantidade}</td>
+                      <td>{currency(item.valorUnitario)}</td>
+                      <td>{currency(item.subtotal)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            {itens.length === 0 && <p className="pdv-empty">Nenhum item registrado nesta compra.</p>}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

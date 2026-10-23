@@ -1,1 +1,2 @@
-export const linkPro = ("http://localhost:7172/api/Produto");
+import { API_BASE } from "../../../utils/apiFetch";
+export const linkPro = `${API_BASE}/api/produto`;

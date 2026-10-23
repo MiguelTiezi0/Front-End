@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { Trash2 } from "lucide-react";
 
 import { linkVen } from "./linkVen";
 import { linkFun } from "../../Gerenciamento/Funcionario/linkFun";
@@ -7,13 +8,13 @@ import { linkCli } from "../../Gerenciamento/Cliente/linkCli";
 import { linkPro } from "../../Gerenciamento/Produto/linkPro";
 import { linkVenItens } from "../ItensVenda/linkVenItens";
 import { linkPag } from "../Pagamento/linkPag";
-import { CadastroCliente } from "../../Gerenciamento/Cliente/CadastroCliente";
-import "./Venda.css";
+import { apiFetch } from "../../../utils/apiFetch";
 import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
+
 export function CadastroVenda() {
   useRequireAuth("Funcionario");
+  document.title = "Nova Venda";
   const navigate = useNavigate();
-  const { id } = useParams();
 
   const [funcionarios, setFuncionarios] = useState([]);
   const [clientes, setClientes] = useState([]);
@@ -42,9 +43,9 @@ export function CadastroVenda() {
   });
 
   useEffect(() => {
-    fetch(linkFun).then((r) => r.json()).then(setFuncionarios);
-    fetch(linkCli).then((r) => r.json()).then(setClientes);
-    fetch(linkPro).then((r) => r.json()).then(setProdutos);
+    fetch(linkFun).then((r) => r.json()).then((d) => setFuncionarios(Array.isArray(d) ? d : []));
+    fetch(linkCli).then((r) => r.json()).then((d) => setClientes(Array.isArray(d) ? d : []));
+    fetch(linkPro).then((r) => r.json()).then((d) => setProdutos(Array.isArray(d) ? d : []));
   }, []);
 
   useEffect(() => {
@@ -54,23 +55,12 @@ export function CadastroVenda() {
     }));
   }, [itens]);
 
-  useEffect(() => {
-    if (!id) return;
-    fetch(`${linkVen}/${id}`)
-      .then((r) => r.json())
-      .then((data) => {
-        setVenda(data);
-        setItens(data.itens || []);
-        setQtdParcelas(data.totalDeVezes || 1);
-      });
-  }, [id]);
-
   const handleProdutoChange = (e) => {
     const produtoId = Number(e.target.value);
     const produtoSelecionado = produtos.find((p) => p.id === produtoId);
     setItem({
       produtoId: e.target.value,
-      valorDoItem: produtoSelecionado?.["preçoVenda"] || "",
+      valorDoItem: produtoSelecionado?.precoVenda || "",
       quantidade: "",
     });
   };
@@ -122,14 +112,12 @@ export function CadastroVenda() {
     setDescontoTipo("");
     setDescontoValor("");
     setVenda((v) => ({ ...v, formaDePagamento: [value] }));
-    const parcelasDiv = document.getElementById("QtdParcelas");
-    if (value === "Crédito" || value === "Débito" || value === "Crediário") {
-      parcelasDiv.style.display = "flex";
-    } else {
-      parcelasDiv.style.display = "none";
+    if (!(value === "Crédito" || value === "Débito" || value === "Crediário")) {
       setQtdParcelas(1);
     }
   };
+
+  const mostrarParcelas = formaDePagamento === "Crédito" || formaDePagamento === "Débito" || formaDePagamento === "Crediário";
 
   useEffect(() => {
     const valorProdutos = itens.reduce(
@@ -157,18 +145,9 @@ export function CadastroVenda() {
     }
   }, [venda.clienteId, venda.valorTotal]);
 
-  const formasPagamento = [
-    "Dinheiro",
-    "Débito",
-    "Pix",
-    "Crédito",
-    "Crediário",
-    "Consignação",
-  ];
+  const formasPagamento = ["Dinheiro", "Débito", "Pix", "Crédito", "Crediário", "Consignação"];
 
-  const clienteSelecionado = clientes.find(
-    (c) => String(c.id) === String(venda.clienteId)
-  );
+  const clienteSelecionado = clientes.find((c) => String(c.id) === String(venda.clienteId));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -179,34 +158,24 @@ export function CadastroVenda() {
     const valorRestante = Number(venda.valorTotal) - Number(totalPago || 0);
     if (
       clienteSelecionado &&
-      clienteSelecionado.limiteDeCrédito !== undefined &&
-      valorRestante > Number(clienteSelecionado.limiteDeCrédito)
+      clienteSelecionado.limiteDeCredito !== undefined &&
+      valorRestante > Number(clienteSelecionado.limiteDeCredito)
     ) {
       alert(
-        `O valor restante da venda (R$ ${valorRestante.toFixed(
-          2
-        )}) excede o limite de crédito do cliente (R$ ${Number(
-          clienteSelecionado.limiteDeCrédito
+        `O valor restante da venda (R$ ${valorRestante.toFixed(2)}) excede o limite de crédito do cliente (R$ ${Number(
+          clienteSelecionado.limiteDeCredito
         ).toFixed(2)}).`
       );
       return;
     }
-    const isCartao =
-      venda.formaDePagamento.includes("Crédito") ||
-      venda.formaDePagamento.includes("Débito");
+    const isCartao = venda.formaDePagamento.includes("Crédito") || venda.formaDePagamento.includes("Débito");
     const totalDeVezes = isCartao ? qtdParcelas : 1;
     const totalPagoNumber = Number(totalPago);
-    if (
-      (venda.clienteId === "0" || venda.clienteId === 0) &&
-      totalPagoNumber < venda.valorTotal
-    ) {
+    if ((venda.clienteId === "0" || venda.clienteId === 0) && totalPagoNumber < venda.valorTotal) {
       alert("Cliente anônimo deve pagar o valor total da venda!");
       return;
     }
-    const valorProdutos = itens.reduce(
-      (acc, i) => acc + Number(i.valorDoItem) * Number(i.quantidade),
-      0
-    );
+    const valorProdutos = itens.reduce((acc, i) => acc + Number(i.valorDoItem) * Number(i.quantidade), 0);
     const valor = Number(descontoValor);
     let desconto = 0;
     if (descontoTipo === "porcentagem" && !isNaN(valor)) {
@@ -238,21 +207,19 @@ export function CadastroVenda() {
     const vendaSalva = await resVenda.json();
     if (totalPagoNumber > 0) {
       const pagamentoBody = {
-        FuncionarioId: Number(venda.funcionarioId),
-        ClienteId: Number(venda.clienteId),
-        VendaId: vendaSalva.id,
-        TotalPago: totalPagoNumber,
-        Desconto: desconto,
-        FormaDePagamento: Array.isArray(venda.formaDePagamento)
-          ? venda.formaDePagamento
-          : [venda.formaDePagamento],
-        ToTalDeVezes: totalDeVezes,
-        DataPagamento: new Date().toISOString(),
+        funcionarioId: Number(venda.funcionarioId),
+        clienteId: Number(venda.clienteId),
+        vendaId: vendaSalva.id,
+        totalPago: totalPagoNumber,
+        desconto: desconto,
+        formaDePagamento: Array.isArray(venda.formaDePagamento) ? venda.formaDePagamento : [venda.formaDePagamento],
+        totalDeVezes: totalDeVezes,
+        dataPagamento: new Date().toISOString(),
       };
       await fetch(linkPag, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pagamento: pagamentoBody }),
+        body: JSON.stringify(pagamentoBody),
       });
     }
     for (const i of itens) {
@@ -271,51 +238,16 @@ export function CadastroVenda() {
         await fetch(`${linkPro}/${produto.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...produto,
-            quantidade: produto.quantidade - i.quantidade,
-          }),
+          body: JSON.stringify({ ...produto, quantidade: produto.quantidade - i.quantidade }),
         });
       }
     }
-    const vendasDoCliente = await fetch(linkVen)
-      .then((r) => r.json())
-      .then((vs) =>
-        vs.filter(
-          (v) => Number(v.clienteId ?? v.ClienteId) === Number(venda.clienteId)
-        )
-      );
-    const totalPagoCliente = vendasDoCliente.reduce(
-      (acc, v) => acc + Number(v.totalPago ?? v.TotalPago ?? 0),
-      0
-    );
-    const totalDevidoCliente = vendasDoCliente.reduce(
-      (acc, v) =>
-        acc +
-        (Number(v.valorTotal ?? v.ValorTotal ?? 0) -
-          Number(v.totalPago ?? v.TotalPago ?? 0)),
-      0
-    );
-    const totalGastoCliente = vendasDoCliente.reduce(
-      (acc, v) => acc + Number(v.valorTotal ?? v.ValorTotal ?? 0),
-      0
-    );
-    await fetch(`${linkCli}/${venda.clienteId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        totalPago: totalPagoCliente,
-        totalDevido: totalDevidoCliente,
-        totalGasto: totalGastoCliente,
-      }),
-    });
-    if (
-      totalPagoNumber > 0 &&
-      (venda.formaDePagamento.includes("Dinheiro") || formaDePagamento === "Dinheiro")
-    ) {
-      await fetch("http://localhost:7172/api/Caixa/entrada", {
+    if (Number(venda.clienteId) > 0) {
+      await apiFetch(`/api/cliente/${venda.clienteId}/recalcular-totais`, { method: "PATCH" });
+    }
+    if (totalPagoNumber > 0 && (venda.formaDePagamento.includes("Dinheiro") || formaDePagamento === "Dinheiro")) {
+      await apiFetch("/api/caixa/entrada", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           valor: Number(totalPagoNumber),
           descricao: `Venda ${vendaSalva.id} - Cliente ${venda.clienteId}`,
@@ -325,170 +257,119 @@ export function CadastroVenda() {
     }
     alert("Venda cadastrada com sucesso!");
     navigate("../Venda/ListagemVenda");
-    setItens([]);
-    setQtdParcelas(1);
-    setVenda({
-      funcionarioId: "",
-      clienteId: "",
-      totalDeItens: 0,
-      valorTotal: 0,
-      totalPago: 0,
-      formaDePagamento: [],
-      totalDeVezes: 1,
-      dataVenda: new Date().toISOString().slice(0, 16),
-    });
-    setTotalPago("");
-    fetch(linkPro).then((r) => r.json()).then(setProdutos);
   };
 
   return (
-    <div className="centroCadastroVendas">
-      <div className="cadastroVendaTela">
-        <h1 className="cadastroVendaTitulo">Vender</h1>
+    <div className="pdv-page">
+      <div className="pdv-header">
+        <div>
+          <h1 className="pdv-title">Nova venda</h1>
+          <p className="pdv-subtitle">Adicione os produtos e finalize a venda.</p>
+        </div>
+      </div>
 
-         <div className="cadastroVendaGrid">
-         
-          <form className="cadastroVendaForm" onSubmit={handleSubmit}>
-            <div className="dividirInputVenda">
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, alignItems: "start" }}>
+        <form className="pdv-form-card" onSubmit={handleSubmit}>
+          <div className="pdv-form-grid">
+            <div>
+              <label className="hp-lb">Cliente *</label>
               <select
-                className="cadastroVendaInput"
+                className="hp-inp"
                 required
                 value={venda.clienteId}
-                onChange={(e) =>
-                  setVenda((v) => ({ ...v, clienteId: e.target.value }))
-                }
+                onChange={(e) => setVenda((v) => ({ ...v, clienteId: e.target.value }))}
               >
-                <option value="">Cliente</option>
-                <option value="0">Cliente Anônimo</option>
+                <option value="">Selecione um cliente</option>
+                <option value="0">Cliente anônimo</option>
                 {clientes.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.nome}
-                  </option>
+                  <option key={c.id} value={c.id}>{c.nome}</option>
                 ))}
               </select>
             </div>
-            <div className="dividirInputVenda">
+            <div>
+              <label className="hp-lb">CPF do cliente</label>
               <input
-                className="cadastroVendaInput"
+                className="hp-inp"
                 type="text"
-                placeholder="CPF do Cliente"
                 value={
                   venda.clienteId === "0" || venda.clienteId === 0
                     ? "Não informado"
-                    : clientes.find((c) => c.id === Number(venda.clienteId))
-                        ?.cpf || ""
+                    : clientes.find((c) => c.id === Number(venda.clienteId))?.cpf || ""
                 }
                 disabled
               />
             </div>
-            <div className="dividirInputVenda">
+
+            <div>
+              <label className="hp-lb">Funcionário *</label>
               <select
-                className="cadastroVendaInput"
+                className="hp-inp"
                 required
                 value={venda.funcionarioId}
-                onChange={(e) =>
-                  setVenda((v) => ({ ...v, funcionarioId: e.target.value }))
-                }
+                onChange={(e) => setVenda((v) => ({ ...v, funcionarioId: e.target.value }))}
               >
-                <option value="">Funcionário</option>
+                <option value="">Selecione um funcionário</option>
                 {funcionarios.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.nome}
-                  </option>
+                  <option key={f.id} value={f.id}>{f.nome}</option>
                 ))}
               </select>
             </div>
-            <div className="dividirInputVenda">
-              <select
-                className="cadastroVendaInput"
-                required
-                id="formaDePagamento"
-                value={formaDePagamento}
-                onChange={handleFormaPagamento}
-              >
-                <option value="">Forma de pagamento</option>
+            <div>
+              <label className="hp-lb">Forma de pagamento *</label>
+              <select className="hp-inp" required value={formaDePagamento} onChange={handleFormaPagamento}>
+                <option value="">Selecione</option>
                 {formasPagamento.map((fp) => (
-                  <option key={fp} value={fp}>
-                    {fp}
-                  </option>
+                  <option key={fp} value={fp}>{fp}</option>
                 ))}
               </select>
             </div>
-            <div
-              className="dividirInputVenda"
-              id="QtdParcelas"
-              style={{ display: "none" }}
-            >
-              <select
-                className="cadastroVendaInput"
-                value={qtdParcelas}
-                onChange={(e) => setQtdParcelas(Number(e.target.value))}
-                disabled={
-                  !(
-                    formaDePagamento === "Crédito" ||
-                    formaDePagamento === "Débito" ||
-                    formaDePagamento === "Crediário"
-                  )
-                }
-              >
-                {[...Array(10)].map((_, i) => (
-                  <option key={i + 1} value={i + 1}>
-                    {i + 1}x
-                  </option>
-                ))}
-              </select>
-            </div>
-            {(formaDePagamento === "Pix" ||
-              formaDePagamento === "Dinheiro") && (
-              <>
+
+            {mostrarParcelas && (
+              <div>
+                <label className="hp-lb">Parcelas</label>
+                <select className="hp-inp" value={qtdParcelas} onChange={(e) => setQtdParcelas(Number(e.target.value))}>
+                  {[...Array(10)].map((_, i) => (
+                    <option key={i + 1} value={i + 1}>{i + 1}x</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {(formaDePagamento === "Pix" || formaDePagamento === "Dinheiro") && (
+              <div className="pdv-form-col-full">
+                <label className="hp-lb">Desconto</label>
                 {!descontoTipo && (
-                  <div className="dividirInputVenda">
-                    <label>
-                      <input
-                        type="checkbox"
-                        onChange={() => setDescontoTipo("porcentagem")}
-                        checked={descontoTipo === "porcentagem"}
-                      />{" "}
+                  <div style={{ display: "flex", gap: 16, marginBottom: 8 }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13.5 }}>
+                      <input type="checkbox" onChange={() => setDescontoTipo("porcentagem")} checked={descontoTipo === "porcentagem"} />
                       Porcentagem
                     </label>
-                    <label>
-                      <input
-                        type="checkbox"
-                        onChange={() => setDescontoTipo("decimal")}
-                        checked={descontoTipo === "decimal"}
-                      />{" "}
+                    <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13.5 }}>
+                      <input type="checkbox" onChange={() => setDescontoTipo("decimal")} checked={descontoTipo === "decimal"} />
                       Reais
                     </label>
                   </div>
                 )}
                 {descontoTipo && (
-                  <div className="dividirInputVenda">
-                    <input
-                      className="cadastroVendaInput"
-                      type="number"
-                      min={0}
-                      max={
-                        descontoTipo === "porcentagem"
-                          ? 100
-                          : venda.valorTotal || 0
-                      }
-                      value={descontoValor}
-                      onChange={(e) => setDescontoValor(e.target.value)}
-                      placeholder={
-                        descontoTipo === "porcentagem"
-                          ? "Desconto em %"
-                          : "Desconto em reais"
-                      }
-                    />
-                  </div>
+                  <input
+                    className="hp-inp"
+                    type="number"
+                    min={0}
+                    max={descontoTipo === "porcentagem" ? 100 : venda.valorTotal || 0}
+                    value={descontoValor}
+                    onChange={(e) => setDescontoValor(e.target.value)}
+                    placeholder={descontoTipo === "porcentagem" ? "Desconto em %" : "Desconto em reais"}
+                  />
                 )}
-              </>
+              </div>
             )}
-            <div className="dividirInputVenda">
+
+            <div>
+              <label className="hp-lb">Total pago</label>
               <input
                 type="number"
-                className="cadastroVendaInput"
-                placeholder={`Total Pago (R$ ${venda.valorTotal.toFixed(2)})`}
+                className="hp-inp"
+                placeholder={`R$ ${venda.valorTotal.toFixed(2)}`}
                 value={totalPago}
                 min={0}
                 step="0.01"
@@ -496,141 +377,94 @@ export function CadastroVenda() {
                 onChange={(e) => setTotalPago(e.target.value)}
               />
             </div>
-            <div className="dividirInputVenda">
-              <select
-                className="cadastroVendaInput"
-                value={item.produtoId}
-                onChange={handleProdutoChange}
-              >
-                <option value="">Produto</option>
-                {produtos.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.descricao} (Estoque: {p.quantidade})
-                  </option>
-                ))}
-              </select>
+
+            <div className="pdv-form-col-full" style={{ borderTop: "1px solid var(--border-default)", paddingTop: 16, marginTop: 4 }}>
+              <label className="hp-lb">Adicionar produto</label>
+              <div style={{ display: "flex", gap: 10 }}>
+                <select className="hp-inp" value={item.produtoId} onChange={handleProdutoChange}>
+                  <option value="">Produto</option>
+                  {produtos.map((p) => (
+                    <option key={p.id} value={p.id}>{p.descricao} (Estoque: {p.quantidade})</option>
+                  ))}
+                </select>
+                <input
+                  className="hp-inp"
+                  type="number"
+                  min={1}
+                  placeholder={item.produtoId ? `Qtd (máx ${produtos.find((p) => p.id === Number(item.produtoId))?.quantidade || 1})` : "Quantidade"}
+                  value={item.quantidade}
+                  max={item.produtoId ? produtos.find((p) => p.id === Number(item.produtoId))?.quantidade || 1 : 1}
+                  onChange={(e) => setItem((i) => ({ ...i, quantidade: e.target.value }))}
+                  style={{ maxWidth: 160 }}
+                />
+                <button type="button" className="pdv-btn pdv-btn--ghost" onClick={handleAddItem} style={{ flexShrink: 0 }}>
+                  Adicionar
+                </button>
+              </div>
             </div>
-            <div className="dividirInputVenda">
-              <input
-                className="cadastroVendaInput"
-                type="number"
-                min={1}
-                placeholder={
-                  item.produtoId
-                    ? `Qtd (máx ${
-                        produtos.find((p) => p.id === Number(item.produtoId))
-                          ?.quantidade || 1
-                      })`
-                    : "Quantidade"
-                }
-                value={item.quantidade}
-                max={
-                  item.produtoId
-                    ? produtos.find((p) => p.id === Number(item.produtoId))
-                        ?.quantidade || 1
-                    : 1
-                }
-                onChange={(e) =>
-                  setItem((i) => ({ ...i, quantidade: e.target.value }))
-                }
-              />
-            </div>
-            <div className="cadastroVendaBtnDiv">
-              <button
-                type="button"
-                className="cadastroVendaBtn"
-                onClick={handleAddItem}
-              >
-                Adicionar Produto
-              </button>
-            </div>
-            <div className="cadastroVendaDivFinalizar dividirInputVenda">
-              <button
-                className="cadastroVendaBtnFinalizar"
-                type="submit"
-                disabled={itens.length === 0 || !venda.clienteId}
-              >
-                Finalizar Venda
-              </button>
-            </div>
-          </form>
-          <div className="cadastroVendaTabelaWrapper">
-            <table className="cadastroVendaTabela">
+          </div>
+
+          <div className="pdv-form-actions" style={{ justifyContent: "flex-start", marginTop: 22 }}>
+            <button className="pdv-btn pdv-btn--primary" type="submit" disabled={itens.length === 0 || !venda.clienteId}>
+              Finalizar venda
+            </button>
+          </div>
+        </form>
+
+        <div className="pdv-card">
+          <div className="pdv-table-scroll">
+            <table className="pdv-table">
               <thead>
                 <tr>
-                  <th>ID</th>
                   <th>Produto</th>
-                  <th>Quantidade</th>
-                  <th>Valor uni</th>
-                  <th>Cancelar</th>
+                  <th>Qtd</th>
+                  <th>Valor uni.</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
                 {itens.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} style={{ textAlign: "center" }}>
-                      Nenhum item
-                    </td>
-                  </tr>
+                  <tr><td colSpan={4}><p className="pdv-empty">Nenhum item adicionado ainda.</p></td></tr>
                 ) : (
                   itens.map((i) => (
                     <tr key={i.tempId}>
-                      <td>{i.produtoId}</td>
-                      <td>
-                        {produtos.find((p) => p.id === Number(i.produtoId))
-                          ?.descricao || ""}
-                      </td>
+                      <td>{produtos.find((p) => p.id === Number(i.produtoId))?.descricao || ""}</td>
                       <td>{i.quantidade}</td>
                       <td>R$ {Number(i.valorDoItem).toFixed(2)}</td>
                       <td>
-                        <button
-                          type="button"
-                          onClick={() => handleCancelOne(i.tempId)}
-                          style={{
-                            background: "#b41111",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "4px",
-                            padding: "2px 8px",
-                            fontSize: "0.9em",
-                            cursor: "pointer",
-                            marginRight: 4,
-                          }}
-                          disabled={i.quantidade <= 1}
-                          title="Cancelar 1 unidade"
-                        >
-                          -1
-                        </button>
-                        <button
-                          onClick={() => handleRemoveItem(i.tempId)}
-                          style={{
-                            background: "none",
-                            border: "none",
-                            color: "red",
-                            cursor: "pointer",
-                          }}
-                          title="Remover produto"
-                        >
-                          X
-                        </button>
+                        <div className="pdv-table-actions">
+                          <button
+                            type="button"
+                            className="pdv-icon-btn pdv-btn--sm"
+                            onClick={() => handleCancelOne(i.tempId)}
+                            disabled={i.quantidade <= 1}
+                            title="Cancelar 1 unidade"
+                          >
+                            -1
+                          </button>
+                          <button
+                            type="button"
+                            className="pdv-icon-btn pdv-icon-btn--danger"
+                            onClick={() => handleRemoveItem(i.tempId)}
+                            title="Remover produto"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
                 )}
               </tbody>
             </table>
-            <div className="cadastroVendaValorTotalTabela">
-              Valor total: <strong>R$ {venda.valorTotal.toFixed(2)}</strong>
-              {descontoTipo && descontoValor && (
-                <span style={{ marginLeft: 16, color: "#2d7a2d" }}>
-                  (Desconto:{" "}
-                  {descontoTipo === "porcentagem"
-                    ? `${descontoValor}%`
-                    : `R$ ${Number(descontoValor).toFixed(2)}`}
-                  )
-                </span>
-              )}
-            </div>
+          </div>
+          <div style={{ padding: "14px 16px", borderTop: "1px solid var(--border-default)", fontSize: 14 }}>
+            Valor total: <strong>R$ {venda.valorTotal.toFixed(2)}</strong>
+            {descontoTipo && descontoValor && (
+              <span style={{ marginLeft: 16, color: "var(--success-fg)" }}>
+                (Desconto: {descontoTipo === "porcentagem" ? `${descontoValor}%` : `R$ ${Number(descontoValor).toFixed(2)}`})
+              </span>
+            )}
           </div>
         </div>
       </div>

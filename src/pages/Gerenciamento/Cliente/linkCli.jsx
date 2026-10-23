@@ -1,1 +1,2 @@
-export const linkCli = ("http://localhost:7172/api/Cliente");
+import { API_BASE } from "../../../utils/apiFetch";
+export const linkCli = `${API_BASE}/api/cliente`;

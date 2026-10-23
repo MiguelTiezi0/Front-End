@@ -1,1 +1,2 @@
-export const linkCompra = "http://localhost:7172/api/Compras"; 
+import { API_BASE } from "../../../utils/apiFetch";
+export const linkCompra = `${API_BASE}/api/compras`;

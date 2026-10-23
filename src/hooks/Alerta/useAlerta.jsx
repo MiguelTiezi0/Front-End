@@ -1,45 +1,44 @@
-import React, { createContext, useContext, useState, useRef } from "react";
-import "./useAlerta.css";
+import React, { createContext, useContext, useState, useRef } from 'react';
+import { CheckCircle, AlertCircle, Info, X } from 'lucide-react';
+import './useAlerta.css';
 
 const AlertContext = createContext();
 
+const TYPE_CONFIG = {
+  sucesso: { icon: CheckCircle, color: '#2F8F5B' },
+  erro:    { icon: AlertCircle, color: '#C9453F' },
+  aviso:   { icon: Info,        color: '#C99700' },
+};
+
 export const AlertProvider = ({ children }) => {
   const [alerta, setAlerta] = useState(null);
-  const timeoutRef = useRef(null);
+  const timerRef = useRef(null);
 
-  const showAlert = (mensagem, tipo) => {
+  const showAlert = (mensagem, tipo = 'sucesso') => {
     setAlerta({ mensagem, tipo });
-
-    // Limpa timeout anterior se existir
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-
-    // Fecha automaticamente após 3s
-    timeoutRef.current = setTimeout(() => {
-      setAlerta(null);
-      timeoutRef.current = null;
-    }, 3000);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => { setAlerta(null); timerRef.current = null; }, 2800);
   };
 
-  const fecharAlerta = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
+  const fechar = () => {
+    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
     setAlerta(null);
   };
 
   return (
     <AlertContext.Provider value={showAlert}>
       {children}
-      {alerta && (
-        <div className={`alerta alerta-${alerta.tipo}`}>
-          <h1>MigTiera Diz:</h1>
-          <p>{alerta.mensagem}</p>
-          <button onClick={fecharAlerta}>OK</button>
-        </div>
-      )}
+      {alerta && (() => {
+        const cfg = TYPE_CONFIG[alerta.tipo] || TYPE_CONFIG.sucesso;
+        const Icon = cfg.icon;
+        return (
+          <div className="hp-toast" style={{ borderLeftColor: cfg.color }}>
+            <Icon size={20} color={cfg.color} />
+            <span className="hp-toast-msg">{alerta.mensagem}</span>
+            <button className="hp-toast-close" onClick={fechar}><X size={16} /></button>
+          </div>
+        );
+      })()}
     </AlertContext.Provider>
   );
 };

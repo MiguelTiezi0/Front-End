@@ -1,59 +1,53 @@
 import React, { useState, useEffect } from "react";
-import "./Venda.css";
-import lupa from "../../../assets/icons/lupa.svg";
-import lixo from "../../../assets/icons/lixo.svg";
-import olhoFechado from "../../../assets/icons/olhoFechado.svg";
-import edit from "../../../assets/icons/edit.svg";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { Search, Eye, Pencil, Trash2, Plus } from "lucide-react";
 import { linkVen } from "./linkVen";
 import { linkFun } from "../../Gerenciamento/Funcionario/linkFun";
 import { linkCli } from "../../Gerenciamento/Cliente/linkCli";
-import { linkVenItens } from "../ItensVenda/linkVenItens";
-import { linkPro } from "../../Gerenciamento/Produto/linkPro";
-
 import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
+
+function statusVenda(venda) {
+  const total = Number(venda.valorTotal || 0);
+  const pago = Number(venda.totalPago || 0);
+  if (total > 0 && pago >= total) return { label: "Paga", className: "pdv-pill--success" };
+  if (pago > 0) return { label: "Parcial", className: "pdv-pill--warning" };
+  return { label: "Em aberto", className: "pdv-pill--danger" };
+}
+
 export function ListagemVenda() {
   useRequireAuth("Funcionario");
   document.title = "Listagem de Vendas";
   const [pesquisa, setPesquisa] = useState("");
-  const [inputVisivel, setInputVisivel] = useState(false);
-  const [btnVisivel, setbtnVisivel] = useState(true);
+  const [tipoPesquisa, setTipoPesquisa] = useState("id");
   const [vendas, setVendas] = useState([]);
   const [vendasFiltradas, setVendasFiltradas] = useState([]);
-  const [vendaSelecionada, setVendaSelecionada] = useState(null);
   const [funcionarios, setFuncionarios] = useState([]);
   const [clientes, setClientes] = useState([]);
-  const [itensVenda, setItensVenda] = useState([]);
-  const [produtos, setProdutos] = useState([]);
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
-  const [tipoPesquisa, setTipoPesquisa] = useState("id");
-const navigate = useNavigate();
+  const [carregando, setCarregando] = useState(true);
+  const navigate = useNavigate();
 
-useEffect(() => {
+  useEffect(() => {
     const fetchAll = async () => {
       try {
-        const [resVendas, resFuncs, resClientes, resItens, resProdutos] = await Promise.all([
+        const [resVendas, resFuncs, resClientes] = await Promise.all([
           fetch(linkVen),
           fetch(linkFun),
           fetch(linkCli),
-          fetch(linkVenItens),
-          fetch(linkPro),
         ]);
         const vendasData = await resVendas.json();
         const funcsData = await resFuncs.json();
         const clientesData = await resClientes.json();
-        const itensData = await resItens.json();
-        const produtosData = await resProdutos.json();
-        
-        setVendas(vendasData);
-        setVendasFiltradas(vendasData);
-        setFuncionarios(funcsData);
-        setClientes(clientesData);
-        setItensVenda(itensData);
-        setProdutos(produtosData);
+
+        setVendas(Array.isArray(vendasData) ? vendasData : []);
+        setFuncionarios(Array.isArray(funcsData) ? funcsData : []);
+        setClientes(Array.isArray(clientesData) ? clientesData : []);
       } catch (error) {
-        alert("Erro ao carregar dados das vendas.");
+        console.error(error);
+        alert("Não foi possível carregar as vendas.");
+      } finally {
+        setCarregando(false);
       }
     };
     fetchAll();
@@ -62,331 +56,170 @@ useEffect(() => {
   useEffect(() => {
     let filtradas = vendas;
 
-    // Filtro por pesquisa
     if (pesquisa) {
+      const termo = pesquisa.toLowerCase();
       filtradas = filtradas.filter((venda) => {
         const cliente = clientes.find((c) => c.id === venda.clienteId);
-        const funcionario = funcionarios.find(
-          (f) => f.id === venda.funcionarioId
-        );
-        if (tipoPesquisa === "id") {
-          return venda.id.toString().includes(pesquisa);
-        }
-        if (tipoPesquisa === "funcionario") {
-          return (
-            funcionario &&
-            funcionario.nome.toLowerCase().includes(pesquisa.toLowerCase())
-          );
-        }
-        if (tipoPesquisa === "cliente") {
-          return (
-            cliente &&
-            cliente.nome.toLowerCase().includes(pesquisa.toLowerCase())
-          );
-        }
+        const funcionario = funcionarios.find((f) => f.id === venda.funcionarioId);
+        if (tipoPesquisa === "id") return venda.id.toString().includes(termo);
+        if (tipoPesquisa === "funcionario") return funcionario && funcionario.nome.toLowerCase().includes(termo);
+        if (tipoPesquisa === "cliente") return cliente && cliente.nome.toLowerCase().includes(termo);
         if (tipoPesquisa === "formaPagamento") {
-          return (
-            (Array.isArray(venda.formaDePagamento)
-              ? venda.formaDePagamento.join(", ")
-              : venda.formaDePagamento || ""
-            )
-              .toLowerCase()
-              .includes(pesquisa.toLowerCase())
-          );
-        }
-        if (tipoPesquisa === "dataVenda") {
-          return (
-            venda.dataVenda &&
-            new Date(venda.dataVenda)
-              .toLocaleDateString("pt-BR")
-              .includes(pesquisa)
-          );
+          return (Array.isArray(venda.formaDePagamento) ? venda.formaDePagamento.join(", ") : venda.formaDePagamento || "")
+            .toLowerCase()
+            .includes(termo);
         }
         return (
-          venda.id.toString().includes(pesquisa) ||
-          (cliente &&
-            cliente.nome.toLowerCase().includes(pesquisa.toLowerCase())) ||
-            (funcionario &&
-            funcionario.nome.toLowerCase().includes(pesquisa.toLowerCase()))
+          venda.id.toString().includes(termo) ||
+          (cliente && cliente.nome.toLowerCase().includes(termo)) ||
+          (funcionario && funcionario.nome.toLowerCase().includes(termo))
         );
       });
     }
 
-    // Filtro por datas
     if (dataInicio && dataFim) {
-      const [diaIni, mesIni, anoIni] = dataInicio.split("-").reverse();
-      const [diaFim, mesFim, anoFim] = dataFim.split("-").reverse();
-      
-      const dataIni = new Date(`${anoIni}-${mesIni}-${diaIni}T00:00:00`);
-      const dataFinal = new Date(`${anoFim}-${mesFim}-${diaFim}T23:59:59`);
-      
+      const dataIni = new Date(`${dataInicio}T00:00:00`);
+      const dataFinal = new Date(`${dataFim}T23:59:59`);
       filtradas = filtradas.filter((venda) => {
         if (!venda.dataVenda) return false;
-        const [diaVenda, mesVenda, anoVenda] = venda.dataVenda
-          .slice(0, 10)
-          .split("-")
-          .reverse();
-        const dataVenda = new Date(`${anoVenda}-${mesVenda}-${diaVenda}T${venda.dataVenda.slice(11) || "00:00:00"}`);
+        const dataVenda = new Date(venda.dataVenda);
         return dataVenda >= dataIni && dataVenda <= dataFinal;
       });
     }
 
-    // Ordena da venda mais recente para a mais antiga
-    filtradas = filtradas.slice().sort(
-      (a, b) => new Date(b.dataVenda) - new Date(a.dataVenda)
-    );
-    
+    filtradas = filtradas.slice().sort((a, b) => new Date(b.dataVenda) - new Date(a.dataVenda));
     setVendasFiltradas(filtradas);
   }, [pesquisa, tipoPesquisa, vendas, clientes, funcionarios, dataInicio, dataFim]);
 
-  function handleClickPesquisa() {
-    setInputVisivel(!inputVisivel);
-    setbtnVisivel(!btnVisivel);
-    setPesquisa("");
-    setTimeout(() => {
-      const input = document.querySelector(".inputPesquisar");
-      if (input) input.focus();
-    }, 0);
-  }
-
-  const handleRowClick = (id) => {
-    setVendaSelecionada(id);
-  };
-
-  const handleDetalhar = () => {
-    if (!vendaSelecionada) {
-      alert("Selecione uma venda para visualizar os detalhes.");
-      return;
-    }
-    navigate(`/Venda/DetalhesVenda/${vendaSelecionada}`);
-  };
-
-  const handleEditar = () => {
-    if (!vendaSelecionada) {
-      alert("Selecione uma venda para editar.");
-      return;
-    }
-    navigate(`/Venda/EditarVenda/${vendaSelecionada}`);
-  };
-
-  const handleClonar = () => {
-    if (!vendaSelecionada) {
-      alert("Selecione uma venda para clonar.");
-      return;
-    }
-    const venda = vendas.find((v) => v.id === vendaSelecionada);
-    if (venda) {
-      navigate("/Venda/CadastroVenda", { state: { venda } });
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!vendaSelecionada) {
-      alert("Selecione uma venda para deletar.");
-      return;
-    }
-    const confirmDelete = window.confirm(
-      "Tem certeza que deseja deletar esta venda?"
-    );
+  const handleDelete = async (venda) => {
+    const confirmDelete = window.confirm(`Excluir a venda #${venda.id}? Os itens voltam ao estoque.`);
     if (!confirmDelete) return;
 
     try {
-      // --- Remover do caixa se for dinheiro ---
-      const vendaRes = await fetch(`${linkVen}/${vendaSelecionada}`);
+      const vendaRes = await fetch(`${linkVen}/${venda.id}`);
       if (vendaRes.ok) {
-        const venda = await vendaRes.json();
+        const vendaAtual = await vendaRes.json();
         const formaDinheiro =
-          venda.formaDePagamento === "Dinheiro" ||
-          (Array.isArray(venda.formaDePagamento) &&
-            venda.formaDePagamento.includes("Dinheiro"));
-        const valorPago =
-          Number(venda.totalPago ?? venda.TotalPago ?? 0);
-
+          vendaAtual.formaDePagamento === "Dinheiro" ||
+          (Array.isArray(vendaAtual.formaDePagamento) && vendaAtual.formaDePagamento.includes("Dinheiro"));
+        const valorPago = Number(vendaAtual.totalPago ?? 0);
         if (formaDinheiro && valorPago > 0) {
           await fetch("http://localhost:7172/api/Caixa/saida", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               valor: valorPago,
-              descricao: `Estorno venda deletada ID ${venda.id}`,
+              descricao: `Estorno venda deletada ID ${vendaAtual.id}`,
               tipo: "Saída",
             }),
           });
         }
       }
-      // --- Fim do bloco de remoção do caixa ---
 
-      // Agora sim, delete a venda
-      const response = await fetch(`${linkVen}/${vendaSelecionada}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await fetch(`${linkVen}/${venda.id}`, { method: "DELETE" });
+      if (!response.ok) throw new Error("Erro ao deletar a venda");
 
-      if (!response.ok) {
-        throw new Error("Erro ao deletar a venda");
-      }
-
-      alert("Venda deletada e itens devolvidos ao estoque!");
-
-      setVendas((prev) => prev.filter((v) => v.id !== vendaSelecionada));
-      setVendasFiltradas((prev) =>
-        prev.filter((v) => v.id !== vendaSelecionada)
-      );
-      setVendaSelecionada(null);
+      setVendas((prev) => prev.filter((v) => v.id !== venda.id));
     } catch (error) {
-      alert("Erro ao deletar a venda");
+      console.error(error);
+      alert("Não foi possível excluir esta venda.");
     }
   };
 
   return (
-    <div className="centroListagemVenda">
-      <div className="top-nav">
-        <div className="top-nav-buttons">
-          {btnVisivel && (
-            <button
-              type="button"
-              className="top-nav-button lupa"
-              onClick={handleClickPesquisa}
-            >
-              <img src={lupa} className="top-nav-img" alt="Lupa" />
-            </button>
-          )}
+    <div className="pdv-page">
+      <div className="pdv-header">
+        <div>
+          <h1 className="pdv-title">Vendas</h1>
+          <p className="pdv-subtitle">Histórico de vendas realizadas na loja.</p>
+        </div>
+        <Link to="/Venda/CadastroVenda" className="pdv-btn pdv-btn--primary">
+          <Plus size={16} /> Nova venda
+        </Link>
+      </div>
 
-          <select
-            className="inputTipoPesquisa"
-            style={{ display: inputVisivel ? "inline-block" : "none", marginRight: 8 }}
-            value={tipoPesquisa}
-            onChange={(e) => setTipoPesquisa(e.target.value)}
-          >
-            <option value="id">Id</option>
-            <option value="funcionario">Funcionário</option>
-            <option value="cliente">Cliente</option>
-            <option value="formaPagamento">Forma Pagamento</option>
-            <option value="dataVenda">Data Venda</option>
-          </select>
-
+      <div className="pdv-toolbar">
+        <div className="pdv-toolbar-search">
+          <Search size={16} />
           <input
             type="text"
-            className={`inputPesquisar ${inputVisivel ? "visivel" : ""}`}
+            placeholder="Buscar venda…"
             value={pesquisa}
             onChange={(e) => setPesquisa(e.target.value)}
           />
-
-          <button
-            type="button"
-            className="top-nav-button lixo"
-            onClick={handleDelete}
-          >
-            <img src={lixo} className="top-nav-img" alt="Lixo" />
-          </button>
-
-          <button
-            type="button"
-            className="top-nav-button olhoFechado"
-            onClick={handleDetalhar}
-          >
-            <img src={olhoFechado} className="top-nav-img" alt="OlhoFechado" />
-          </button>
-
-          <button
-            type="button"
-            className="top-nav-button editar"
-            onClick={handleEditar}
-          >
-            <img src={edit} className="top-nav-img" alt="Editar" />
-          </button>
+        </div>
+        <select className="pdv-toolbar-select" value={tipoPesquisa} onChange={(e) => setTipoPesquisa(e.target.value)}>
+          <option value="id">Buscar por ID</option>
+          <option value="funcionario">Buscar por funcionário</option>
+          <option value="cliente">Buscar por cliente</option>
+          <option value="formaPagamento">Buscar por forma de pagamento</option>
+        </select>
+        <div className="pdv-toolbar-dates">
+          <span>De</span>
+          <input type="date" value={dataInicio} max={dataFim || undefined} onChange={(e) => setDataInicio(e.target.value)} />
+          <span>até</span>
+          <input type="date" value={dataFim} min={dataInicio || undefined} onChange={(e) => setDataFim(e.target.value)} />
         </div>
       </div>
 
-      <div className="ListagemVenda">
-        <h1>Relatorio de Vendas</h1>
-        <div className="DatasVenda">
-          <div style={{ display: "flex", gap: 16, margin: "16px 0" }}>
-            <div>
-              <label className="labelDataPesquisar">Data Inicial: </label>
-              <input
-                type="date"
-                className="inputDataPesquisar"
-                value={dataInicio}
-                max={dataFim || undefined}
-                onChange={e => setDataInicio(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="labelDataPesquisar">Data Final: </label>
-              <input
-                type="date"
-                className="inputDataPesquisar"
-                value={dataFim}
-                min={dataInicio || undefined}
-                onChange={e => setDataFim(e.target.value)}
-              />
-            </div>
-          </div>
-        </div>
-        <div className="scrollVenda">
-          <table className="tableVenda">
+      <div className="pdv-card">
+        <div className="pdv-table-scroll">
+          <table className="pdv-table">
             <thead>
               <tr>
-                <th>Id</th>
+                <th>Venda</th>
                 <th>Funcionário</th>
                 <th>Cliente</th>
                 <th>Itens</th>
-                <th>Valor Total</th>
-                <th>Forma Pagamento</th>
-                <th>Total de Vezes</th>
-                <th>Data Venda</th>
+                <th>Total</th>
+                <th>Pagamento</th>
+                <th>Parcelas</th>
+                <th>Data</th>
+                <th>Status</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
-              {vendasFiltradas.map((venda) => (
-                <tr
-                  key={venda.id}
-                  onClick={() => handleRowClick(venda.id)}
-                  style={{
-                    backgroundColor:
-                      vendaSelecionada === venda.id ? "blue" : "transparent",
-                    color: vendaSelecionada === venda.id ? "white" : "black",
-                    cursor: "pointer",
-                  }}
-                >
-                  <td>{venda.id}</td>
-                  <td>
-                    {funcionarios.find((f) => f.id === venda.funcionarioId)
-                      ?.nome || venda.funcionarioId}
-                  </td>
-                  <td>
-                    {venda.clienteId === 0 ||
-                    venda.clienteId === "0" ||
-                    venda.clienteId === null
-                      ? "Anônimo"
-                      : clientes.find((c) => c.id === venda.clienteId)?.nome ||
-                        venda.clienteId}
-                  </td>
-                  <td>{venda.totalDeItens}</td>
-                  <td>
-                    {venda.valorTotal?.toLocaleString("pt-BR", {
-                      style: "currency",
-                      currency: "BRL",
-                    })}
-                  </td>
-                  <td>
-                    {Array.isArray(venda.formaDePagamento)
-                      ? venda.formaDePagamento.join(", ")
-                      : venda.formaDePagamento}
-                  </td>
-                  <td>{venda.totalDeVezes || 1}x</td>
-                  <td>
-                    {venda.dataVenda
-                      ? new Date(venda.dataVenda).toLocaleDateString("pt-BR")
-                      : "N/A"}
-                  </td>
-                </tr>
-              ))}
+              {vendasFiltradas.map((venda) => {
+                const status = statusVenda(venda);
+                return (
+                  <tr key={venda.id}>
+                    <td>#{venda.id}</td>
+                    <td>{funcionarios.find((f) => f.id === venda.funcionarioId)?.nome || "—"}</td>
+                    <td>
+                      {venda.clienteId === 0 || venda.clienteId === "0" || venda.clienteId === null
+                        ? "Anônimo"
+                        : clientes.find((c) => c.id === venda.clienteId)?.nome || "—"}
+                    </td>
+                    <td>{venda.totalDeItens}</td>
+                    <td>{Number(venda.valorTotal || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td>
+                    <td>{Array.isArray(venda.formaDePagamento) ? venda.formaDePagamento.join(", ") : venda.formaDePagamento}</td>
+                    <td>{venda.totalDeVezes || 1}x</td>
+                    <td>{venda.dataVenda ? new Date(venda.dataVenda).toLocaleDateString("pt-BR") : "—"}</td>
+                    <td><span className={`pdv-pill ${status.className}`}>{status.label}</span></td>
+                    <td>
+                      <div className="pdv-table-actions">
+                        <button type="button" className="pdv-icon-btn" title="Ver detalhes" onClick={() => navigate(`/Venda/DetalhesVenda/${venda.id}`)}>
+                          <Eye size={16} />
+                        </button>
+                        <button type="button" className="pdv-icon-btn" title="Editar venda" onClick={() => navigate(`/Venda/EditarVenda/${venda.id}`)}>
+                          <Pencil size={16} />
+                        </button>
+                        <button type="button" className="pdv-icon-btn pdv-icon-btn--danger" title="Excluir venda" onClick={() => handleDelete(venda)}>
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
+          {!carregando && vendasFiltradas.length === 0 && (
+            <p className="pdv-empty">
+              {vendas.length === 0 ? "Nenhuma venda registrada ainda." : "Nenhuma venda encontrada para esse filtro."}
+            </p>
+          )}
         </div>
       </div>
     </div>

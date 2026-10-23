@@ -1,26 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import "./Cliente.css";
-import lixo from "../../../assets/icons/lixo.svg";
-import olhoFechado from "../../../assets/icons/olhoFechado.svg";
-import edit from "../../../assets/icons/edit.svg";
+import { ArrowLeft } from "lucide-react";
 import { linkCli } from "./linkCli";
 import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
-// Função de validação de CPF
-function validarCPF(cpf) {
-  cpf = cpf.replace(/[^\d]+/g, '');
-  if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
 
+function validarCPF(cpf) {
+  cpf = cpf.replace(/[^\d]+/g, "");
+  if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
   const calcularDV = (cpfArray, pesoInicial) => {
     let soma = cpfArray.reduce((acc, num, idx) => acc + num * (pesoInicial - idx), 0);
     let resto = soma % 11;
     return resto < 2 ? 0 : 11 - resto;
   };
-
-  const numeros = cpf.split('').map(Number);
+  const numeros = cpf.split("").map(Number);
   const dv1 = calcularDV(numeros.slice(0, 9), 10);
   const dv2 = calcularDV(numeros.slice(0, 10), 11);
-  
   return dv1 === numeros[9] && dv2 === numeros[10];
 }
 
@@ -29,33 +23,19 @@ export function EditarCliente() {
   document.title = "Editar Cliente";
   const { id } = useParams();
   const navigate = useNavigate();
-  const [cliente, setCliente] = useState({
-    nome: "",
-    cpf: "",
-    endereço: "",
-    telefone: "",
-    dataNascimento: "",
-    limiteDeCrédito: "",
-    usuario: "",
-    nivelAcesso: 3,
-  });
+  const [cliente, setCliente] = useState(null);
+  const [salvando, setSalvando] = useState(false);
 
   useEffect(() => {
     const fetchCliente = async () => {
       try {
-        const response = await fetch(`${linkCli}/${id}`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
+        const response = await fetch(`${linkCli}/${id}`);
         if (!response.ok) throw new Error("Erro ao buscar os dados do cliente");
         const data = await response.json();
-        setCliente({
-          ...data,
-          nivelAcesso: data.nivelAcesso || "Cliente"
-        });
+        setCliente(data);
       } catch (error) {
         console.error(error);
-        alert("Erro ao carregar os dados do cliente");
+        alert("Não foi possível carregar os dados do cliente.");
       }
     };
     fetchCliente();
@@ -68,166 +48,149 @@ export function EditarCliente() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!validarCPF(cliente.cpf)) {
-      alert("CPF inválido!");
+      alert("CPF inválido. Confira os números digitados.");
       return;
     }
 
+    setSalvando(true);
     try {
       const response = await fetch(`${linkCli}/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...cliente,
-          número: parseInt(cliente.número),
-          limiteDeCrédito: parseFloat(cliente.limiteDeCrédito),
-          nivelAcesso: 3, // garante que sempre será Cliente
+          limiteDeCredito: parseFloat(cliente.limiteDeCredito) || 0,
         }),
       });
-
-      if (!response.ok) throw new Error("Erro ao atualizar o cliente");
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        throw new Error(body?.message || "Erro ao atualizar o cliente.");
+      }
       navigate("/Cliente/ListagemCliente");
     } catch (error) {
-      console.error(error);
-      alert("Erro ao atualizar o cliente");
+      alert(error.message || "Erro ao atualizar o cliente.");
+    } finally {
+      setSalvando(false);
     }
   };
 
-  const handleVoltar = () => navigate("/Cliente/ListagemCliente");
-  const handleDetalhar = () => navigate(`/Cliente/DetalhesCliente/${id}`);
-  const handleEditar = () => alert("Você já está na tela de edição.");
-  const handleDelete = async () => {
-    const confirmDelete = window.confirm("Tem certeza que deseja deletar este cliente?");
-    if (!confirmDelete) return;
-
-    try {
-      const response = await fetch(`${linkCli}/${id}`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-      });
-      if (!response.ok) throw new Error("Erro ao deletar o cliente");
-      alert("Cliente deletado com sucesso!");
-      navigate("/Cliente/ListagemCliente");
-    } catch (error) {
-      console.error(error);
-      alert("Erro ao deletar o cliente");
-    }
-  };
+  if (!cliente) {
+    return <p className="pdv-empty">Carregando dados do cliente…</p>;
+  }
 
   return (
-    <div className="centroEditarCliente">
-      <div className="top-nav">
-        <div className="top-nav-buttons">
-          <button type="button" className="top-nav-button lixo" onClick={handleDelete}>
-            <img src={lixo} className="top-nav-img" alt="Lixo" />
-          </button>
-          <button type="button" className="top-nav-button olhoFechado" onClick={handleDetalhar}>
-            <img src={olhoFechado} className="top-nav-img" alt="Detalhar" />
-          </button>
-          <button type="button" className="top-nav-button editar" onClick={handleEditar}>
-            <img src={edit} className="top-nav-img" alt="Editar" />
-          </button>
+    <div className="pdv-page">
+      <div className="pdv-header">
+        <div>
+          <Link to="/Cliente/ListagemCliente" className="pdv-btn pdv-btn--ghost pdv-btn--sm" style={{ marginBottom: 10 }}>
+            <ArrowLeft size={14} /> Voltar para clientes
+          </Link>
+          <h1 className="pdv-title">Editar cliente: {cliente.nome}</h1>
         </div>
       </div>
 
-      <div className="EditarCliente">
-        <h1>Editar Cliente: {cliente.nome}</h1>
-        <form className="FormEditarCliente" onSubmit={handleSubmit}>
-          <div className="divEditarCliente">
-          <input
-            type="text"
-            name="id"
-            readOnly
-            value={cliente.id || ""}
-            placeholder="Id"
-            className="inputEditarCliente"
-          />
-          <input
-            type="text"
-            name="nome"
-            required
-            placeholder="Nome"
-            className="inputEditarCliente"
-            value={cliente.nome}
-            onChange={handleChange}
-          />
-          <input
-            type="text"
-            name="cpf"
-            required
-            placeholder="CPF"
-            className="inputEditarCliente"
-            value={cliente.cpf}
-            onChange={handleChange}
-          />
-          <input
-            type="text"
-            name="endereço"
-            required
-            placeholder="Endereço"
-            className="inputEditarCliente"
-            value={cliente.endereço}
-            onChange={handleChange}
-          />
-      
-          <input
-            type="text"
-            name="telefone"
-            required
-            placeholder="Telefone"
-            className="inputEditarCliente"
-            value={cliente.telefone}
-            onChange={handleChange}
-          />
-        
-          <input
-            type="date"
-            name="dataNascimento"
-            required
-            placeholder="Data de Nascimento"
-            className="inputEditarCliente"
-            value={cliente.dataNascimento ? cliente.dataNascimento.substring(0, 10) : ""}
-            onChange={handleChange}
-          />
-          <input
-            type="number"
-            name="limiteDeCrédito"
-            required
-            placeholder="Limite de Crédito"
-            className="inputEditarCliente"
-            value={cliente.limiteDeCrédito}
-            onChange={handleChange}
-          />
-          <input
-            type="text"
-            name="usuario"
-            required
-            placeholder="Usuário"
-            className="inputEditarCliente"
-            value={cliente.usuario || ""}
-            onChange={handleChange}
-          />
-          <input
-            type="text"
-            name="nivelAcesso"
-            placeholder="Nível de Acesso"
-            className="inputEditarCliente"
-            value="Cliente"
-            disabled
-          />
+      <form className="pdv-form-card" onSubmit={handleSubmit}>
+        <div className="pdv-form-grid">
+          <div className="pdv-form-col-full">
+            <label className="hp-lb">Nome completo *</label>
+            <input
+              type="text"
+              name="nome"
+              required
+              className="hp-inp"
+              value={cliente.nome || ""}
+              onChange={handleChange}
+            />
           </div>
 
-          <div className="buttonsGroupCliente">
-            <button type="button" className="btnCliente btnVoltarCliente" onClick={handleVoltar}>
-              Voltar
-            </button>
-            <button type="submit" className="btnCliente btnSalvarCliente">
-              Salvar
-            </button>
+          <div>
+            <label className="hp-lb">CPF *</label>
+            <input
+              type="text"
+              name="cpf"
+              required
+              className="hp-inp"
+              value={cliente.cpf || ""}
+              onChange={handleChange}
+            />
           </div>
-        </form>
-      </div>
+          <div>
+            <label className="hp-lb">Telefone</label>
+            <input
+              type="text"
+              name="telefone"
+              className="hp-inp"
+              value={cliente.telefone || ""}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="pdv-form-col-full">
+            <label className="hp-lb">Endereço</label>
+            <input
+              type="text"
+              name="endereco"
+              className="hp-inp"
+              value={cliente.endereco || ""}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div>
+            <label className="hp-lb">Data de nascimento</label>
+            <input
+              type="date"
+              name="dataNascimento"
+              className="hp-inp"
+              value={cliente.dataNascimento ? cliente.dataNascimento.substring(0, 10) : ""}
+              onChange={handleChange}
+            />
+          </div>
+          <div>
+            <label className="hp-lb">Limite de crédito</label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              name="limiteDeCredito"
+              className="hp-inp"
+              value={cliente.limiteDeCredito ?? ""}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div>
+            <label className="hp-lb">Usuário de acesso *</label>
+            <input
+              type="text"
+              name="usuario"
+              required
+              className="hp-inp"
+              value={cliente.usuario || ""}
+              onChange={handleChange}
+            />
+          </div>
+          <div>
+            <label className="hp-lb">Nova senha</label>
+            <input
+              type="password"
+              name="senha"
+              placeholder="Deixe em branco para manter a atual"
+              className="hp-inp"
+              value={cliente.senha || ""}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
+
+        <div className="pdv-form-actions">
+          <Link to="/Cliente/ListagemCliente" className="pdv-btn pdv-btn--ghost">Cancelar</Link>
+          <button type="submit" className="pdv-btn pdv-btn--primary" disabled={salvando}>
+            {salvando ? "Salvando…" : "Salvar alterações"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

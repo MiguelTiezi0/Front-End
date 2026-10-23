@@ -1,0 +1,120 @@
+.cadastro-page {
+  min-height: 100vh;
+  background: var(--bg-app);
+  font-family: var(--font-ui);
+}
+
+.cadastro-header-bar {
+  border-bottom: 1px solid var(--border-default);
+  background: var(--bg-surface);
+}
+.cadastro-header-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 18px 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.cadastro-brand {
+  font-family: var(--font-logo);
+  font-size: 24px;
+  color: var(--brand-ink);
+  text-decoration: none;
+  cursor: pointer;
+}
+.cadastro-header-login {
+  color: var(--text-muted);
+  font-size: 14px;
+  margin: 0;
+}
+.cadastro-header-login a {
+  color: var(--accent-yellow);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.cadastro-body {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 40px 48px;
+}
+
+.cadastro-title {
+  font-family: var(--font-title);
+  font-weight: 800;
+  font-size: 28px;
+  color: var(--text-primary);
+  margin: 0;
+}
+.cadastro-sub {
+  color: var(--text-muted);
+  font-size: 14px;
+  margin: 4px 0 28px;
+}
+
+.cadastro-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 1px 3px rgba(20,18,12,.05);
+}
+
+.cadastro-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+.col-full { grid-column: 1 / -1; }
+
+.cadastro-pwd-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  padding: 0;
+}
+
+.cadastro-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 26px;
+}
+
+.cadastro-btn--cancel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-input);
+  color: #3A3833;
+  border-radius: 11px;
+  padding: 12px 22px;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  transition: background .15s;
+}
+.cadastro-btn--cancel:hover { background: #FAF6EC; }
+
+.cadastro-btn--submit {
+  background: var(--brand-ink);
+  border: none;
+  color: #fff;
+  border-radius: 11px;
+  padding: 12px 24px;
+  font-family: var(--font-title);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s;
+}
+.cadastro-btn--submit:hover { background: #000; }

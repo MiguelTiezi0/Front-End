@@ -1,221 +1,148 @@
 import React, { useState, useEffect } from "react";
-import "./Categoria.css";
-import lupa from "../../../assets/icons/lupa.svg";
-import lixo from "../../../assets/icons/lixo.svg";
-import edit from "../../../assets/icons/edit.svg";
-import { useNavigate } from "react-router-dom";
-
+import { Link, useNavigate } from "react-router-dom";
+import { Search, Pencil, Trash2, Plus } from "lucide-react";
 import { linkCat } from "./linkCat";
-import { linkPro } from "../Produto/linkPro"; 
+import { linkPro } from "../Produto/linkPro";
 import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
+
 export function ListagemCategoria() {
   useRequireAuth("Funcionario");
   document.title = "Listagem de Categorias";
   const [pesquisa, setPesquisa] = useState("");
-  const [inputVisivel, setInputVisivel] = useState(false);
-  const [btnVisivel, setbtnVisivel] = useState(true);
   const [categorias, setCategorias] = useState([]);
   const [categoriasFiltradas, setCategoriasFiltradas] = useState([]);
-  const [categoriaSelecionada, setCategoriaSelecionada] = useState(null);
-
+  const [carregando, setCarregando] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCategorias = async () => {
       try {
-        const response = await fetch(linkCat, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Erro ao buscar categorias");
-        }
-
+        const response = await fetch(linkCat);
+        if (!response.ok) throw new Error("Erro ao buscar categorias");
         const data = await response.json();
-        setCategorias(data);
-        setCategoriasFiltradas(data);
+        setCategorias(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error(error);
-        alert("Erro ao carregar as categorias");
+        alert("Não foi possível carregar a lista de categorias.");
+      } finally {
+        setCarregando(false);
       }
     };
-
     fetchCategorias();
   }, []);
 
   useEffect(() => {
-    const filtradas = categorias.filter((categoria) =>
-      categoria.descricao.toLowerCase().includes(pesquisa.toLowerCase())
-    );
-    setCategoriasFiltradas(filtradas);
-  }, [pesquisa, categorias]);
-
-  function handleClickPesquisa() {
-    setInputVisivel(!inputVisivel);
-    setbtnVisivel(!btnVisivel);
-    setPesquisa("");
-    setTimeout(() => {
-      const input = document.querySelector(".inputPesquisar");
-      if (input) input.focus();
-    }, 0);
-  }
-
-  const handleRowClick = (id) => {
-    setCategoriaSelecionada(id);
-  };
-
-  const handleDelete = async () => {
-    if (!categoriaSelecionada) {
-      alert("Selecione uma categoria para deletar.");
+    const filtro = pesquisa.toLowerCase().trim();
+    if (!filtro) {
+      setCategoriasFiltradas(categorias);
       return;
     }
+    setCategoriasFiltradas(
+      categorias.filter((c) => (c.descricao || "").toLowerCase().includes(filtro))
+    );
+  }, [pesquisa, categorias]);
 
-    // Verifica se existe produto com essa categoria
+  const handleDelete = async (categoria) => {
     try {
-      const responseProdutos = await fetch(linkPro, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!responseProdutos.ok) {
-        throw new Error("Erro ao buscar produtos");
-      }
-
+      const responseProdutos = await fetch(linkPro);
+      if (!responseProdutos.ok) throw new Error("Erro ao buscar produtos");
       const produtos = await responseProdutos.json();
-      const existeProduto = produtos.some(
-        (produto) => produto.categoriaId === categoriaSelecionada
-      );
-
+      const existeProduto = Array.isArray(produtos) && produtos.some((p) => p.categoriaId === categoria.id);
       if (existeProduto) {
-        alert(
-          "Não é possível deletar esta categoria pois existe um produto cadastrado nela."
-        );
+        alert("Não é possível excluir esta categoria: existem produtos cadastrados nela.");
         return;
       }
     } catch (error) {
       console.error(error);
-      alert("Erro ao verificar produtos da categoria");
+      alert("Não foi possível verificar os produtos desta categoria.");
       return;
     }
 
-    const confirmDelete = window.confirm(
-      `Tem certeza que deseja deletar a categoria com ID ${categoriaSelecionada}?`
-    );
+    const confirmDelete = window.confirm(`Excluir a categoria "${categoria.descricao}"?`);
     if (!confirmDelete) return;
 
     try {
-      const response = await fetch(
-        `${linkCat}/${categoriaSelecionada}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Erro ao deletar a categoria");
-      }
-
-      alert("Categoria deletada com sucesso!");
-      setCategorias((prev) =>
-        prev.filter((categoria) => categoria.id !== categoriaSelecionada)
-      );
-      setCategoriasFiltradas((prev) =>
-        prev.filter((categoria) => categoria.id !== categoriaSelecionada)
-      );
-      setCategoriaSelecionada(null);
+      const response = await fetch(`${linkCat}/${categoria.id}`, { method: "DELETE" });
+      if (!response.ok) throw new Error("Erro ao deletar a categoria");
+      setCategorias((prev) => prev.filter((c) => c.id !== categoria.id));
     } catch (error) {
       console.error(error);
-      alert("Erro ao deletar a categoria");
+      alert("Não foi possível excluir esta categoria.");
     }
-  };
-
-  const handleEditar = () => {
-    if (!categoriaSelecionada) {
-      alert("Selecione uma categoria para editar.");
-      return;
-    }
-    navigate(`/Categoria/EditarCategoria/${categoriaSelecionada}`);
   };
 
   return (
-    <div className="centro">
-      <div className="top-nav">
+    <div className="pdv-page">
+      <div className="pdv-header">
+        <div>
+          <h1 className="pdv-title">Categorias</h1>
+          <p className="pdv-subtitle">Organize o catálogo de produtos por categoria.</p>
+        </div>
+        <Link to="/Categoria/CadastroCategoria" className="pdv-btn pdv-btn--primary">
+          <Plus size={16} /> Nova categoria
+        </Link>
+      </div>
 
-        <div className="top-nav-buttons">
-          {btnVisivel && (
-            <button
-              type="button"
-              className="top-nav-button lupa"
-              onClick={handleClickPesquisa}
-            >
-              <img src={lupa} className="top-nav-img" alt="Lupa" />
-            </button>
-          )}
-
+      <div className="pdv-toolbar">
+        <div className="pdv-toolbar-search">
+          <Search size={16} />
           <input
             type="text"
-            className={`inputPesquisar ${inputVisivel ? "visivel" : ""}`}
+            placeholder="Buscar categoria…"
             value={pesquisa}
             onChange={(e) => setPesquisa(e.target.value)}
           />
-
-          <button
-            type="button"
-            className="top-nav-button lixo"
-            onClick={handleDelete}
-          >
-            <img src={lixo} className="top-nav-img" alt="Lixo" />
-          </button>
-
-          <button
-            type="button"
-            className="top-nav-button editar"
-            onClick={handleEditar}
-          >
-            <img src={edit} className="top-nav-img" alt="Editar" />
-          </button>
         </div>
       </div>
-    <div className="ListagemCategoria">
 
-        <h1>Listagem de Categorias</h1>
-      <div className="scrollCategoria">
-        <table className="tableCategoria">
-          <thead>
-            <tr>
-              <th>Id</th>
-              <th>Descrição</th>
-            </tr>
-          </thead>
-          <tbody>
-            {categoriasFiltradas.map((categoria) => (
-              <tr
-                key={categoria.id}
-                onClick={() => handleRowClick(categoria.id)}
-                style={{
-                  backgroundColor:
-                    categoriaSelecionada === categoria.id ? "blue" : "transparent",
-                  color:
-                    categoriaSelecionada === categoria.id ? "white" : "black",
-                  cursor: "pointer",
-                }}
-              >
-                <td>{categoria.id}</td>
-                <td>{categoria.descricao}</td>
+      <div className="pdv-card">
+        <div className="pdv-table-scroll">
+          <table className="pdv-table">
+            <thead>
+              <tr>
+                <th>Id</th>
+                <th>Descrição</th>
+                <th></th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {categoriasFiltradas.map((categoria) => (
+                <tr key={categoria.id}>
+                  <td>{categoria.id}</td>
+                  <td>{categoria.descricao}</td>
+                  <td>
+                    <div className="pdv-table-actions">
+                      <button
+                        type="button"
+                        className="pdv-icon-btn"
+                        title="Editar categoria"
+                        onClick={() => navigate(`/Categoria/EditarCategoria/${categoria.id}`)}
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        className="pdv-icon-btn pdv-icon-btn--danger"
+                        title="Excluir categoria"
+                        onClick={() => handleDelete(categoria)}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {!carregando && categoriasFiltradas.length === 0 && (
+            <p className="pdv-empty">
+              {categorias.length === 0
+                ? "Nenhuma categoria cadastrada ainda."
+                : "Nenhuma categoria encontrada para essa busca."}
+            </p>
+          )}
+        </div>
       </div>
-    </div>
     </div>
   );
 }

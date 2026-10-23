@@ -1,163 +1,123 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import "./Pages.css";
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Eye, EyeOff, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { API_BASE } from '../utils/apiFetch';
+import './Login.css';
 
-import olhosAbertos from "../assets/icons/olhosAbertos.svg";
-import olhosFechados from "../assets/icons/olhoFechado.svg";
+function toTitleCase(s) {
+  if (!s) return s;
+  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+}
 
 export function Login() {
-  document.title = "Login";
-  const [mostrarSenha, setMostrarSenha] = useState(false);
+  document.title = 'Login — Hello People';
+  const [showPwd, setShowPwd] = useState(false);
   const navigate = useNavigate();
 
-  function toggleSenha() {
-    setMostrarSenha(!mostrarSenha);
-  }
-
-  async function handleSubmit(event) {
-    event.preventDefault();
-
-    const formData = new FormData(event.target);
-    const data = Object.fromEntries(formData.entries());
+  async function handleSubmit(e) {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(e.target).entries());
 
     try {
-      const response = await fetch("http://localhost:7172/api/Auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
 
-      if (!response.ok) {
-        alert("Usuário ou senha inválidos!");
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        alert(body?.message || 'Usuário ou senha inválidos!');
+        console.log(data)
         return;
       }
 
-      const result = await response.json();
-
-      // Salva usuário logado no localStorage com lastActivity
+      const result = await res.json();
+      const nivelAcesso = toTitleCase(result.nivelAcesso || result.NivelAcesso);
       const now = new Date().getTime();
-      const expiration = 10 * 1000; // 24h
-      localStorage.setItem(
-        "user",
-        JSON.stringify({ ...result, expiration, lastActivity: now })
-      );
 
-      // Redireciona conforme o nível de acesso
-      if (result.nivelAcesso === "Cliente") {
-        navigate("/inicio");
-      } else {
-        navigate("/home");
-      }
-    } catch (error) {
-      console.error("Erro ao tentar logar:", error);
-      alert("Erro no servidor. Tente novamente mais tarde.");
+      localStorage.setItem('user', JSON.stringify({
+        ...result,
+        nivelAcesso,
+        token: result.token || result.Token,
+        expiration: 8 * 60 * 60 * 1000,
+        lastActivity: now,
+      }));
+
+      navigate(nivelAcesso === 'Cliente' ? '/inicio' : '/home');
+    } catch {
+      alert('Erro no servidor. Tente novamente mais tarde.');
     }
   }
 
-  // --- Controle de inatividade ---
-  useEffect(() => {
-    function updateLastActivity() {
-      const userData = localStorage.getItem("user");
-      if (!userData) return;
-      const user = JSON.parse(userData);
-      user.lastActivity = new Date().getTime();
-      localStorage.setItem("user", JSON.stringify(user));
-    }
-
-    // Captura eventos de atividade
-    window.addEventListener("mousemove", updateLastActivity);
-    window.addEventListener("keydown", updateLastActivity);
-    window.addEventListener("scroll", updateLastActivity);
-
-    // Verifica inatividade a cada minuto
-    const interval = setInterval(() => {
-      const userData = localStorage.getItem("user");
-      if (!userData) return;
-
-      const user = JSON.parse(userData);
-      const now = new Date().getTime();
-      const thirtyMinutes =  60 * 1000;
-
-      if (now - user.lastActivity > thirtyMinutes) {
-        localStorage.removeItem("user");
-        alert("Você foi desconectado por inatividade.");
-        navigate("/login");
-      }
-    }, 60 * 1000);
-
-    // Cleanup ao desmontar componente
-    return () => {
-      window.removeEventListener("mousemove", updateLastActivity);
-      window.removeEventListener("keydown", updateLastActivity);
-      window.removeEventListener("scroll", updateLastActivity);
-      clearInterval(interval);
-    };
-  }, [navigate]);
+  function handleGoogle() {
+    window.location.href = `${API_BASE}/oauth2/authorization/google`;
+  }
 
   return (
-    <div className="Page">
-      <header className="headerNav">
-        <nav>
-          <ul>
-            <li>
-              <a href="/inicio">Início</a>
-            </li>
-            <li>
-              <a href="/contato">Contato</a>
-            </li>
-            <li>
-              <a href="/login" className="active">
-                Login
-              </a>
-            </li>
-            <li>
-              <a href="/cadastro">Cadastro</a>
-            </li>
-          </ul>
-        </nav>
-      </header>
-      <main>
-        <div className="loginContainer">
-          <h1>Login</h1>
-          <form className="loginForm" onSubmit={handleSubmit}>
-            <input
-              type="text"
-              name="Usuario"
-              placeholder="Usuário"
-              className="loginInput"
-              required
-            />
-            <div className="inputWrapper">
+    <div className="login-page">
+      {/* Left panel */}
+      <div className="login-left">
+        <span className="login-brand">Hello People</span>
+        <div className="login-left-body">
+          <h1 className="login-left-title">Bem-vindo<br />de volta.</h1>
+          <p className="login-left-sub">
+            Acesse o painel da loja para gerenciar produtos, vendas e o caixa em um só lugar.
+          </p>
+        </div>
+        <div className="login-left-badge">
+          <ShieldCheck size={16} />
+          Ambiente seguro · acesso restrito
+        </div>
+      </div>
+
+      {/* Right panel */}
+      <div className="login-right">
+        <div className="login-card">
+          <Link to="/inicio" className="login-back">
+            <ArrowLeft size={16} /> Voltar ao início
+          </Link>
+          <h2 className="login-card-title">Iniciar sessão</h2>
+          <p className="login-card-sub">Entre com seu usuário e senha</p>
+
+          <form onSubmit={handleSubmit}>
+            <label className="hp-lb">Usuário</label>
+            <input className="hp-inp" name="usuario" placeholder="seu.usuario" style={{ marginBottom: 18 }} required />
+
+            <label className="hp-lb">Senha</label>
+            <div className="login-pwd-wrap">
               <input
-                type={mostrarSenha ? "text" : "password"}
-                name="Senha"
-                className="loginInput"
-                placeholder="Digite sua senha"
+                className="hp-inp"
+                type={showPwd ? 'text' : 'password'}
+                name="senha"
+                placeholder="••••••••"
+                style={{ paddingRight: 44 }}
                 required
               />
-              <button
-                type="button"
-                className="togglePassword"
-                onClick={toggleSenha}
-              >
-                <img
-                  src={mostrarSenha ? olhosAbertos : olhosFechados}
-                  alt="Olho"
-                />
+              <button type="button" className="login-pwd-toggle" onClick={() => setShowPwd(v => !v)}>
+                {showPwd ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
 
-            <div className="loginButtons">
-              <button type="submit" className="loginBtn">
-                Iniciar sessão
-              </button>
-              <a href="/cadastro" className="loginLink">
-                Não possui uma conta ainda? Cadastre-se
-              </a>
+            <div className="login-forgot">
+              <span>Esqueci a senha</span>
             </div>
+
+            <button type="submit" className="login-btn--primary">Iniciar sessão</button>
           </form>
+
+          <div className="login-divider"><span>ou</span></div>
+
+          <button type="button" className="login-btn--google" onClick={handleGoogle}>
+            <span className="google-g">G</span> Continuar com Google
+          </button>
+
+          <p className="login-signup">
+            Não tem conta?{' '}
+            <Link to="/cadastro">Cadastre-se</Link>
+          </p>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

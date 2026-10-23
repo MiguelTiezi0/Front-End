@@ -1,115 +1,127 @@
-import React, { useState } from "react";
-import "./Pages.css";
-
-import olhosAbertos from "../assets/icons/olhosAbertos.svg";
-import olhosFechados from "../assets/icons/olhoFechado.svg";
-
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
+import { apiFetch } from '../utils/apiFetch';
+import './Cadastro.css';
 
 export function Cadastro() {
+  document.title = 'Cadastro — Hello People';
+  const [showPwd, setShowPwd] = useState(false);
 
-  document.title = "Cadastro";
-  const [mostrarSenha, setMostrarSenha] = useState(false);
+  async function handleSubmit(e) {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(e.target).entries());
 
-  function toggleSenha() {
-    setMostrarSenha(!mostrarSenha);
-  }
-
-  async function handleSubmit(event) {
-    event.preventDefault();
-
-    const formData = new FormData(event.target);
-    const data = Object.fromEntries(formData.entries());
-
-    // Ajustar nomes para bater com o modelo do backend
     const payload = {
-      Usuario: data.Usuario,
-      Senha: data.Senha,
-      CPF: data.CPF,
-      Nome: data.NomeC,
-      Endereço: data.Endereco,
-      Telefone: data.NumeroTelefone,
-      Email: data.Email,
-      Sexo: data.Sexo,
-      DataDeNascimento: data.DataNascimento,
-      // Sempre cliente
-      NivelAcesso: 3 
+      usuario: data.usuario,
+      senha: data.senha,
+      cpf: data.cpf,
+      nome: data.nome,
+      endereco: data.endereco,
+      telefone: data.telefone,
+      dataNascimento: data.dataNascimento ? `${data.dataNascimento}T00:00:00` : null,
+      nivelAcesso: 'CLIENTE',
     };
 
-    console.table(payload);
-
     try {
-      const response = await fetch("http://localhost:7172/api/Cliente", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        throw new Error("Erro ao cadastrar usuário");
+      const res = await apiFetch('/api/cliente', { method: 'POST', body: JSON.stringify(payload) });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.message || 'Erro no cadastro. Tente novamente.');
       }
-
-      alert("Cadastro realizado com sucesso!");
-      window.location.href = "/login";
-    } catch (error) {
-      console.error("Erro:", error);
-      alert("Erro no cadastro. Tente novamente.");
+      alert('Cadastro realizado com sucesso!');
+      window.location.href = '/login';
+    } catch (err) {
+      alert(err.message || 'Erro no cadastro. Tente novamente.');
     }
   }
 
   return (
-    <div className="Page">
-      <header className="headerNav">
-        <nav>
-          <ul>
-            <li><a href="/inicio">Início</a></li>
-            <li><a href="/contato">Contato</a></li>
-            <li><a href="/login">Login</a></li>
-            <li><a href="/cadastro" className="active">Cadastro</a></li>
-          </ul>
-        </nav>
-      </header>
-      <main>
-        <div className="cadastroContainer">
-          <h1>Cadastro</h1>
-          <form className="cadastroForm" onSubmit={handleSubmit}>
-            <input type="text" name="Usuario" placeholder="Usuário" className="cadastroInput" />
-            
-            <div className="inputWrapperCadastro">
-              <input
-                type={mostrarSenha ? "text" : "password"}
-                name="Senha"
-                className="cadastroInput"
-                placeholder="Digite sua senha"
-              />
-              <button
-                type="button"
-                className="togglePasswordCadastro"
-                onClick={toggleSenha}
-              >
-                <img
-                  src={mostrarSenha ? olhosAbertos : olhosFechados}
-                  alt="Olho"
-                />
-              </button>
+    <div className="cadastro-page">
+      {/* Header */}
+      <div className="cadastro-header-bar">
+        <div className="cadastro-header-inner">
+          <Link to="/inicio" className="cadastro-brand">Hello People</Link>
+          <p className="cadastro-header-login">
+            Já tem conta? <Link to="/login">Entrar</Link>
+          </p>
+        </div>
+      </div>
+
+      {/* Form */}
+      <div className="cadastro-body">
+        <h1 className="cadastro-title">Criar sua conta</h1>
+        <p className="cadastro-sub">Preencha seus dados para começar a comprar na Hello People</p>
+
+        <div className="cadastro-card">
+          <form onSubmit={handleSubmit}>
+            <div className="cadastro-grid">
+              <div>
+                <label className="hp-lb">Usuário *</label>
+                <input className="hp-inp" name="usuario" placeholder="seu.usuario" required />
+              </div>
+              <div>
+                <label className="hp-lb">Senha *</label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    className="hp-inp"
+                    type={showPwd ? 'text' : 'password'}
+                    name="senha"
+                    placeholder="••••••••"
+                    style={{ paddingRight: 44 }}
+                    required
+                  />
+                  <button type="button" className="cadastro-pwd-toggle" onClick={() => setShowPwd(v => !v)}>
+                    {showPwd ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="col-full">
+                <label className="hp-lb">Nome completo *</label>
+                <input className="hp-inp" name="nome" placeholder="Seu nome completo" required />
+              </div>
+
+              <div>
+                <label className="hp-lb">CPF *</label>
+                <input className="hp-inp" name="cpf" placeholder="000.000.000-00" required />
+              </div>
+              <div>
+                <label className="hp-lb">Telefone</label>
+                <input className="hp-inp" name="telefone" placeholder="(00) 00000-0000" />
+              </div>
+
+              <div className="col-full">
+                <label className="hp-lb">E-mail *</label>
+                <input className="hp-inp" type="email" name="email" placeholder="voce@email.com" required />
+              </div>
+              <div className="col-full">
+                <label className="hp-lb">Endereço</label>
+                <input className="hp-inp" name="endereco" placeholder="Rua, número, bairro, cidade" />
+              </div>
+
+              <div>
+                <label className="hp-lb">Sexo</label>
+                <select className="hp-inp" name="sexo">
+                  <option value="">Selecione…</option>
+                  <option>Feminino</option>
+                  <option>Masculino</option>
+                  <option>Prefiro não informar</option>
+                </select>
+              </div>
+              <div>
+                <label className="hp-lb">Data de nascimento</label>
+                <input className="hp-inp" type="date" name="dataNascimento" />
+              </div>
             </div>
 
-            <input type="text" name="CPF" placeholder="CPF" className="cadastroInput" />
-            <input type="text" name="NomeC" placeholder="Nome Completo" className="cadastroInput" />
-            <input type="text" name="Endereco" placeholder="Endereço" className="cadastroInput" />
-            <input type="text" name="NumeroTelefone" placeholder="Número de Telefone" className="cadastroInput" />
-            <input type="email" name="Email" placeholder="E-mail" className="cadastroInput" />
-            <input type="text" name="Sexo" placeholder="Sexo" className="cadastroInput" />
-            <input type="date" name="DataNascimento" placeholder="Data de Nascimento" className="cadastroInput" />
-
-            <div className="cadastroButtons">
-              <button type="submit" className="cadastroBtn">
-                Iniciar sessão
-              </button>
-              <a href="/login" className="cadastroLink">Já possui uma conta? Login</a>
+            <div className="cadastro-actions">
+              <Link to="/inicio" className="cadastro-btn--cancel">Cancelar</Link>
+              <button type="submit" className="cadastro-btn--submit">Criar conta</button>
             </div>
           </form>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

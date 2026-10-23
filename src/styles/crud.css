@@ -1,0 +1,324 @@
+/* ============================================================
+   Padrão visual compartilhado para telas de CRUD (Listagem,
+   Cadastro, Editar, Detalhes) de todos os módulos do PDV.
+   Usa os tokens definidos em index.css (--bg-surface, --brand-*, etc).
+   ============================================================ */
+
+.pdv-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Cabeçalho ───────────────────────────────────────── */
+.pdv-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.pdv-title {
+  font-family: var(--font-title);
+  font-weight: 800;
+  font-size: 24px;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.pdv-subtitle {
+  color: var(--text-muted);
+  font-size: 13.5px;
+  margin: 4px 0 0;
+}
+
+/* ── Botões ──────────────────────────────────────────── */
+.pdv-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-radius: var(--r-input);
+  padding: 10px 16px;
+  font-family: var(--font-ui);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  text-decoration: none;
+  transition: background .12s, border-color .12s, opacity .12s;
+  white-space: nowrap;
+}
+.pdv-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+.pdv-btn--primary {
+  background: var(--brand-ink);
+  color: #fff;
+}
+.pdv-btn--primary:hover:not(:disabled) { background: #000; }
+
+.pdv-btn--ghost {
+  background: var(--bg-surface);
+  border-color: var(--border-input);
+  color: var(--text-primary);
+}
+.pdv-btn--ghost:hover:not(:disabled) { background: var(--bg-sunken); }
+
+.pdv-btn--danger {
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
+  color: var(--danger-fg);
+}
+.pdv-btn--danger:hover:not(:disabled) { background: #f6d3d0; }
+
+.pdv-btn--sm {
+  padding: 6px 11px;
+  font-size: 12.5px;
+  border-radius: var(--r-chip);
+}
+
+/* ── Barra de ferramentas / busca ────────────────────── */
+.pdv-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-card);
+  padding: 12px 14px;
+}
+
+.pdv-toolbar-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.pdv-toolbar-search svg { color: var(--text-faint); flex-shrink: 0; }
+
+.pdv-toolbar-search input {
+  border: none;
+  background: none;
+  outline: none;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  width: 100%;
+  color: var(--text-primary);
+}
+.pdv-toolbar-search input::placeholder { color: #b4aea2; }
+
+.pdv-toolbar-select {
+  border: 1px solid var(--border-input);
+  border-radius: var(--r-input);
+  padding: 8px 30px 8px 11px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--text-secondary);
+  background-color: var(--bg-surface);
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238c877d' stroke-width='2.5'><path d='M6 9l6 6 6-6'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  cursor: pointer;
+}
+
+.pdv-toolbar-dates {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.pdv-toolbar-dates input {
+  border: 1px solid var(--border-input);
+  border-radius: var(--r-input);
+  padding: 7px 9px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--text-primary);
+  background: var(--bg-surface);
+}
+
+/* ── Cartão + tabela ─────────────────────────────────── */
+.pdv-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-card);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(20,18,12,.05);
+}
+
+.pdv-table-scroll {
+  overflow: auto;
+  max-height: calc(100vh - 320px);
+}
+
+.pdv-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+.pdv-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--bg-subtle);
+  text-align: left;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-default);
+  white-space: nowrap;
+}
+
+.pdv-table tbody td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-row);
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+.pdv-table tbody tr:last-child td { border-bottom: none; }
+.pdv-table tbody tr:hover td { background: var(--bg-subtle); }
+.pdv-table tbody tr.pdv-row--selected td { background: var(--tint-yellow); }
+
+.pdv-table-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.pdv-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-chip);
+  border: 1px solid var(--border-input);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background .12s, color .12s, border-color .12s;
+}
+.pdv-icon-btn:hover { background: var(--bg-sunken); color: var(--text-primary); }
+.pdv-icon-btn--danger:hover { background: var(--danger-bg); color: var(--danger-fg); border-color: var(--danger-border); }
+
+.pdv-empty {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+  padding: 48px 20px;
+}
+
+/* ── Badges de status (pagamento) ─────────────────────── */
+.pdv-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+  font-size: 12px;
+  font-weight: 700;
+}
+.pdv-pill--success { background: var(--success-bg); color: var(--success-fg); }
+.pdv-pill--warning { background: var(--tint-yellow); color: var(--accent-yellow); }
+.pdv-pill--danger  { background: var(--danger-bg); color: var(--danger-fg); }
+.pdv-pill--neutral { background: var(--bg-sunken); color: var(--text-muted); }
+
+/* ── Formulários (Cadastro/Editar) ────────────────────── */
+.pdv-form-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-card);
+  padding: 26px;
+  box-shadow: 0 1px 3px rgba(20,18,12,.05);
+  max-width: 760px;
+}
+
+.pdv-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+.pdv-form-col-full { grid-column: 1 / -1; }
+
+.pdv-form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 26px;
+}
+
+.pdv-hint {
+  font-size: 12px;
+  color: var(--text-faint);
+  margin-top: 4px;
+}
+
+/* ── Telas de detalhes ─────────────────────────────────── */
+.pdv-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 28px;
+}
+
+.pdv-detail-item dt {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 3px;
+}
+.pdv-detail-item dd {
+  font-size: 15px;
+  color: var(--text-primary);
+  margin: 0;
+  font-weight: 600;
+}
+
+.pdv-section-title {
+  font-family: var(--font-title);
+  font-weight: 800;
+  font-size: 17px;
+  color: var(--text-primary);
+  margin: 0 0 12px;
+}
+
+.pdv-stat-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pdv-stat {
+  flex: 1;
+  min-width: 140px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-input);
+  padding: 12px 14px;
+}
+.pdv-stat dt {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.pdv-stat dd {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+  font-family: var(--font-title);
+}

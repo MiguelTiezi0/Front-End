@@ -1,15 +1,116 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: #252525;
-  color: #d9d9d9;
+/* Design tokens — Hello People PDV */
+:root {
+  /* Backgrounds */
+  --bg-app:     #FAF8F4;
+  --bg-surface: #FFFFFF;
+  --bg-subtle:  #FBF8F1;
+  --bg-sunken:  #F4F1EA;
+
+  /* Brand */
+  --brand-ink:         #16161A;
+  --brand-yellow:      #F5C518;
+  --brand-yellow-hover:#FFD02E;
+  --brand-yellow-ink:  #1A1710;
+  --accent-yellow:     #C99700;
+  --tint-yellow:       #FCF3D6;
+
+  /* Text */
+  --text-primary:   #1D1B16;
+  --text-strong:    #211F19;
+  --text-secondary: #57534C;
+  --text-muted:     #8C877D;
+  --text-faint:     #9A958A;
+
+  /* Borders */
+  --border-default: #ECE7DD;
+  --border-input:   #E2DCD0;
+  --border-row:     #F2EEE5;
+
+  /* Status */
+  --success-fg: #2F8F5B;
+  --success-bg: #E6F3EC;
+  --danger-fg:  #C9453F;
+  --danger-bg:  #FBE7E5;
+  --danger-border: #E9B6B2;
+
+  /* Sidebar */
+  --sidebar-active-bg: rgba(245,197,24,0.13);
+  --sidebar-text:      #CFCABF;
+  --sidebar-label:     #5F5A51;
+
+  /* Radii */
+  --r-input: 10px;
+  --r-card:  14px;
+  --r-chip:  7px;
+  --r-pill:  99px;
+
+  /* Fonts */
+  --font-ui:    'Hanken Grotesk', system-ui, sans-serif;
+  --font-title: 'Archivo', system-ui, sans-serif;
+  --font-mono:  'JetBrains Mono', monospace;
+  --font-logo:  'Kaushan Script', cursive;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-ui);
+  background: var(--bg-app);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Global input style */
+.hp-inp {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid var(--border-input);
+  border-radius: var(--r-input);
+  background: var(--bg-surface);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.hp-inp::placeholder { color: #B4AEA2; }
+.hp-inp:focus {
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 3px rgba(245,197,24,.28);
+}
+.hp-inp[readonly], .hp-inp:disabled {
+  background: var(--bg-sunken);
+  color: var(--text-faint);
+  cursor: default;
+}
+select.hp-inp {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238c877d' stroke-width='2.5'><path d='M6 9l6 6 6-6'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 34px;
+  cursor: pointer;
+}
+
+/* Label */
+.hp-lb {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,.14); border-radius: 99px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* Toast animation */
+@keyframes hp-toast-in {
+  from { opacity: 0; transform: translateY(10px) scale(.98); }
+  to   { opacity: 1; transform: none; }
 }

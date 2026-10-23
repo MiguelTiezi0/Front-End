@@ -1,190 +1,146 @@
 import React, { useState, useEffect } from "react";
-import "./Fornecedor.css";
-import lupa from "../../../assets/icons/lupa.svg";
-import lixo from "../../../assets/icons/lixo.svg";
-import edit from "../../../assets/icons/edit.svg";
-import { useNavigate } from "react-router-dom";
-
+import { Link, useNavigate } from "react-router-dom";
+import { Search, Eye, Pencil, Trash2, Plus } from "lucide-react";
 import { linkFor } from "./linkFor";
 import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
+
 export function ListagemFornecedor() {
   useRequireAuth("Funcionario");
   document.title = "Listagem de Fornecedores";
   const [pesquisa, setPesquisa] = useState("");
-  const [inputVisivel, setInputVisivel] = useState(false);
-  const [btnVisivel, setbtnVisivel] = useState(true);
   const [fornecedores, setFornecedores] = useState([]);
   const [fornecedoresFiltrados, setFornecedoresFiltrados] = useState([]);
-  const [fornecedorSelecionado, setFornecedorSelecionado] = useState(null);
-
+  const [carregando, setCarregando] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchFornecedores = async () => {
       try {
-        const response = await fetch(linkFor, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Erro ao buscar fornecedores");
-        }
-
+        const response = await fetch(linkFor);
+        if (!response.ok) throw new Error("Erro ao buscar fornecedores");
         const data = await response.json();
-        setFornecedores(data);
-        setFornecedoresFiltrados(data);
+        setFornecedores(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error(error);
-        alert("Erro ao carregar os fornecedores");
+        alert("Não foi possível carregar a lista de fornecedores.");
+      } finally {
+        setCarregando(false);
       }
     };
-
     fetchFornecedores();
   }, []);
 
   useEffect(() => {
-    const filtrados = fornecedores.filter((fornecedor) =>
-      fornecedor.nome.toLowerCase().includes(pesquisa.toLowerCase())
-    );
-    setFornecedoresFiltrados(filtrados);
-  }, [pesquisa, fornecedores]);
-
-  function handleClickPesquisa() {
-    setInputVisivel(!inputVisivel);
-    setbtnVisivel(!btnVisivel);
-    setPesquisa("");
-    setTimeout(() => {
-      const input = document.querySelector(".inputPesquisar");
-      if (input) input.focus();
-    }, 0);
-  }
-
-  const handleRowClick = (id) => {
-    setFornecedorSelecionado(id);
-  };
-
-  const handleDelete = async () => {
-    if (!fornecedorSelecionado) {
-      alert("Selecione um fornecedor para deletar.");
+    const filtro = pesquisa.toLowerCase().trim();
+    if (!filtro) {
+      setFornecedoresFiltrados(fornecedores);
       return;
     }
-
-    const confirmDelete = window.confirm(
-      `Tem certeza que deseja deletar o fornecedor com ID ${fornecedorSelecionado}?`
+    setFornecedoresFiltrados(
+      fornecedores.filter(
+        (f) =>
+          (f.nome || "").toLowerCase().includes(filtro) ||
+          (f.cnpj || "").toLowerCase().includes(filtro)
+      )
     );
+  }, [pesquisa, fornecedores]);
+
+  const handleDelete = async (fornecedor) => {
+    const confirmDelete = window.confirm(`Excluir o fornecedor "${fornecedor.nome}"? Essa ação não pode ser desfeita.`);
     if (!confirmDelete) return;
 
     try {
-      const response = await fetch(
-        `${linkFor}/${fornecedorSelecionado}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Erro ao deletar o fornecedor");
-      }
-
-      alert("Fornecedor deletado com sucesso!");
-      setFornecedores((prev) =>
-        prev.filter((fornecedor) => fornecedor.id !== fornecedorSelecionado)
-      );
-      setFornecedoresFiltrados((prev) =>
-        prev.filter((fornecedor) => fornecedor.id !== fornecedorSelecionado)
-      );
-      setFornecedorSelecionado(null);
+      const response = await fetch(`${linkFor}/${fornecedor.id}`, { method: "DELETE" });
+      if (!response.ok) throw new Error("Erro ao deletar o fornecedor");
+      setFornecedores((prev) => prev.filter((f) => f.id !== fornecedor.id));
     } catch (error) {
       console.error(error);
-      alert("Erro ao deletar o fornecedor");
+      alert("Não foi possível excluir este fornecedor.");
     }
-  };
-
-  const handleEditar = () => {
-    if (!fornecedorSelecionado) {
-      alert("Selecione um fornecedor para editar.");
-      return;
-    }
-    navigate(`/Fornecedor/EditarFornecedor/${fornecedorSelecionado}`);
   };
 
   return (
-    <div className="centro">
-      <div className="top-nav">
-        <div className="top-nav-buttons">
-          {btnVisivel && (
-            <button
-              type="button"
-              className="top-nav-button lupa"
-              onClick={handleClickPesquisa}
-            >
-              <img src={lupa} className="top-nav-img" alt="Lupa" />
-            </button>
-          )}
+    <div className="pdv-page">
+      <div className="pdv-header">
+        <div>
+          <h1 className="pdv-title">Fornecedores</h1>
+          <p className="pdv-subtitle">Parceiros e fabricantes que abastecem a loja.</p>
+        </div>
+        <Link to="/Fornecedor/CadastroFornecedor" className="pdv-btn pdv-btn--primary">
+          <Plus size={16} /> Novo fornecedor
+        </Link>
+      </div>
 
+      <div className="pdv-toolbar">
+        <div className="pdv-toolbar-search">
+          <Search size={16} />
           <input
             type="text"
-            className={`inputPesquisar ${inputVisivel ? "visivel" : ""}`}
+            placeholder="Buscar por nome ou CNPJ…"
             value={pesquisa}
             onChange={(e) => setPesquisa(e.target.value)}
           />
-
-          <button
-            type="button"
-            className="top-nav-button lixo"
-            onClick={handleDelete}
-          >
-            <img src={lixo} className="top-nav-img" alt="Lixo" />
-          </button>
-
-          <button
-            type="button"
-            className="top-nav-button editar"
-            onClick={handleEditar}
-          >
-            <img src={edit} className="top-nav-img" alt="Editar" />
-          </button>
         </div>
       </div>
-      <div className="ListagemFornecedor">
-        <h1>Listagem de Fornecedores</h1>
-        <div className="scrollCategoria">
-          <table className="tableCategoria">
+
+      <div className="pdv-card">
+        <div className="pdv-table-scroll">
+          <table className="pdv-table">
             <thead>
               <tr>
                 <th>Id</th>
                 <th>Nome</th>
                 <th>CNPJ</th>
                 <th>Telefone</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
               {fornecedoresFiltrados.map((fornecedor) => (
-                <tr
-                  key={fornecedor.id}
-                  onClick={() => handleRowClick(fornecedor.id)}
-                  style={{
-                    backgroundColor:
-                      fornecedorSelecionado === fornecedor.id ? "blue" : "transparent",
-                    color:
-                      fornecedorSelecionado === fornecedor.id ? "white" : "black",
-                    cursor: "pointer",
-                  }}
-                >
+                <tr key={fornecedor.id}>
                   <td>{fornecedor.id}</td>
                   <td>{fornecedor.nome}</td>
                   <td>{fornecedor.cnpj}</td>
-                  <td>{fornecedor.numTelefone}</td>
+                  <td>{fornecedor.numTelefone || "—"}</td>
+                  <td>
+                    <div className="pdv-table-actions">
+                      <button
+                        type="button"
+                        className="pdv-icon-btn"
+                        title="Ver detalhes"
+                        onClick={() => navigate(`/Fornecedor/DetalhesFornecedor/${fornecedor.id}`)}
+                      >
+                        <Eye size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        className="pdv-icon-btn"
+                        title="Editar fornecedor"
+                        onClick={() => navigate(`/Fornecedor/EditarFornecedor/${fornecedor.id}`)}
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        className="pdv-icon-btn pdv-icon-btn--danger"
+                        title="Excluir fornecedor"
+                        onClick={() => handleDelete(fornecedor)}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          {!carregando && fornecedoresFiltrados.length === 0 && (
+            <p className="pdv-empty">
+              {fornecedores.length === 0
+                ? "Nenhum fornecedor cadastrado ainda."
+                : "Nenhum fornecedor encontrado para essa busca."}
+            </p>
+          )}
         </div>
       </div>
     </div>

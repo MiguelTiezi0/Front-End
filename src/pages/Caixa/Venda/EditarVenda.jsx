@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import "./Venda.css";
+import { ArrowLeft } from "lucide-react";
 import { useAlerta } from "../../../hooks/Alerta/useAlerta";
 
 import { linkVen } from "./linkVen";
@@ -9,25 +9,24 @@ import { linkCli } from "../../Gerenciamento/Cliente/linkCli";
 import { linkVenItens } from "../ItensVenda/linkVenItens";
 import { linkPro } from "../../Gerenciamento/Produto/linkPro";
 import { linkPag } from "../Pagamento/linkPag";
+import { apiFetch } from "../../../utils/apiFetch";
 import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
+
 // Funções auxiliares para estoque
 const atualizarEstoque = async (produtoId, quantidade, operacao = 'subtrair') => {
   try {
-    // Buscar produto atual
     const response = await fetch(`${linkPro}/${produtoId}`);
     if (!response.ok) throw new Error(`Erro ao buscar produto ${produtoId}`);
     const produto = await response.json();
 
-    // Calcular nova quantidade
-    const novaQuantidade = operacao === 'subtrair' 
+    const novaQuantidade = operacao === 'subtrair'
       ? produto.quantidade - quantidade
       : produto.quantidade + quantidade;
 
     if (novaQuantidade < 0) {
       throw new Error(`Quantidade insuficiente para o produto ${produto.descricao}`);
     }
-    
-    // Atualizar estoque
+
     const updateResponse = await fetch(`${linkPro}/${produtoId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -37,29 +36,26 @@ const atualizarEstoque = async (produtoId, quantidade, operacao = 'subtrair') =>
         ativo: novaQuantidade > 0
       })
     });
-    
+
     if (!updateResponse.ok) throw new Error(`Erro ao atualizar estoque do produto ${produtoId}`);
     return true;
-    
+
   } catch (error) {
     console.error('Erro ao atualizar estoque:', error);
     throw error;
   }
 };
 
-// Funções de sincronização
 const sincronizarItensVenda = async (itensOriginais, itensEditados, id) => {
   const alteracoes = [];
-  
+
   try {
-    // 1. Remover itens excluídos
     for (const itemOriginal of itensOriginais) {
       const itemEditado = itensEditados.find(i => i.id === itemOriginal.id);
-      
+
       if (!itemEditado) {
-        // Item foi removido - devolver ao estoque
         await atualizarEstoque(
-          itemOriginal.produtoId ?? itemOriginal.ProdutoId, 
+          itemOriginal.produtoId ?? itemOriginal.ProdutoId,
           itemOriginal.quantidade,
           'somar'
         );
@@ -67,14 +63,13 @@ const sincronizarItensVenda = async (itensOriginais, itensEditados, id) => {
         alteracoes.push({ tipo: 'removido', item: itemOriginal });
       }
     }
-    
-    // 2. Atualizar itens existentes
+
     for (const itemEditado of itensEditados) {
       if (itemEditado.id > 0) {
         const itemOriginal = itensOriginais.find(i => i.id === itemEditado.id);
         if (itemOriginal) {
           const diferenca = itemEditado.quantidade - itemOriginal.quantidade;
-          
+
           if (diferenca !== 0) {
             await atualizarEstoque(
               itemEditado.produtoId,
@@ -82,7 +77,7 @@ const sincronizarItensVenda = async (itensOriginais, itensEditados, id) => {
               diferenca < 0 ? 'somar' : 'subtrair'
             );
           }
-          
+
           await fetch(`${linkVenItens}/${itemEditado.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -92,12 +87,10 @@ const sincronizarItensVenda = async (itensOriginais, itensEditados, id) => {
         }
       }
     }
-    
-    // 3. Adicionar novos itens
+
     for (const itemNovo of itensEditados.filter(i => i.id < 0)) {
-      // Reduzir estoque do novo item
       await atualizarEstoque(itemNovo.produtoId, itemNovo.quantidade, 'subtrair');
-      
+
       const response = await fetch(linkVenItens, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -108,7 +101,7 @@ const sincronizarItensVenda = async (itensOriginais, itensEditados, id) => {
           quantidade: Number(itemNovo.quantidade)
         })
       });
-      
+
       if (!response.ok) throw new Error('Erro ao adicionar novo item');
       alteracoes.push({ tipo: 'adicionado', item: itemNovo });
     }
@@ -116,24 +109,14 @@ const sincronizarItensVenda = async (itensOriginais, itensEditados, id) => {
     return alteracoes;
 
   } catch (error) {
-    // Tentar reverter alterações em caso de erro
     console.error('Erro na sincronização, tentando reverter:', error);
     for (const alteracao of alteracoes) {
       try {
         if (alteracao.tipo === 'removido') {
-          await atualizarEstoque(
-            alteracao.item.produtoId,
-            alteracao.item.quantidade,
-            'subtrair'
-          );
+          await atualizarEstoque(alteracao.item.produtoId, alteracao.item.quantidade, 'subtrair');
         } else if (alteracao.tipo === 'adicionado') {
-          await atualizarEstoque(
-            alteracao.item.produtoId,
-            alteracao.item.quantidade,
-            'somar'
-          );
+          await atualizarEstoque(alteracao.item.produtoId, alteracao.item.quantidade, 'somar');
         }
-        // Para atualizações, voltamos à quantidade original
       } catch (rollbackError) {
         console.error('Erro ao reverter alterações:', rollbackError);
       }
@@ -159,21 +142,15 @@ export function EditarVenda() {
   const [funcionarios, setFuncionarios] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [produtos, setProdutos] = useState([]);
-  const [novoItem, setNovoItem] = useState({
-    produtoId: "",
-    valorDoItem: "",
-    quantidade: 1,
-  });
+  const [novoItem, setNovoItem] = useState({ produtoId: "", valorDoItem: "", quantidade: 1 });
   const [itensOriginais, setItensOriginais] = useState([]);
   const [itensEditados, setItensEditados] = useState([]);
   const [qtdParcelas, setQtdParcelas] = useState(1);
   const [totalPago, setTotalPago] = useState(0);
 
-  // Desconto
   const [descontoTipo, setDescontoTipo] = useState("");
   const [descontoValor, setDescontoValor] = useState("");
 
-  // Para mostrar valor pago antes da edição e valor restante original
   const [valorPagoAntes, setValorPagoAntes] = useState(0);
   const [valorRestanteOriginal, setValorRestanteOriginal] = useState(0);
 
@@ -193,51 +170,34 @@ export function EditarVenda() {
         });
         setQtdParcelas(data.totalDeVezes || 1);
         setTotalPago(data.totalPago || 0);
-
-        // Se vier desconto do backend, tente deduzir tipo
         if (data.desconto) {
           setDescontoValor(data.desconto);
         }
       });
-    fetch(linkFun)
-      .then((r) => r.json())
-      .then(setFuncionarios);
-    fetch(linkCli)
-      .then((r) => r.json())
-      .then(setClientes);
+    fetch(linkFun).then((r) => r.json()).then((d) => setFuncionarios(Array.isArray(d) ? d : []));
+    fetch(linkCli).then((r) => r.json()).then((d) => setClientes(Array.isArray(d) ? d : []));
     fetch(linkVenItens)
       .then((r) => r.json())
       .then((data) => {
-        const itensDaVenda = data.filter(
-          (i) => Number(i.vendaId ?? i.VendaId) === Number(id)
-        );
+        const lista = Array.isArray(data) ? data : [];
+        const itensDaVenda = lista.filter((i) => Number(i.vendaId ?? i.VendaId) === Number(id));
         setItensOriginais(itensDaVenda);
         setItensEditados(itensDaVenda.map((item) => ({ ...item })));
       });
-    fetch(linkPro)
-      .then((r) => r.json())
-      .then(setProdutos);
+    fetch(linkPro).then((r) => r.json()).then((d) => setProdutos(Array.isArray(d) ? d : []));
 
-    // Busca o pagamento relacionado para mostrar valor pago antes e valor restante original
     fetch(linkPag)
       .then((r) => r.json())
       .then((pagamentos) => {
-        const pagamento = pagamentos.find(
-          (p) => Number(p.vendaId ?? p.VendaId) === Number(id)
-        );
-        const valorPago = pagamento
-          ? Number(pagamento.TotalPago ?? pagamento.totalPago ?? 0)
-          : 0;
+        const lista = Array.isArray(pagamentos) ? pagamentos : [];
+        const pagamento = lista.find((p) => Number(p.vendaId ?? p.VendaId) === Number(id));
+        const valorPago = pagamento ? Number(pagamento.TotalPago ?? pagamento.totalPago ?? 0) : 0;
         setValorPagoAntes(valorPago);
       });
   }, [id]);
 
-  // Recalcula valor total com desconto
   useEffect(() => {
-    const valorProdutos = itensEditados.reduce(
-      (acc, i) => acc + Number(i.valorDoItem) * Number(i.quantidade),
-      0
-    );
+    const valorProdutos = itensEditados.reduce((acc, i) => acc + Number(i.valorDoItem) * Number(i.quantidade), 0);
     let desconto = 0;
     const valor = Number(descontoValor);
     if (descontoTipo === "porcentagem" && !isNaN(valor)) {
@@ -248,18 +208,12 @@ export function EditarVenda() {
     setVenda((v) => ({
       ...v,
       valorTotal: Math.max(0, valorProdutos - desconto),
-      totalDeItens: itensEditados.reduce(
-        (acc, i) => acc + Number(i.quantidade),
-        0
-      ),
+      totalDeItens: itensEditados.reduce((acc, i) => acc + Number(i.quantidade), 0),
     }));
   }, [itensEditados, descontoTipo, descontoValor]);
 
-  // Atualiza valorRestanteOriginal sempre que valorTotal ou valorPagoAntes mudar
   useEffect(() => {
-    setValorRestanteOriginal(
-      Number(venda.valorTotal) - Number(valorPagoAntes)
-    );
+    setValorRestanteOriginal(Number(venda.valorTotal) - Number(valorPagoAntes));
   }, [venda.valorTotal, valorPagoAntes]);
 
   useEffect(() => {
@@ -270,27 +224,17 @@ export function EditarVenda() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setVenda((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setVenda((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleFormaPagamentoChange = (e) => {
-    setVenda((prev) => ({
-      ...prev,
-      formaDePagamento: Array.from(e.target.selectedOptions, (o) => o.value),
-    }));
+    setVenda((prev) => ({ ...prev, formaDePagamento: [e.target.value] }));
   };
 
   const handleCancelarItem = (itemId) => {
     setItensEditados((prev) =>
       prev
-        .map((item) =>
-          item.id === itemId
-            ? { ...item, quantidade: item.quantidade - 1 }
-            : item
-        )
+        .map((item) => (item.id === itemId ? { ...item, quantidade: item.quantidade - 1 } : item))
         .filter((item) => item.quantidade > 0)
     );
   };
@@ -319,31 +263,21 @@ export function EditarVenda() {
     setNovoItem((i) => ({
       ...i,
       [name]: name === "quantidade" ? Number(value) : value,
-      valorDoItem:
-        name === "produtoId"
-          ? produtos.find((p) => p.id === Number(value))?.preçoVenda || ""
-          : i.valorDoItem,
+      valorDoItem: name === "produtoId" ? produtos.find((p) => p.id === Number(value))?.precoVenda || "" : i.valorDoItem,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
-      // 1. Validações iniciais
-      if ((venda.clienteId === "0" || venda.clienteId === 0) && 
-          Number(totalPago) < Number(venda.valorTotal)) {
+      if ((venda.clienteId === "0" || venda.clienteId === 0) && Number(totalPago) < Number(venda.valorTotal)) {
         throw new Error("Cliente anônimo deve pagar o valor total da venda!");
       }
 
-      // 2. Sincronizar itens e estoque
       await sincronizarItensVenda(itensOriginais, itensEditados, id);
 
-      // Calcule o desconto para enviar ao backend
-      const valorProdutos = itensEditados.reduce(
-        (acc, i) => acc + Number(i.valorDoItem) * Number(i.quantidade),
-        0
-      );
+      const valorProdutos = itensEditados.reduce((acc, i) => acc + Number(i.valorDoItem) * Number(i.quantidade), 0);
       const valor = Number(descontoValor);
       let desconto = 0;
       if (descontoTipo === "porcentagem" && !isNaN(valor)) {
@@ -352,84 +286,38 @@ export function EditarVenda() {
         desconto = valor;
       }
 
-      // Atualizar pagamento relacionado, se existir
       const pagamentosRes = await fetch(linkPag);
       let pagamentos = [];
       if (pagamentosRes.ok) {
         pagamentos = await pagamentosRes.json();
-        const pagamento = pagamentos.find(
-          (p) => Number(p.vendaId ?? p.VendaId) === Number(id)
-        );
+        const pagamento = pagamentos.find((p) => Number(p.vendaId ?? p.VendaId) === Number(id));
         if (pagamento) {
           await fetch(`${linkPag}/${pagamento.id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               ...pagamento,
-              TotalPago: Number(totalPago),
-              ToTalDeVezes: Number(qtdParcelas),
-              FormaDePagamento: Array.isArray(venda.formaDePagamento)
-                ? venda.formaDePagamento
-                : [venda.formaDePagamento],
-              DataPagamento: new Date().toISOString(),
+              totalPago: Number(totalPago),
+              totalDeVezes: Number(qtdParcelas),
+              formaDePagamento: Array.isArray(venda.formaDePagamento) ? venda.formaDePagamento : [venda.formaDePagamento],
+              dataPagamento: new Date().toISOString(),
             }),
           });
         }
       }
 
-      // Atualizar cliente com TotalPago e TotalDevido
       const clienteRes = await fetch(`${linkCli}/${venda.clienteId}`);
       if (clienteRes.ok) {
-        const cliente = await clienteRes.json();
-        const vendasRes = await fetch(linkVen);
-        if (vendasRes.ok) {
-          const vendas = await vendasRes.json();
-          const vendasDoCliente = vendas.filter(
-            (v) => Number(v.clienteId ?? v.ClienteId) === Number(venda.clienteId)
-          );
-          const totalPagoCliente = vendasDoCliente.reduce(
-            (acc, v) => acc + Number(v.totalPago ?? v.TotalPago ?? 0),
-            0
-          );
-          const totalDevidoCliente = vendasDoCliente.reduce(
-            (acc, v) =>
-              acc +
-              (Number(v.valorTotal ?? v.ValorTotal ?? 0) -
-                Number(v.totalPago ?? v.TotalPago ?? 0)),
-            0
-          );
-          const totalGastoCliente = vendasDoCliente.reduce(
-            (acc, v) => acc + Number(v.valorTotal ?? v.ValorTotal ?? 0),
-            0
-          );
-          await fetch(`${linkCli}/${venda.clienteId}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              ...cliente,
-              totalPago: totalPagoCliente,
-              totalDevido: totalDevidoCliente,
-              totalGasto: totalGastoCliente,
-            }),
-          });
-        }
+        await apiFetch(`/api/cliente/${venda.clienteId}/recalcular-totais`, { method: "PATCH" });
       }
 
-      // Calcule a diferença do valor pago
-      const pagamentoAnterior = pagamentos.find(
-        (p) => Number(p.vendaId ?? p.VendaId) === Number(id)
-      );
-      const valorPagoAntesLocal = pagamentoAnterior
-        ? Number(pagamentoAnterior.TotalPago ?? pagamentoAnterior.totalPago ?? 0)
-        : 0;
+      const pagamentoAnterior = pagamentos.find((p) => Number(p.vendaId ?? p.VendaId) === Number(id));
+      const valorPagoAntesLocal = pagamentoAnterior ? Number(pagamentoAnterior.TotalPago ?? pagamentoAnterior.totalPago ?? 0) : 0;
 
-      // Se for dinheiro, sempre subtrai o valor antigo e adiciona o novo
       if (venda.formaDePagamento.includes("Dinheiro")) {
-        // Subtrai o valor antigo (se maior que zero)
         if (valorPagoAntesLocal > 0) {
-          const caixaRes = await fetch("http://localhost:7172/api/Caixa/saida", {
+          const caixaRes = await apiFetch("/api/caixa/entrada", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               valor: valorPagoAntesLocal,
               descricao: `Estorno edição venda ${id}`,
@@ -438,15 +326,12 @@ export function EditarVenda() {
           });
           if (!caixaRes.ok) {
             alert("Erro ao estornar valor do caixa!");
-            console.error("Erro ao estornar valor do caixa", await caixaRes.text());
             return;
           }
         }
-        // Adiciona o valor novo (se maior que zero)
         if (Number(totalPago) > 0) {
-          const caixaRes = await fetch("http://localhost:7172/api/Caixa/entrada", {
+          const caixaRes = await apiFetch("/api/caixa/entrada", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               valor: Number(totalPago),
               descricao: `Novo valor edição venda ${id}`,
@@ -455,25 +340,21 @@ export function EditarVenda() {
           });
           if (!caixaRes.ok) {
             alert("Erro ao adicionar valor ao caixa!");
-            console.error("Erro ao adicionar valor ao caixa", await caixaRes.text());
             return;
           }
         }
       }
 
-      // Atualiza a venda por último (após todos os ajustes)
       const vendaBody = {
-        Id: Number(id),
-        FuncionarioId: Number(venda.funcionarioId),
-        ClienteId: Number(venda.clienteId),
-        TotalDeItens: Number(venda.totalDeItens),
-        ValorTotal: Number(valorProdutos - desconto),
-        TotalPago: Number(totalPago),
-        FormaDePagamento: Array.isArray(venda.formaDePagamento)
-          ? venda.formaDePagamento
-          : [venda.formaDePagamento],
-        TotalDeVezes: Number(qtdParcelas),
-        DataVenda: new Date(venda.dataVenda).toISOString(),
+        id: Number(id),
+        funcionarioId: Number(venda.funcionarioId),
+        clienteId: Number(venda.clienteId),
+        totalDeItens: Number(venda.totalDeItens),
+        valorTotal: Number(valorProdutos - desconto),
+        totalPago: Number(totalPago),
+        formaDePagamento: Array.isArray(venda.formaDePagamento) ? venda.formaDePagamento : [venda.formaDePagamento],
+        totalDeVezes: Number(qtdParcelas),
+        dataVenda: new Date(venda.dataVenda).toISOString(),
         desconto: desconto,
         formaDeDesconto: descontoTipo ? [descontoTipo] : [],
       };
@@ -497,325 +378,201 @@ export function EditarVenda() {
     }
   };
 
-  const formasPagamento = [
-    "Dinheiro",
-    "Cartão",
-    "Débito",
-    "Crédito",
-    "Pix",
-    "Crediário",
-    "Consignação",
-  ];
+  const formasPagamento = ["Dinheiro", "Débito", "Crédito", "Pix", "Crediário", "Consignação"];
 
   return (
-    <div className="editarVendaCentro">
-      <h1 className="editarVendaTitulo">Editar Venda</h1>
-      <div className="editarVendaGrid">
-        <form className="editarVendaForm" onSubmit={handleSubmit}>
-          <div className="editarVendaDividirInput">
-            <input
-              readOnly
-              className="editarVendaInput"
-              placeholder="Id"
-              value={id}
-            />
-          </div>
+    <div className="pdv-page">
+      <div className="pdv-header">
+        <div>
+          <Link to="/Venda/ListagemVenda" className="pdv-btn pdv-btn--ghost pdv-btn--sm" style={{ marginBottom: 10 }}>
+            <ArrowLeft size={14} /> Voltar para vendas
+          </Link>
+          <h1 className="pdv-title">Editar venda #{id}</h1>
+        </div>
+      </div>
 
-          <div className="editarVendaDividirInput">
-            <input
-              type="datetime-local"
-              name="dataVenda"
-              required
-              className="editarVendaInput"
-              placeholder="Data da Venda"
-              value={venda.dataVenda}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="editarVendaDividirInput">
-            <select
-              name="clienteId"
-              required
-              className="editarVendaInput"
-              value={venda.clienteId}
-              onChange={handleChange}
-              placeholder="Cliente"
-            >
-              <option value="">Selecione um cliente</option>
-              <option value="0">Cliente Anônimo</option>
-              {clientes.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.nome}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="editarVendaDividirInput">
-            <input
-              readOnly
-              className="editarVendaInput"
-              placeholder="CPF do Cliente"
-              value={
-                venda.clienteId === "0" || venda.clienteId === 0
-                  ? ""
-                  : clientes.find((c) => c.id === Number(venda.clienteId))?.cpf
-                    ? clientes.find((c) => c.id === Number(venda.clienteId)).cpf
-                    : ""
-              }
-            />
-          </div>
-
-          <div className="editarVendaDividirInput">
-            <select
-              name="funcionarioId"
-              required
-              className="editarVendaInput"
-              value={venda.funcionarioId}
-              onChange={handleChange}
-              placeholder="Funcionário"
-            >
-              <option value="">Selecione um funcionário</option>
-              {funcionarios.map((f) => (
-                <option key={f.id} value={f.id}>
-                  {f.nome}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="editarVendaDividirInput">
-            <select
-              required
-              multiple={false}
-              className="editarVendaInput"
-              value={venda.formaDePagamento}
-              onChange={handleFormaPagamentoChange}
-              placeholder="Forma de Pagamento"
-            >
-              <option value="">Forma de Pagamento</option>
-              {formasPagamento.map((fp) => (
-                <option key={fp} value={fp}>
-                  {fp}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Desconto igual ao CadastroVenda */}
-          {(venda.formaDePagamento.includes("Pix") ||
-            venda.formaDePagamento.includes("Dinheiro")) && (
-            <>
-              {!descontoTipo && (
-                <div className="editarVendaDividirInput">
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={descontoTipo === "porcentagem"}
-                      onChange={() => setDescontoTipo("porcentagem")}
-                      disabled={descontoTipo === "decimal"}
-                    />{" "}
-                    Porcentagem
-                  </label>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={descontoTipo === "decimal"}
-                      onChange={() => setDescontoTipo("decimal")}
-                      disabled={descontoTipo === "porcentagem"}
-                    />{" "}
-                    Reais
-                  </label>
-                </div>
-              )}
-              {descontoTipo && (
-                <div className="editarVendaDividirInput">
-                  <input
-                    className="editarVendaInput"
-                    type="number"
-                    min={0}
-                    max={
-                      descontoTipo === "porcentagem"
-                        ? 100
-                        : venda.valorTotal || 0
-                    }
-                    value={descontoValor}
-                    onChange={(e) => setDescontoValor(e.target.value)}
-                    placeholder={
-                      descontoTipo === "porcentagem"
-                        ? "Desconto em %"
-                        : "Desconto em reais"
-                    }
-                  />
-                </div>
-              )}
-            </>
-          )}
-
-          {(venda.formaDePagamento.includes("Débito") ||
-            venda.formaDePagamento.includes("Crediário") ||
-            venda.formaDePagamento.includes("Crédito")) && (
-            <div className="editarVendaDividirInput">
-              <select
-                className="editarVendaInput"
-                value={qtdParcelas}
-                onChange={(e) => setQtdParcelas(Number(e.target.value))}
-                placeholder="Parcelas"
-              >
-                {[...Array(10)].map((_, i) => (
-                  <option key={i + 1} value={i + 1}>
-                    {i + 1}x
-                  </option>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, alignItems: "start" }}>
+        <form className="pdv-form-card" onSubmit={handleSubmit}>
+          <div className="pdv-form-grid">
+            <div>
+              <label className="hp-lb">Data da venda *</label>
+              <input type="datetime-local" name="dataVenda" required className="hp-inp" value={venda.dataVenda} onChange={handleChange} />
+            </div>
+            <div>
+              <label className="hp-lb">Cliente *</label>
+              <select name="clienteId" required className="hp-inp" value={venda.clienteId} onChange={handleChange}>
+                <option value="">Selecione um cliente</option>
+                <option value="0">Cliente Anônimo</option>
+                {clientes.map((c) => (
+                  <option key={c.id} value={c.id}>{c.nome}</option>
                 ))}
               </select>
             </div>
-          )}
 
-          {/* Campo Total Pago com placeholder mostrando o valor total */}
-          <div className="editarVendaDividirInput">
-            <input
-              type="number"
-              className="editarVendaInput"
-              value={totalPago === 0 ? "" : totalPago}
-              onChange={(e) => setTotalPago(e.target.value)}
-              placeholder={`Total Pago (R$ ${venda.valorTotal.toFixed(2)})`}
-              min={0}
-              max={venda.valorTotal}
-            />
-          </div>
-          <div className="editarVendaDividirInput">
-            <input
-              className="editarVendaInput"
-              type="text"
-              name="valorRestante"
-              disabled
-              placeholder="Valor Restante"
-              style={{ fontWeight: "bold" }}
-              value={`Valor restante: R$ ${valorRestanteOriginal.toFixed(2)}`}
-            />
-          </div>
-          <div className="editarVendaDividirInput">
-            <select
-              name="produtoId"
-              className="editarVendaInput"
-              value={novoItem.produtoId}
-              onChange={handleNovoItemChange}
-              placeholder="Produto"
-            >
-              <option value="">Produto</option>
-              {produtos.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.descricao} (Estoque: {p.quantidade})
-                </option>
-              ))}
-            </select>
+            <div>
+              <label className="hp-lb">CPF do cliente</label>
+              <input
+                readOnly
+                className="hp-inp"
+                value={
+                  venda.clienteId === "0" || venda.clienteId === 0
+                    ? ""
+                    : clientes.find((c) => c.id === Number(venda.clienteId))?.cpf || ""
+                }
+              />
+            </div>
+            <div>
+              <label className="hp-lb">Funcionário *</label>
+              <select name="funcionarioId" required className="hp-inp" value={venda.funcionarioId} onChange={handleChange}>
+                <option value="">Selecione um funcionário</option>
+                {funcionarios.map((f) => (
+                  <option key={f.id} value={f.id}>{f.nome}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="hp-lb">Forma de pagamento *</label>
+              <select required className="hp-inp" value={venda.formaDePagamento[0] || ""} onChange={handleFormaPagamentoChange}>
+                <option value="">Selecione</option>
+                {formasPagamento.map((fp) => (
+                  <option key={fp} value={fp}>{fp}</option>
+                ))}
+              </select>
+            </div>
+            {(venda.formaDePagamento.includes("Débito") || venda.formaDePagamento.includes("Crediário") || venda.formaDePagamento.includes("Crédito")) && (
+              <div>
+                <label className="hp-lb">Parcelas</label>
+                <select className="hp-inp" value={qtdParcelas} onChange={(e) => setQtdParcelas(Number(e.target.value))}>
+                  {[...Array(10)].map((_, i) => (
+                    <option key={i + 1} value={i + 1}>{i + 1}x</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {(venda.formaDePagamento.includes("Pix") || venda.formaDePagamento.includes("Dinheiro")) && (
+              <div className="pdv-form-col-full">
+                <label className="hp-lb">Desconto</label>
+                {!descontoTipo && (
+                  <div style={{ display: "flex", gap: 16, marginBottom: 8 }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13.5 }}>
+                      <input type="checkbox" checked={descontoTipo === "porcentagem"} onChange={() => setDescontoTipo("porcentagem")} disabled={descontoTipo === "decimal"} />
+                      Porcentagem
+                    </label>
+                    <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13.5 }}>
+                      <input type="checkbox" checked={descontoTipo === "decimal"} onChange={() => setDescontoTipo("decimal")} disabled={descontoTipo === "porcentagem"} />
+                      Reais
+                    </label>
+                  </div>
+                )}
+                {descontoTipo && (
+                  <input
+                    className="hp-inp"
+                    type="number"
+                    min={0}
+                    max={descontoTipo === "porcentagem" ? 100 : venda.valorTotal || 0}
+                    value={descontoValor}
+                    onChange={(e) => setDescontoValor(e.target.value)}
+                    placeholder={descontoTipo === "porcentagem" ? "Desconto em %" : "Desconto em reais"}
+                  />
+                )}
+              </div>
+            )}
+
+            <div>
+              <label className="hp-lb">Total pago</label>
+              <input
+                type="number"
+                className="hp-inp"
+                value={totalPago === 0 ? "" : totalPago}
+                onChange={(e) => setTotalPago(e.target.value)}
+                placeholder={`R$ ${venda.valorTotal.toFixed(2)}`}
+                min={0}
+                max={venda.valorTotal}
+              />
+            </div>
+            <div>
+              <label className="hp-lb">Valor restante</label>
+              <input className="hp-inp" disabled style={{ fontWeight: 700 }} value={`R$ ${valorRestanteOriginal.toFixed(2)}`} />
+            </div>
+
+            <div className="pdv-form-col-full" style={{ borderTop: "1px solid var(--border-default)", paddingTop: 16, marginTop: 4 }}>
+              <label className="hp-lb">Adicionar produto</label>
+              <div style={{ display: "flex", gap: 10 }}>
+                <select name="produtoId" className="hp-inp" value={novoItem.produtoId} onChange={handleNovoItemChange}>
+                  <option value="">Produto</option>
+                  {produtos.map((p) => (
+                    <option key={p.id} value={p.id}>{p.descricao} (Estoque: {p.quantidade})</option>
+                  ))}
+                </select>
+                <input
+                  name="quantidade"
+                  type="number"
+                  min={1}
+                  className="hp-inp"
+                  value={novoItem.quantidade === 0 ? "" : novoItem.quantidade}
+                  onChange={handleNovoItemChange}
+                  placeholder={novoItem.produtoId ? `Qtd (máx ${produtos.find((p) => p.id === Number(novoItem.produtoId))?.quantidade || 1})` : "Quantidade"}
+                  style={{ maxWidth: 160 }}
+                />
+                <button type="button" className="pdv-btn pdv-btn--ghost" onClick={handleAdicionarItem} style={{ flexShrink: 0 }}>
+                  Adicionar
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div className="editarVendaDividirInput">
-            <input
-              name="quantidade"
-              type="number"
-              min={1}
-              className="editarVendaInput"
-              value={novoItem.quantidade === 0 ? "" : novoItem.quantidade}
-              onChange={handleNovoItemChange}
-              placeholder={
-                novoItem.produtoId
-                  ? `Qtd (máx ${produtos.find((p) => p.id === Number(novoItem.produtoId))?.quantidade || 1})`
-                  : "Quantidade"
-              }
-              max={
-                novoItem.produtoId
-                  ? produtos.find((p) => p.id === Number(novoItem.produtoId))?.quantidade || 1
-                  : 1
-              }
-            />
-          </div>
-          <div className="editarVendaDividirInput">
-            <button
-              type="button"
-              className="editarVendaAdicionarItem"
-              onClick={handleAdicionarItem}
-            >
-              Adicionar Item
-            </button>
-          </div>
-          <div className="editarVendaBtnDiv">
-            <Link to="/Venda/ListagemVenda">
-              <button
-                type="button"
-                className="editarVendaBtn editarVendaBtnVoltar"
-              >
-                Voltar
-              </button>
-            </Link>
-            <button
-              type="submit"
-              className="editarVendaBtn editarVendaBtnSalvar"
-            >
-              Salvar
-            </button>
+          <div className="pdv-form-actions">
+            <Link to="/Venda/ListagemVenda" className="pdv-btn pdv-btn--ghost">Cancelar</Link>
+            <button type="submit" className="pdv-btn pdv-btn--primary">Salvar alterações</button>
           </div>
         </form>
 
-        <div className="editarVendaTabelaWrapper">
-          <table className="editarVendaTabela">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Produto</th>
-                <th>Qtd</th>
-                <th>Valor uni</th>
-                <th>Ação</th>
-              </tr>
-            </thead>
-            <tbody>
-              {itensEditados.length === 0 ? (
+        <div className="pdv-card">
+          <div className="pdv-table-scroll">
+            <table className="pdv-table">
+              <thead>
                 <tr>
-                  <td colSpan={5} style={{ textAlign: "center" }}>
-                    Nenhum item
-                  </td>
+                  <th>Produto</th>
+                  <th>Qtd</th>
+                  <th>Valor uni.</th>
+                  <th></th>
                 </tr>
-              ) : (
-                itensEditados.map((item) => {
-                  const produto = produtos.find(
-                    (p) => p.id === Number(item.produtoId ?? item.ProdutoId)
-                  );
-                  return (
-                    <tr key={item.id}>
-                      <td>{item.id}</td>
-                      <td>
-                        {produto ? produto.descricao : "Produto removido"}
-                      </td>
-                      <td>{item.quantidade}</td>
-                      <td>R$ {Number(item.valorDoItem).toFixed(2)}</td>
-                      <td>
-                        <button
-                          type="button"
-                          className="editarVendaBtnCancelarItem"
-                          disabled={item.quantidade < 1}
-                          onClick={() => handleCancelarItem(item.id)}
-                        >
-                          Cancelar 1
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-
-          <div className="editarVendaValorTotalTabela">
+              </thead>
+              <tbody>
+                {itensEditados.length === 0 ? (
+                  <tr><td colSpan={4}><p className="pdv-empty">Nenhum item.</p></td></tr>
+                ) : (
+                  itensEditados.map((item) => {
+                    const produto = produtos.find((p) => p.id === Number(item.produtoId ?? item.ProdutoId));
+                    return (
+                      <tr key={item.id}>
+                        <td>{produto ? produto.descricao : "Produto removido"}</td>
+                        <td>{item.quantidade}</td>
+                        <td>R$ {Number(item.valorDoItem).toFixed(2)}</td>
+                        <td>
+                          <button
+                            type="button"
+                            className="pdv-btn pdv-btn--ghost pdv-btn--sm"
+                            disabled={item.quantidade < 1}
+                            onClick={() => handleCancelarItem(item.id)}
+                          >
+                            Cancelar 1
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+          <div style={{ padding: "14px 16px", borderTop: "1px solid var(--border-default)", fontSize: 14 }}>
             Valor total: <strong>R$ {venda.valorTotal.toFixed(2)}</strong>
             {descontoTipo && descontoValor && (
-              <span style={{ marginLeft: 16, color: "#2d7a2d" }}>
-                (Desconto:{" "}
-                {descontoTipo === "porcentagem"
-                  ? `${descontoValor}%`
-                  : `R$ ${Number(descontoValor).toFixed(2)}`}
-                )
+              <span style={{ marginLeft: 16, color: "var(--success-fg)" }}>
+                (Desconto: {descontoTipo === "porcentagem" ? `${descontoValor}%` : `R$ ${Number(descontoValor).toFixed(2)}`})
               </span>
             )}
           </div>

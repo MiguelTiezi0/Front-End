@@ -1,123 +1,62 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import "./Pages.css";
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { MapPin, Phone, Mail, Clock, Camera, ThumbsUp, MessageCircle, ArrowLeft } from 'lucide-react';
+import './Contato.css';
+
+const INFO = [
+  { icon: MapPin,  label: 'ENDEREÇO', value: 'Rua Luiz Henrique, 240 — Florianópolis/SC' },
+  { icon: Phone,   label: 'TELEFONE', value: '(48) 3025-1180' },
+  { icon: Mail,    label: 'E-MAIL',   value: 'contato@hellopeople.com.br' },
+  { icon: Clock,   label: 'HORÁRIO',  value: 'Seg a Sáb · 09h às 19h' },
+];
 
 export function Contato() {
-  document.title = "Contato — Hello People";
+  document.title = 'Contato — Hello People';
 
   return (
     <div className="contato-page">
-      <header
-        className="headerNav"
-        style={{ padding: "10px 0", height: "7vh" }}
-      >
-        <nav>
-          <ul>
-            <li>
-              <a href="/inicio">Início</a>
-            </li>
-            <li>
-              <a href="/contato" className="active">
-                Contato
-              </a>
-            </li>
-            <li>
-              <a href="/login">Login</a>
-            </li>
-            <li>
-              <a href="/cadastro">Cadastro</a>
-            </li>
-          </ul>
-        </nav>
-      </header>
+      {/* Header */}
+      <div className="contato-header-bar">
+        <div className="contato-header-inner">
+          <Link to="/inicio" className="contato-brand">Hello People</Link>
+          <Link to="/inicio" className="contato-back">
+            <ArrowLeft size={16} /> Voltar ao início
+          </Link>
+        </div>
+      </div>
 
-      <main
-        style={{
-          minHeight: "70vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: 24,
-        }}
-      >
-        <section
-          style={{
-            width: "100%",
-            maxWidth: 880,
-            background: "#fff",
-            color: "#111827",
-            padding: 22,
-            borderRadius: 12,
-            boxShadow: "0 8px 28px rgba(2,6,23,0.08)",
-            border: "1px solid rgba(2,6,23,0.04)",
-          }}
-        >
-          <h1 style={{ margin: 0, fontSize: 22 }}>Hello People</h1>
-          <p style={{ marginTop: 8, color: "#6b7280" }}>
-            Loja de roupas casuais e streetwear. Qualidade, conforto e estilo
-            para o seu dia a dia.
-          </p>
+      {/* Content */}
+      <div className="contato-body">
+        <h1 className="contato-title">Fale com a gente</h1>
+        <p className="contato-sub">Estamos prontos pra te atender — passa na loja ou manda mensagem.</p>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 12,
-              marginTop: 18,
-            }}
-          >
-            <div>
-              <strong>Endereço</strong>
-              <div style={{ color: "#475569", marginTop: 6 }}>
-                Rua Exemplo, 123 — São Paulo, SP
+        <div className="contato-grid">
+          {/* Info card */}
+          <div className="contato-info-card">
+            {INFO.map(({ icon: Icon, label, value }) => (
+              <div key={label} className="contato-info-row">
+                <div className="contato-info-icon">
+                  <Icon size={20} color="#C99700" />
+                </div>
+                <div>
+                  <div className="contato-info-label">{label}</div>
+                  <div className="contato-info-value">{value}</div>
+                </div>
               </div>
-            </div>
-
-            <div>
-              <strong>Telefone</strong>
-              <div style={{ color: "#475569", marginTop: 6 }}>
-                (11) 98765‑4321
-              </div>
-            </div>
-
-            <div>
-              <strong>E‑mail</strong>
-              <div style={{ color: "#475569", marginTop: 6 }}>
-                contato@hellopeople.com
-              </div>
-            </div>
-
-            <div>
-              <strong>Atendimento</strong>
-              <div style={{ color: "#475569", marginTop: 6 }}>
-                Seg‑Sex: 09:00 ‑ 18:00
-                <br />
-                Sáb: 09:00 ‑ 13:00
-              </div>
+            ))}
+            <div className="contato-socials">
+              <div className="contato-social-btn"><Camera size={20} color="#F5C518" /></div>
+              <div className="contato-social-btn"><ThumbsUp size={20} color="#F5C518" /></div>
+              <div className="contato-social-btn"><MessageCircle size={20} color="#F5C518" /></div>
             </div>
           </div>
 
-          <div style={{ marginTop: 18 }}>
-            <strong>Redes sociais</strong>
-            <div style={{ color: "#475569", marginTop: 6 }}>
-              Instagram: @hellopeople &nbsp;•&nbsp; Facebook: /hellopeople
-            </div>
+          {/* Map placeholder */}
+          <div className="contato-map-card">
+            <div className="contato-map-placeholder">mapa da loja</div>
           </div>
-
-          <div style={{ marginTop: 20, textAlign: "right" }}>
-            <Link
-              to="/inicio"
-              style={{
-                textDecoration: "none",
-                color: "#6b7280",
-                fontWeight: 700,
-              }}
-            >
-              Voltar
-            </Link>
-          </div>
-        </section>
-      </main>
+        </div>
+      </div>
     </div>
   );
 }

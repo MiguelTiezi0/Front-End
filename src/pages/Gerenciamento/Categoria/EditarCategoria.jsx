@@ -1,105 +1,85 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import "./Categoria.css";
-
-import {linkCat} from "./linkCat";
+import { ArrowLeft } from "lucide-react";
+import { linkCat } from "./linkCat";
 import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
+
 export function EditarCategoria() {
   useRequireAuth("Funcionario");
   document.title = "Editar Categoria";
   const { id } = useParams();
   const navigate = useNavigate();
-  const [categoria, setCategoria] = useState({
-    descricao: "",
-  });
+  const [categoria, setCategoria] = useState(null);
+  const [salvando, setSalvando] = useState(false);
 
   useEffect(() => {
     const fetchCategoria = async () => {
       try {
-        const response = await fetch(`${linkCat}/${id}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Erro ao buscar os dados da categoria");
-        }
-
-        const data = await response.json();
-        setCategoria(data);
+        const response = await fetch(`${linkCat}/${id}`);
+        if (!response.ok) throw new Error("Erro ao buscar os dados da categoria");
+        setCategoria(await response.json());
       } catch (error) {
         console.error(error);
-        alert("Erro ao carregar os dados da categoria");
+        alert("Não foi possível carregar os dados da categoria.");
       }
     };
-
     fetchCategoria();
   }, [id]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setCategoria((prevCategoria) => ({
-      ...prevCategoria,
-      [name]: value,
-    }));
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setSalvando(true);
     try {
       const response = await fetch(`${linkCat}/${id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(categoria),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ descricao: categoria.descricao }),
       });
-
       if (!response.ok) {
-        throw new Error("Erro ao atualizar a categoria");
+        const body = await response.json().catch(() => null);
+        throw new Error(body?.message || "Erro ao atualizar a categoria.");
       }
-
-      alert("Categoria atualizada com sucesso!");
       navigate("/Categoria/ListagemCategoria");
     } catch (error) {
-      console.error(error);
-      alert("Erro ao atualizar a categoria");
+      alert(error.message || "Erro ao atualizar a categoria.");
+    } finally {
+      setSalvando(false);
     }
   };
 
+  if (!categoria) {
+    return <p className="pdv-empty">Carregando dados da categoria…</p>;
+  }
+
   return (
-    <div className="EditarCategoria">
-      <h1>Editar Categoria</h1>
-      <form className="divEditarCategoria" onSubmit={handleSubmit}>
-        <input
-          type="text"
-          name="id"
-          id="id"
-          readOnly
-          value={categoria.id || ""}
-          placeholder="Id"
-          className="inputEditarCategoria"
-        />
-        <input
-          type="text"
-          name="descricao"
-          required
-          placeholder="Descrição"
-          className="inputEditarCategoria"
-          value={categoria.descricao}
-          onChange={handleChange}
-        />
-        <div className="buttonsGroupEditarCategoria">
-          <button type="button" className="btnCategoria btnVoltarCategoria">
-            <Link to="/Categoria/ListagemCategoria" className="linkCadastro">
-              Voltar
-            </Link>
-          </button>
-          <button type="submit" className="btnCategoria btnSalvarCategoria">
-            Salvar
+    <div className="pdv-page">
+      <div className="pdv-header">
+        <div>
+          <Link to="/Categoria/ListagemCategoria" className="pdv-btn pdv-btn--ghost pdv-btn--sm" style={{ marginBottom: 10 }}>
+            <ArrowLeft size={14} /> Voltar para categorias
+          </Link>
+          <h1 className="pdv-title">Editar categoria</h1>
+        </div>
+      </div>
+
+      <form className="pdv-form-card" onSubmit={handleSubmit}>
+        <div className="pdv-form-grid">
+          <div className="pdv-form-col-full">
+            <label className="hp-lb">Descrição *</label>
+            <input
+              type="text"
+              required
+              className="hp-inp"
+              value={categoria.descricao || ""}
+              onChange={(e) => setCategoria({ ...categoria, descricao: e.target.value })}
+            />
+          </div>
+        </div>
+
+        <div className="pdv-form-actions">
+          <Link to="/Categoria/ListagemCategoria" className="pdv-btn pdv-btn--ghost">Cancelar</Link>
+          <button type="submit" className="pdv-btn pdv-btn--primary" disabled={salvando}>
+            {salvando ? "Salvando…" : "Salvar alterações"}
           </button>
         </div>
       </form>

@@ -1,123 +1,60 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAlerta } from "../../../hooks/Alerta/useAlerta";
-
-import "./Produto.css";
-
 import { linkPro } from "./linkPro";
 import { linkCat } from "../Categoria/linkCat";
 import { linkFor } from "../Fornecedor/linkFor";
 import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
+
 export function CadastroProduto() {
   useRequireAuth("Funcionario");
   document.title = "Cadastro de Produtos";
   const location = useLocation();
+  const navigate = useNavigate();
   const produtoClonado = location.state?.produto || null;
   const alerta = useAlerta();
 
-  const [Id, setId] = useState("");
   const [descricao, setDescricao] = useState(produtoClonado?.descricao || "");
-  const [fornecedorId, setFornecedorId] = useState(
-    produtoClonado?.fornecedorId || ""
-  );
+  const [fornecedorId, setFornecedorId] = useState(produtoClonado?.idFornecedor || "");
   const [fornecedores, setFornecedores] = useState([]);
   const [mostrarInputFornecedor, setMostrarInputFornecedor] = useState(false);
-  const [novoFornecedor, setNovoFornecedor] = useState({
-    nome: "",
-    cnpj: "",
-    numTelefone: "",
-  });
+  const [novoFornecedor, setNovoFornecedor] = useState({ nome: "", cnpj: "", numTelefone: "" });
 
-  const [preçoCusto, setPreçoCusto] = useState(
-    produtoClonado?.preçoCusto || ""
-  );
-  const [preçoVenda, setPreçoVenda] = useState(
-    produtoClonado?.preçoVenda || ""
-  );
+  const [precoCusto, setPrecoCusto] = useState(produtoClonado?.precoCusto || "");
+  const [precoVenda, setPrecoVenda] = useState(produtoClonado?.precoVenda || "");
   const [tamanho, setTamanho] = useState(produtoClonado?.tamanho || "");
   const [cor, setCor] = useState(produtoClonado?.cor || "");
-  const [quantidade, setQuantidade] = useState(
-    produtoClonado?.quantidade || ""
-  );
-  const [categoriaId, setCategoriaId] = useState(
-    produtoClonado?.categoriaId || ""
-  );
+  const [quantidade, setQuantidade] = useState(produtoClonado?.quantidade ?? "");
+  const [categoriaId, setCategoriaId] = useState(produtoClonado?.categoriaId || "");
   const [categorias, setCategorias] = useState([]);
   const [outraCategoria, setOutraCategoria] = useState("");
   const [mostrarInputOutra, setMostrarInputOutra] = useState(false);
+  const [salvando, setSalvando] = useState(false);
 
   useEffect(() => {
-    const fetchProdutos = async () => {
-      try {
-        const response = await fetch(linkPro, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Erro ao buscar produtos");
-        }
-
-        const produtos = await response.json();
-        const maiorId = produtos.reduce(
-          (max, produto) => Math.max(max, produto.id),
-          0
-        );
-        setId(maiorId + 1);
-      } catch (error) {
-        console.error(error);
-        alert("Erro ao carregar os produtos");
-      }
-    };
-
     const fetchCategorias = async () => {
       try {
-        const response = await fetch(linkCat, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Erro ao buscar categorias");
-        }
-
-        const categoriasData = await response.json();
-        setCategorias(categoriasData);
-      } catch (error) {
-        console.error(error);
-        alert("Erro ao carregar as categorias");
+        const response = await fetch(linkCat);
+        if (!response.ok) throw new Error();
+        const data = await response.json();
+        setCategorias(Array.isArray(data) ? data : []);
+      } catch {
+        alerta("Não foi possível carregar as categorias.", "error");
       }
     };
-
     const fetchFornecedores = async () => {
       try {
-        const response = await fetch(linkFor, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Erro ao buscar fornecedores");
-        }
-
-        const fornecedoresData = await response.json();
-        setFornecedores(fornecedoresData);
-      } catch (error) {
-        console.error(error);
-        alert("Erro ao carregar os fornecedores");
+        const response = await fetch(linkFor);
+        if (!response.ok) throw new Error();
+        const data = await response.json();
+        setFornecedores(Array.isArray(data) ? data : []);
+      } catch {
+        alerta("Não foi possível carregar os fornecedores.", "error");
       }
     };
-
-    fetchProdutos();
     fetchCategorias();
     fetchFornecedores();
-  }, []);
+  }, [alerta]);
 
   const handleCategoriaChange = (e) => {
     const value = e.target.value;
@@ -126,8 +63,7 @@ export function CadastroProduto() {
       setCategoriaId("");
     } else {
       setMostrarInputOutra(false);
-      setCategoriaId(parseInt(value));
-      setOutraCategoria("");
+      setCategoriaId(value);
     }
   };
 
@@ -138,297 +74,164 @@ export function CadastroProduto() {
       setFornecedorId("");
     } else {
       setMostrarInputFornecedor(false);
-      setFornecedorId(parseInt(value));
-      setNovoFornecedor({ nome: "", cnpj: "", numTelefone: "" });
+      setFornecedorId(value);
     }
-  };
-
-  const handleNovoFornecedorChange = (e) => {
-    const { name, value } = e.target;
-    setNovoFornecedor((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSalvando(true);
 
-    let categoriaParaUsar = categoriaId;
-    let fornecedorParaUsar = fornecedorId;
+    try {
+      let categoriaParaUsar = categoriaId;
+      let fornecedorParaUsar = fornecedorId;
 
-    // Se for "Outra", cadastra a nova categoria e pega o id dela
-    if (mostrarInputOutra && outraCategoria.trim() !== "") {
-      try {
-        const responseCategoria = await fetch(linkCat, {
+      if (mostrarInputOutra && outraCategoria.trim()) {
+        const resp = await fetch(linkCat, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ descricao: outraCategoria }),
         });
-        if (!responseCategoria.ok)
-          throw new Error("Erro ao cadastrar nova categoria");
-        const novaCategoria = await responseCategoria.json();
-        categoriaParaUsar = novaCategoria.id;
-        setCategorias((prev) => [...prev, novaCategoria]);
-      } catch (error) {
-        console.error(error);
-        alert("Erro ao cadastrar a nova categoria");
-        return;
+        if (!resp.ok) throw new Error("Erro ao cadastrar a nova categoria.");
+        categoriaParaUsar = (await resp.json()).id;
       }
-    }
 
-    // Se for "Novo", cadastra o novo fornecedor e pega o id dele
-    if (
-      mostrarInputFornecedor &&
-      novoFornecedor.nome.trim() !== "" &&
-      novoFornecedor.cnpj.trim() !== "" &&
-      novoFornecedor.numTelefone.trim() !== ""
-    ) {
-      try {
-        const responseFornecedor = await fetch(linkFor, {
+      if (mostrarInputFornecedor && novoFornecedor.nome.trim() && novoFornecedor.cnpj.trim()) {
+        const resp = await fetch(linkFor, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            nome: novoFornecedor.nome,
-            cnpj: novoFornecedor.cnpj,
-            numTelefone: novoFornecedor.numTelefone,
-          }),
+          body: JSON.stringify(novoFornecedor),
         });
-        if (!responseFornecedor.ok)
-          throw new Error("Erro ao cadastrar novo fornecedor");
-        const novoFornec = await responseFornecedor.json();
-        // usar o ID retornado (numérico), não o nome
-        fornecedorParaUsar = Number(novoFornec.id);
-        setFornecedores((prev) => [...prev, novoFornec]);
-      } catch (error) {
-        console.error(error);
-        alert("Erro ao cadastrar o novo fornecedor");
-        return;
+        if (!resp.ok) throw new Error("Erro ao cadastrar o novo fornecedor.");
+        fornecedorParaUsar = (await resp.json()).id;
       }
-    } else if (fornecedorParaUsar) {
-      // Se selecionou da lista, pega o id do fornecedor (numérico)
-      const fornecedorObj = fornecedores.find(
-        (f) => Number(f.id) === Number(fornecedorParaUsar)
-      );
-      fornecedorParaUsar = fornecedorObj ? Number(fornecedorObj.id) : null;
-    } else {
-      fornecedorParaUsar = null;
-    }
 
-    const produto = {
-      id: Number(Id) || 0,
-      descricao,
-      idFornecedor:
-        fornecedorParaUsar !== null ? Number(fornecedorParaUsar) : null,
-      cor,
-      tamanho,
-      quantidade: Number.isFinite(Number(quantidade))
-        ? parseInt(quantidade, 10)
-        : 0,
-      preçoCusto: Number.isFinite(Number(preçoCusto))
-        ? parseFloat(preçoCusto)
-        : 0,
-      preçoVenda: Number.isFinite(Number(preçoVenda))
-        ? parseFloat(preçoVenda)
-        : 0,
-      ativo: (parseInt(quantidade, 10) || 0) > 0,
-      categoriaId: categoriaParaUsar ? Number(categoriaParaUsar) : null,
-      dataCadastro: new Date().toISOString(),
-      idCompra: 0,
-    };
+      const produto = {
+        descricao,
+        idFornecedor: fornecedorParaUsar ? Number(fornecedorParaUsar) : null,
+        cor,
+        tamanho,
+        quantidade: parseInt(quantidade, 10) || 0,
+        precoCusto: parseFloat(precoCusto) || 0,
+        precoVenda: parseFloat(precoVenda) || 0,
+        ativo: (parseInt(quantidade, 10) || 0) > 0,
+        categoriaId: categoriaParaUsar ? Number(categoriaParaUsar) : null,
+      };
 
-    try {
       const response = await fetch(linkPro, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(produto),
       });
-
       if (!response.ok) {
-        console.log("Resposta do POST produto:", response);
-        throw new Error("Erro ao cadastrar o produto");
+        const body = await response.json().catch(() => null);
+        throw new Error(body?.message || "Erro ao cadastrar o produto.");
       }
-
-      // atualizar next id e limpar campos mínimos
-      const responseProdutos = await fetch(linkPro, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      });
-      if (responseProdutos.ok) {
-        const produtos = await responseProdutos.json();
-        const maiorId = produtos.reduce(
-          (max, produto) => Math.max(max, produto.id),
-          0
-        );
-        setId(maiorId + 1);
-      }
-      setOutraCategoria("");
-      setMostrarInputOutra(false);
-      setNovoFornecedor({ nome: "", cnpj: "", numTelefone: "" });
-      setMostrarInputFornecedor(false);
 
       alerta("Produto cadastrado com sucesso!", "success");
+      navigate("/Produto/ListagemProduto");
     } catch (error) {
       console.error(error);
-      alert("Erro ao cadastrar o produto");
-      return;
+      alerta(error.message || "Erro ao cadastrar o produto.", "error");
+    } finally {
+      setSalvando(false);
     }
   };
 
   return (
-    <div className="centro">
-      <div className="CadastroProduto">
-        <h1>Cadastro de Produtos</h1>
-        <form className="formCadastroProduto" onSubmit={handleSubmit}>
-          <input
-            type="text"
-            name="Id"
-            id="Id"
-            readOnly
-            value={Id}
-            placeholder="Id"
-            className="inputCadastroProduto inputId"
-          />
-          <input
-            type="text"
-            required
-            placeholder="Descrição"
-            className="inputCadastroProduto"
-            value={descricao}
-            onChange={(e) => setDescricao(e.target.value)}
-          />
-          {/* Fornecedor: select OU input "Novo" */}
-          {!mostrarInputFornecedor ? (
-            <select
-              className="selectCadastroProduto"
-              value={fornecedorId}
-              onChange={handleFornecedorChange}
-            >
-              <option value="">Selecione um fornecedor</option>
-              {fornecedores.map((fornecedor) => (
-                <option key={fornecedor.id} value={fornecedor.id}>
-                  {fornecedor.nome}
-                </option>
-              ))}
-              <option value="novo">Novo fornecedor</option>
-            </select>
-          ) : (
-            <div
-              style={{
-                display: "flex",
-                gap: "16px",
-                alignItems: "flex-start",
-                marginBottom: "12px",
-              }}
-            >
+    <div className="pdv-page">
+      <div className="pdv-header">
+        <div>
+          <h1 className="pdv-title">Novo produto</h1>
+          <p className="pdv-subtitle">Cadastre um item no catálogo da loja.</p>
+        </div>
+      </div>
+
+      <form className="pdv-form-card" onSubmit={handleSubmit}>
+        <div className="pdv-form-grid">
+          <div className="pdv-form-col-full">
+            <label className="hp-lb">Descrição *</label>
+            <input type="text" className="hp-inp" required placeholder="Ex: Camiseta básica" value={descricao} onChange={(e) => setDescricao(e.target.value)} />
+          </div>
+
+          <div>
+            <label className="hp-lb">Fornecedor</label>
+            {!mostrarInputFornecedor ? (
+              <select className="hp-inp" value={fornecedorId} onChange={handleFornecedorChange}>
+                <option value="">Selecione um fornecedor</option>
+                {fornecedores.map((f) => (
+                  <option key={f.id} value={f.id}>{f.nome}</option>
+                ))}
+                <option value="novo">+ Cadastrar novo fornecedor</option>
+              </select>
+            ) : (
+              <button type="button" className="pdv-btn pdv-btn--ghost pdv-btn--sm" onClick={() => setMostrarInputFornecedor(false)}>
+                Cancelar novo fornecedor
+              </button>
+            )}
+          </div>
+          <div>
+            <label className="hp-lb">Categoria</label>
+            {!mostrarInputOutra ? (
+              <select className="hp-inp" value={categoriaId} onChange={handleCategoriaChange}>
+                <option value="">Selecione uma categoria</option>
+                {categorias.map((c) => (
+                  <option key={c.id} value={c.id}>{c.descricao}</option>
+                ))}
+                <option value="outra">+ Cadastrar nova categoria</option>
+              </select>
+            ) : (
               <input
                 type="text"
-                name="nome"
+                className="hp-inp"
                 required
-                placeholder="Nome do fornecedor"
-                className="inputCadastroProduto"
-                value={novoFornecedor.nome}
-                onChange={handleNovoFornecedorChange}
+                placeholder="Nome da nova categoria"
+                value={outraCategoria}
+                onChange={(e) => setOutraCategoria(e.target.value)}
               />
-              <input
-                type="text"
-                name="cnpj"
-                required
-                placeholder="CNPJ"
-                className="inputCadastroProduto"
-                value={novoFornecedor.cnpj}
-                onChange={handleNovoFornecedorChange}
-              />
-              <input
-                type="text"
-                name="numTelefone"
-                required
-                placeholder="Telefone"
-                className="inputCadastroProduto"
-                value={novoFornecedor.numTelefone}
-                onChange={handleNovoFornecedorChange}
-              />
+            )}
+          </div>
+
+          {mostrarInputFornecedor && (
+            <div className="pdv-form-col-full pdv-form-grid" style={{ gap: 18 }}>
+              <input type="text" className="hp-inp" required placeholder="Nome do fornecedor" value={novoFornecedor.nome} onChange={(e) => setNovoFornecedor((p) => ({ ...p, nome: e.target.value }))} />
+              <input type="text" className="hp-inp" required placeholder="CNPJ" value={novoFornecedor.cnpj} onChange={(e) => setNovoFornecedor((p) => ({ ...p, cnpj: e.target.value }))} />
+              <input type="text" className="hp-inp" placeholder="Telefone" value={novoFornecedor.numTelefone} onChange={(e) => setNovoFornecedor((p) => ({ ...p, numTelefone: e.target.value }))} />
             </div>
           )}
-          <input
-            type="text"
-            required
-            placeholder="Preço Custo"
-            className="inputCadastroProduto"
-            value={preçoCusto}
-            onChange={(e) => setPreçoCusto(e.target.value)}
-          />
-          <input
-            type="text"
-            required
-            placeholder="Preço Venda"
-            className="inputCadastroProduto"
-            value={preçoVenda}
-            onChange={(e) => setPreçoVenda(e.target.value)}
-          />
-          <input
-            type="text"
-            required
-            placeholder="Tamanho"
-            className="inputCadastroProduto"
-            value={tamanho}
-            onChange={(e) => setTamanho(e.target.value)}
-          />
-          <input
-            type="text"
-            required
-            placeholder="Cor"
-            className="inputCadastroProduto"
-            value={cor}
-            onChange={(e) => setCor(e.target.value)}
-          />
-          <input
-            type="text"
-            required
-            placeholder="Quantidade"
-            className="inputCadastroProduto"
-            value={quantidade}
-            onChange={(e) => setQuantidade(e.target.value)}
-          />
 
-          {/* Categoria: select OU input "Outra" */}
-          {!mostrarInputOutra ? (
-            <select
-              className="selectCadastroProduto"
-              value={categoriaId}
-              onChange={handleCategoriaChange}
-            >
-              <option value="">Selecione uma categoria</option>
-              {categorias.map((categoria) => (
-                <option key={categoria.id} value={categoria.id}>
-                  {categoria.descricao}
-                </option>
-              ))}
-              <option value="outra">Outra</option>
-            </select>
-          ) : (
-            <input
-              type="text"
-              required
-              placeholder="Digite a nova categoria"
-              className="inputCadastroProduto"
-              value={outraCategoria}
-              onChange={(e) => setOutraCategoria(e.target.value)}
-            />
-          )}
-
-          <div className="buttonsGroupProduto">
-            <button type="button" className="btnProduto btnVoltarProduto">
-              <Link to="/Produto/ListagemProduto" className="linkCadastro">
-                Voltar
-              </Link>
-            </button>
-            <button type="submit" className="btnProduto btnSalvarProduto">
-              Salvar
-            </button>
+          <div>
+            <label className="hp-lb">Cor</label>
+            <input type="text" className="hp-inp" placeholder="Ex: Azul" value={cor} onChange={(e) => setCor(e.target.value)} />
           </div>
-        </form>
-      </div>
+          <div>
+            <label className="hp-lb">Tamanho</label>
+            <input type="text" className="hp-inp" placeholder="Ex: M" value={tamanho} onChange={(e) => setTamanho(e.target.value)} />
+          </div>
+
+          <div>
+            <label className="hp-lb">Quantidade em estoque *</label>
+            <input type="number" min="0" className="hp-inp" required value={quantidade} onChange={(e) => setQuantidade(e.target.value)} />
+          </div>
+          <div />
+
+          <div>
+            <label className="hp-lb">Preço de custo *</label>
+            <input type="number" step="0.01" min="0" className="hp-inp" required placeholder="0,00" value={precoCusto} onChange={(e) => setPrecoCusto(e.target.value)} />
+          </div>
+          <div>
+            <label className="hp-lb">Preço de venda *</label>
+            <input type="number" step="0.01" min="0" className="hp-inp" required placeholder="0,00" value={precoVenda} onChange={(e) => setPrecoVenda(e.target.value)} />
+          </div>
+        </div>
+
+        <div className="pdv-form-actions">
+          <Link to="/Produto/ListagemProduto" className="pdv-btn pdv-btn--ghost">Cancelar</Link>
+          <button type="submit" className="pdv-btn pdv-btn--primary" disabled={salvando}>
+            {salvando ? "Salvando…" : "Salvar produto"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

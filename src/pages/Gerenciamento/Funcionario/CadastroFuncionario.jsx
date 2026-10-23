@@ -1,316 +1,229 @@
-import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
-import "./Funcionario.css";
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { linkFun } from "./linkFun";
-import Inputmask from "inputmask";
 import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
-// Função de validação de CPF
+
 function validarCPF(cpf) {
   cpf = cpf.replace(/[^\d]+/g, "");
-
   if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
-
   const calcularDV = (cpfArray, pesoInicial) => {
-    let soma = cpfArray.reduce(
-      (acc, num, idx) => acc + num * (pesoInicial - idx),
-      0
-    );
+    let soma = cpfArray.reduce((acc, num, idx) => acc + num * (pesoInicial - idx), 0);
     let resto = soma % 11;
     return resto < 2 ? 0 : 11 - resto;
   };
-
   const numeros = cpf.split("").map(Number);
   const dv1 = calcularDV(numeros.slice(0, 9), 10);
   const dv2 = calcularDV(numeros.slice(0, 10), 11);
-
   return dv1 === numeros[9] && dv2 === numeros[10];
-}
-
-function formatDateInput(value) {
-  let v = value.replace(/\D/g, "");
-  if (v.length > 8) v = v.slice(0, 8);
-  if (v.length > 4) {
-    return v.replace(/(\d{2})(\d{2})(\d{1,4})/, "$1/$2/$3");
-  } else if (v.length > 2) {
-    return v.replace(/(\d{2})(\d{1,2})/, "$1/$2");
-  }
-  return v;
-}
-
-function toISODate(dateStr) {
-  if (!dateStr) return "";
-  const [dd, mm, yyyy] = dateStr.split("/");
-  if (!dd || !mm || !yyyy) return dateStr;
-  return `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
 }
 
 function formatarTelefone(valor) {
   return valor
-  .replace(/\D/g, "")
-  .replace(/^(\d{2})(\d)/g, "($1) $2")
-  .replace(/(\d{5})(\d)/, "$1-$2")
-  .replace(/(-\d{4})\d+?$/, "$1");
+    .replace(/\D/g, "")
+    .replace(/^(\d{2})(\d)/g, "($1) $2")
+    .replace(/(\d{5})(\d)/, "$1-$2")
+    .replace(/(-\d{4})\d+?$/, "$1");
 }
 
 export function CadastroFuncionario() {
   useRequireAuth("Funcionario");
   document.title = "Cadastro de Funcionários";
-  const location = useLocation();
-  const funcionarioClonado = location.state?.funcionario || null;
+  const navigate = useNavigate();
 
-  const [id, setId] = useState("");
-  const [nome, setNome] = useState(funcionarioClonado?.nome || "");
-  const [cpf, setCpf] = useState(funcionarioClonado?.cpf || "");
-  const [endereco, setEndereco] = useState(funcionarioClonado?.endereço || "");
-  const [dataContratacao, setDataContratacao] = useState(
-    funcionarioClonado?.dataContratação || ""
-  );
-  const [telefone, setTelefone] = useState(funcionarioClonado?.telefone || "");
-  const [salario, setSalario] = useState(funcionarioClonado?.salário || "");
-  const [dataDeNascimento, setDataDeNascimento] = useState(
-    funcionarioClonado?.dataDeNascimento || ""
-  );
-  const [ativo, setAtivo] = useState(
-    funcionarioClonado?.ativo !== undefined ? funcionarioClonado.ativo : true
-  );
-  const [usuario, setUsuario] = useState(funcionarioClonado?.usuario || "");
-  const [senha, setSenha] = useState(funcionarioClonado?.senha || "");
-  // const [nivelAcesso] = useState("Funcionario"); // Sempre funcionário
-  const [nivelAcesso] = useState(2); // se Funcionario for 1
-
-  useEffect(() => {
-    Inputmask("99/99/9999").mask(
-      document.querySelectorAll("input[data-mask='date']")
-    );
-
-    const fetchFuncionarios = async () => {
-      try {
-        const response = await fetch(linkFun, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
-
-        if (!response.ok) throw new Error("Erro ao buscar funcionários");
-
-        const funcionarios = await response.json();
-        const maiorId = funcionarios.reduce(
-          (max, funcionario) => Math.max(max, funcionario.id),
-          0
-        );
-        setId(maiorId + 1);
-      } catch (error) {
-        console.error(error);
-        alert("Erro ao carregar os funcionários");
-      }
-    };
-
-    fetchFuncionarios();
-  }, []);
+  const [nome, setNome] = useState("");
+  const [cpf, setCpf] = useState("");
+  const [endereco, setEndereco] = useState("");
+  const [dataContratacao, setDataContratacao] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [salario, setSalario] = useState("");
+  const [dataNascimento, setDataNascimento] = useState("");
+  const [ativo, setAtivo] = useState(true);
+  const [usuario, setUsuario] = useState("");
+  const [senha, setSenha] = useState("");
+  const [nivelAcesso, setNivelAcesso] = useState("FUNCIONARIO");
+  const [salvando, setSalvando] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validarCPF(cpf)) {
-      alert("CPF inválido!");
+      alert("CPF inválido. Confira os números digitados.");
       return;
     }
 
-
-
     const funcionario = {
-      id: parseInt(id),
-      nome: nome,
-      cpf: cpf,
-      endereço: endereco, // minúsculo e com acento
-      dataContratação: toISODate(dataContratacao), // minúsculo e com acento
-      telefone: telefone,
-      salário: parseFloat(salario), // minúsculo e com acento
-      dataDeNascimento: toISODate(dataDeNascimento),
-      ativo: ativo,
-      usuario: usuario,
-      senha: senha,
-      nivelAcesso: nivelAcesso, // minúsculo
+      nome,
+      cpf,
+      endereco,
+      dataContratacao: dataContratacao ? `${dataContratacao}T00:00:00` : null,
+      telefone,
+      salario: salario ? parseFloat(salario) : 0,
+      dataNascimento: dataNascimento ? `${dataNascimento}T00:00:00` : null,
+      ativo,
+      usuario,
+      senha,
+      nivelAcesso,
     };
 
+    setSalvando(true);
     try {
       const response = await fetch(linkFun, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(funcionario),
       });
-
-      if (!response.ok) throw new Error("Erro ao cadastrar o funcionário");
-
-      const responseFuncionarios = await fetch(linkFun, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      });
-
-      if (!responseFuncionarios.ok)
-        throw new Error(
-          "Erro ao buscar funcionários para calcular o próximo ID"
-        );
-
-      const funcionarios = await responseFuncionarios.json();
-      const maiorId = funcionarios.reduce(
-        (max, funcionario) => Math.max(max, funcionario.id),
-        0
-      );
-      setId(maiorId + 1);
-
-      setNome("");
-      setCpf("");
-      setEndereco("");
-      setDataContratacao("");
-      setTelefone("");
-      setSalario("");
-      setDataDeNascimento("");
-      setAtivo(true);
-      setUsuario("");
-      setSenha("");
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        throw new Error(body?.message || "Erro ao cadastrar o funcionário.");
+      }
+      navigate("/Funcionario/ListagemFuncionario");
     } catch (error) {
-      console.log(error);
-      alert("Erro ao cadastrar o funcionário");
+      alert(error.message || "Erro ao cadastrar o funcionário.");
+    } finally {
+      setSalvando(false);
     }
   };
 
   return (
-    <div className="centro">
-      <div className="CadastroFuncionario">
-        <h1>Cadastro de Funcionários</h1>
-        <form className="formCadastroFuncionario" onSubmit={handleSubmit}>
-          <input
-            type="text"
-            name="id"
-            readOnly
-            value={id}
-            placeholder="Id"
-            className="inputCadastroFuncionario inputIdFuncionario"
-          />
-          <input
-            type="text"
-            required
-            placeholder="Nome"
-            className="inputCadastroFuncionario"
-            value={nome}
-            onChange={(e) => setNome(e.target.value)}
-          />
-          <input
-            type="text"
-            required
-            placeholder="CPF"
-            className="inputCadastroFuncionario"
-            value={cpf}
-            onChange={(e) => setCpf(e.target.value)}
-          />
-          <input
-            type="text"
-            required
-            placeholder="Endereço"
-            className="inputCadastroFuncionario"
-            value={endereco}
-            onChange={(e) => setEndereco(e.target.value)}
-          />
-          <input
-            type="text"
-            required
-            placeholder="Telefone"
-            className="inputCadastroFuncionario"
-            value={telefone}
-            onChange={(e) => setTelefone(formatarTelefone(e.target.value))}
-            maxLength={15}
-          />
-          <input
-            type="text"
-            required
-            placeholder="Data de Contratação"
-            className="inputCadastroFuncionario"
-            value={dataContratacao}
-            onChange={(e) =>
-              setDataContratacao(formatDateInput(e.target.value))
-            }
-            maxLength={10}
-            data-mask="date"
-          />
-          <input
-            type="text"
-            required
-            placeholder="Data de Nascimento"
-            className="inputCadastroFuncionario"
-            value={dataDeNascimento}
-            onChange={(e) =>
-              setDataDeNascimento(formatDateInput(e.target.value))
-            }
-            maxLength={10}
-            data-mask="date"
-          />
-          <input
-            type="number"
-            required
-            placeholder="Salário"
-            className="inputCadastroFuncionario"
-            value={salario}
-            onChange={(e) => setSalario(e.target.value)}
-          />
-
-          <input
-            type="text"
-            required
-            placeholder="Usuário"
-            className="inputCadastroFuncionario"
-            value={usuario}
-            onChange={(e) => setUsuario(e.target.value)}
-          />
-          <input
-            type="password"
-            required
-            placeholder="Senha"
-            className="inputCadastroFuncionario"
-            value={senha}
-            onChange={(e) => setSenha(e.target.value)}
-          />
-          <input
-            type="text"
-            readOnly
-            placeholder="Nível de Acesso"
-            className="inputCadastroFuncionario"
-            value={nivelAcesso}
-          />
-          <div className="field-ativo" style={{ marginTop: 8 }}>
-            <label className="toggle" aria-label="Ativar funcionário">
-              <input
-                type="checkbox"
-                checked={ativo}
-                onChange={(e) => setAtivo(e.target.checked)}
-                aria-checked={ativo}
-              />
-              <span className="slider" />
-            </label>
-            <span className={`toggle-text ${ativo ? "on" : "off"}`}>
-              {ativo ? "Ativo" : "Inativo"}
-            </span>
-          </div>
-          <div className="buttonsGroupFuncionario">
-            <button
-              type="button"
-              className="btnFuncionario btnVoltarFuncionario"
-            >
-              <Link
-                to="/Funcionario/ListagemFuncionario"
-                className="linkCadastro"
-              >
-                Voltar
-              </Link>
-            </button>
-            <button
-              type="submit"
-              className="btnFuncionario btnSalvarFuncionario"
-            >
-              Salvar
-            </button>
-          </div>
-        </form>
+    <div className="pdv-page">
+      <div className="pdv-header">
+        <div>
+          <h1 className="pdv-title">Novo funcionário</h1>
+          <p className="pdv-subtitle">Preencha os dados para cadastrar um membro da equipe.</p>
+        </div>
       </div>
+
+      <form className="pdv-form-card" onSubmit={handleSubmit}>
+        <div className="pdv-form-grid">
+          <div className="pdv-form-col-full">
+            <label className="hp-lb">Nome completo *</label>
+            <input
+              type="text"
+              className="hp-inp"
+              required
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="hp-lb">CPF *</label>
+            <input
+              type="text"
+              className="hp-inp"
+              placeholder="000.000.000-00"
+              required
+              value={cpf}
+              onChange={(e) => setCpf(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="hp-lb">Telefone</label>
+            <input
+              type="text"
+              className="hp-inp"
+              placeholder="(00) 00000-0000"
+              maxLength={15}
+              value={telefone}
+              onChange={(e) => setTelefone(formatarTelefone(e.target.value))}
+            />
+          </div>
+
+          <div className="pdv-form-col-full">
+            <label className="hp-lb">Endereço</label>
+            <input
+              type="text"
+              className="hp-inp"
+              value={endereco}
+              onChange={(e) => setEndereco(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="hp-lb">Data de contratação</label>
+            <input
+              type="date"
+              className="hp-inp"
+              value={dataContratacao}
+              onChange={(e) => setDataContratacao(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="hp-lb">Data de nascimento</label>
+            <input
+              type="date"
+              className="hp-inp"
+              value={dataNascimento}
+              onChange={(e) => setDataNascimento(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="hp-lb">Salário</label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              className="hp-inp"
+              placeholder="0,00"
+              value={salario}
+              onChange={(e) => setSalario(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="hp-lb">Nível de acesso *</label>
+            <select
+              className="hp-inp"
+              value={nivelAcesso}
+              onChange={(e) => setNivelAcesso(e.target.value)}
+            >
+              <option value="FUNCIONARIO">Funcionário</option>
+              <option value="GERENTE">Gerente</option>
+              <option value="ADMINISTRADOR">Administrador</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="hp-lb">Usuário de acesso *</label>
+            <input
+              type="text"
+              className="hp-inp"
+              required
+              value={usuario}
+              onChange={(e) => setUsuario(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="hp-lb">Senha *</label>
+            <input
+              type="password"
+              className="hp-inp"
+              required
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+            />
+          </div>
+
+          <div className="pdv-form-col-full" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <input
+              type="checkbox"
+              id="funcionario-ativo"
+              checked={ativo}
+              onChange={(e) => setAtivo(e.target.checked)}
+            />
+            <label htmlFor="funcionario-ativo" className="hp-lb" style={{ margin: 0 }}>
+              Funcionário ativo (pode fazer login)
+            </label>
+          </div>
+        </div>
+
+        <div className="pdv-form-actions">
+          <Link to="/Funcionario/ListagemFuncionario" className="pdv-btn pdv-btn--ghost">Cancelar</Link>
+          <button type="submit" className="pdv-btn pdv-btn--primary" disabled={salvando}>
+            {salvando ? "Salvando…" : "Salvar funcionário"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

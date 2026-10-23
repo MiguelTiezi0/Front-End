@@ -1,49 +1,36 @@
 import React, { useState, useEffect } from "react";
-import "./Compra.css";
-import lupa from "../../../assets/icons/lupa.svg";
-import lixo from "../../../assets/icons/lixo.svg";
-import olhoFechado from "../../../assets/icons/olhoFechado.svg";
-import edit from "../../../assets/icons/edit.svg";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { Search, Eye, Pencil, Trash2, Plus } from "lucide-react";
 import { linkCompra } from "./linkCompra";
 import { linkFun } from "../../Gerenciamento/Funcionario/linkFun";
-import { linkPro } from "../../Gerenciamento/Produto/linkPro";
 import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
+
 export function ListagemCompra() {
   useRequireAuth("Funcionario");
   document.title = "Listagem de Compras";
   const [pesquisa, setPesquisa] = useState("");
-  const [inputVisivel, setInputVisivel] = useState(false);
-  const [btnVisivel, setbtnVisivel] = useState(true);
+  const [tipoPesquisa, setTipoPesquisa] = useState("descricao");
   const [compras, setCompras] = useState([]);
   const [comprasFiltradas, setComprasFiltradas] = useState([]);
-  const [compraSelecionada, setCompraSelecionada] = useState(null);
   const [funcionarios, setFuncionarios] = useState([]);
-  const [produtos, setProdutos] = useState([]);
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
-  const [tipoPesquisa, setTipoPesquisa] = useState("id");
-
+  const [carregando, setCarregando] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        const [resCompras, resFuncs, resProdutos] = await Promise.all([
-          fetch(linkCompra),
-          fetch(linkFun),
-          fetch(linkPro),
-        ]);
+        const [resCompras, resFuncs] = await Promise.all([fetch(linkCompra), fetch(linkFun)]);
         const comprasData = await resCompras.json();
         const funcsData = await resFuncs.json();
-        const produtosData = await resProdutos.json();
-
-        setCompras(comprasData);
-        setComprasFiltradas(comprasData);
-        setFuncionarios(funcsData);
-        setProdutos(produtosData);
+        setCompras(Array.isArray(comprasData) ? comprasData : []);
+        setFuncionarios(Array.isArray(funcsData) ? funcsData : []);
       } catch (error) {
-        alert("Erro ao carregar dados das compras.");
+        console.error(error);
+        alert("Não foi possível carregar as compras.");
+      } finally {
+        setCarregando(false);
       }
     };
     fetchAll();
@@ -52,260 +39,120 @@ export function ListagemCompra() {
   useEffect(() => {
     let filtradas = compras;
 
-    // Filtro por pesquisa
     if (pesquisa) {
+      const termo = pesquisa.toLowerCase();
       filtradas = filtradas.filter((compra) => {
-        const funcionario = funcionarios.find(
-          (f) => f.id === compra.funcionarioId
-        );
-        if (tipoPesquisa === "id") {
-          return compra.id.toString().includes(pesquisa);
-        }
-        if (tipoPesquisa === "funcionario") {
-          return (
-            funcionario &&
-            funcionario.nome.toLowerCase().includes(pesquisa.toLowerCase())
-          );
-        }
-        if (tipoPesquisa === "descricao") {
-          return (
-            compra.descricao &&
-            compra.descricao.toLowerCase().includes(pesquisa.toLowerCase())
-          );
-        }
-        if (tipoPesquisa === "dataCompra") {
-          return (
-            compra.dataCompra &&
-            new Date(compra.dataCompra)
-              .toLocaleDateString("pt-BR")
-              .includes(pesquisa)
-          );
-        }
-        return (
-          compra.id.toString().includes(pesquisa) ||
-          (funcionario &&
-            funcionario.nome.toLowerCase().includes(pesquisa.toLowerCase())) ||
-          (compra.descricao &&
-            compra.descricao.toLowerCase().includes(pesquisa.toLowerCase()))
-        );
+        const funcionario = funcionarios.find((f) => f.id === compra.funcionarioId);
+        if (tipoPesquisa === "id") return String(compra.id).includes(termo);
+        if (tipoPesquisa === "funcionario") return (funcionario?.nome || "").toLowerCase().includes(termo);
+        if (tipoPesquisa === "descricao") return (compra.descricao || "").toLowerCase().includes(termo);
+        return true;
       });
     }
 
-    // Filtro por datas
     if (dataInicio && dataFim) {
-      const dataIni = new Date(dataInicio + "T00:00:00");
-      const dataFinal = new Date(dataFim + "T23:59:59");
-
+      const dataIni = new Date(`${dataInicio}T00:00:00`);
+      const dataFinal = new Date(`${dataFim}T23:59:59`);
       filtradas = filtradas.filter((compra) => {
         if (!compra.dataCompra) return false;
-        const dataCompra = new Date(compra.dataCompra);
-        return dataCompra >= dataIni && dataCompra <= dataFinal;
+        const d = new Date(compra.dataCompra);
+        return d >= dataIni && d <= dataFinal;
       });
     }
 
-    // Ordena da compra mais recente para a mais antiga
-    filtradas = filtradas.slice().sort(
-      (a, b) => new Date(b.dataCompra) - new Date(a.dataCompra)
-    );
-
+    filtradas = filtradas.slice().sort((a, b) => new Date(b.dataCompra) - new Date(a.dataCompra));
     setComprasFiltradas(filtradas);
   }, [pesquisa, tipoPesquisa, compras, funcionarios, dataInicio, dataFim]);
 
-  function handleClickPesquisa() {
-    setInputVisivel(!inputVisivel);
-    setbtnVisivel(!btnVisivel);
-    setPesquisa("");
-    setTimeout(() => {
-      const input = document.querySelector(".inputPesquisar");
-      if (input) input.focus();
-    }, 0);
-  }
-
-  const handleRowClick = (id) => {
-    setCompraSelecionada(id);
-  };
-
-  const handleDetalhar = () => {
-    if (!compraSelecionada) {
-      alert("Selecione uma compra para visualizar os detalhes.");
-      return;
-    }
-    navigate(`/Compra/DetalhesCompra/${compraSelecionada}`);
-  };
-
-  const handleEditar = () => {
-    if (!compraSelecionada) {
-      alert("Selecione uma compra para editar.");
-      return;
-    }
-    navigate(`/Compra/EditarCompra/${compraSelecionada}`);
-  };
-
-  const handleDelete = async () => {
-    if (!compraSelecionada) {
-      alert("Selecione uma compra para deletar.");
-      return;
-    }
-    const confirmDelete = window.confirm(
-      "Tem certeza que deseja deletar esta compra?"
-    );
+  const handleDelete = async (compra) => {
+    const confirmDelete = window.confirm(`Excluir a compra "${compra.descricao}"? Essa ação não pode ser desfeita.`);
     if (!confirmDelete) return;
 
     try {
-      const response = await fetch(`${linkCompra}/${compraSelecionada}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Erro ao deletar a compra");
-      }
-
-      alert("Compra deletada!");
-
-      setCompras((prev) => prev.filter((c) => c.id !== compraSelecionada));
-      setComprasFiltradas((prev) =>
-        prev.filter((c) => c.id !== compraSelecionada)
-      );
-      setCompraSelecionada(null);
+      const response = await fetch(`${linkCompra}/${compra.id}`, { method: "DELETE" });
+      if (!response.ok) throw new Error("Erro ao deletar a compra");
+      setCompras((prev) => prev.filter((c) => c.id !== compra.id));
     } catch (error) {
-      alert("Erro ao deletar a compra");
+      console.error(error);
+      alert("Não foi possível excluir esta compra.");
     }
   };
 
   return (
-    <div className="centroListagemCompra">
-      <div className="top-nav">
-        <div className="top-nav-buttons">
-          {btnVisivel && (
-            <button
-              type="button"
-              className="top-nav-button lupa"
-              onClick={handleClickPesquisa}
-            >
-              <img src={lupa} className="top-nav-img" alt="Lupa" />
-            </button>
-          )}
+    <div className="pdv-page">
+      <div className="pdv-header">
+        <div>
+          <h1 className="pdv-title">Compras</h1>
+          <p className="pdv-subtitle">Histórico de compras feitas junto a fornecedores.</p>
+        </div>
+        <Link to="/Compra/CadastroCompra" className="pdv-btn pdv-btn--primary">
+          <Plus size={16} /> Nova compra
+        </Link>
+      </div>
 
-          <select
-            className="inputTipoPesquisa"
-            style={{ display: inputVisivel ? "inline-block" : "none", marginRight: 8 }}
-            value={tipoPesquisa}
-            onChange={(e) => setTipoPesquisa(e.target.value)}
-          >
-            <option value="id">Id</option>
-            <option value="funcionario">Funcionário</option>
-            <option value="descricao">Descrição</option>
-            <option value="dataCompra">Data Compra</option>
-          </select>
-
-          <input
-            type="text"
-            className={`inputPesquisar ${inputVisivel ? "visivel" : ""}`}
-            value={pesquisa}
-            onChange={(e) => setPesquisa(e.target.value)}
-          />
-
-          <button
-            type="button"
-            className="top-nav-button lixo"
-            onClick={handleDelete}
-          >
-            <img src={lixo} className="top-nav-img" alt="Lixo" />
-          </button>
-
-          <button
-            type="button"
-            className="top-nav-button olhoFechado"
-            onClick={handleDetalhar}
-          >
-            <img src={olhoFechado} className="top-nav-img" alt="OlhoFechado" />
-          </button>
-
-          <button
-            type="button"
-            className="top-nav-button editar"
-            onClick={handleEditar}
-          >
-            <img src={edit} className="top-nav-img" alt="Editar" />
-          </button>
+      <div className="pdv-toolbar">
+        <div className="pdv-toolbar-search">
+          <Search size={16} />
+          <input type="text" placeholder="Buscar compra…" value={pesquisa} onChange={(e) => setPesquisa(e.target.value)} />
+        </div>
+        <select className="pdv-toolbar-select" value={tipoPesquisa} onChange={(e) => setTipoPesquisa(e.target.value)}>
+          <option value="descricao">Buscar por descrição</option>
+          <option value="id">Buscar por ID</option>
+          <option value="funcionario">Buscar por funcionário</option>
+        </select>
+        <div className="pdv-toolbar-dates">
+          <label>De</label>
+          <input type="date" value={dataInicio} max={dataFim || undefined} onChange={(e) => setDataInicio(e.target.value)} />
+          <label>até</label>
+          <input type="date" value={dataFim} min={dataInicio || undefined} onChange={(e) => setDataFim(e.target.value)} />
         </div>
       </div>
 
-      <div className="ListagemCompra">
-        <h1>Relatório de Compras</h1>
-        <div className="DatasCompra">
-          <div style={{ display: "flex", gap: 16, margin: "16px 0" }}>
-            <div>
-              <label className="labelDataPesquisar">Data Inicial: </label>
-              <input
-                type="date"
-                className="inputDataPesquisar"
-                value={dataInicio}
-                max={dataFim || undefined}
-                onChange={e => setDataInicio(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="labelDataPesquisar">Data Final: </label>
-              <input
-                type="date"
-                className="inputDataPesquisar"
-                value={dataFim}
-                min={dataInicio || undefined}
-                onChange={e => setDataFim(e.target.value)}
-              />
-            </div>
-          </div>
-        </div>
-        <div className="scrollCompra">
-          <table className="tableCompra">
+      <div className="pdv-card">
+        <div className="pdv-table-scroll">
+          <table className="pdv-table">
             <thead>
               <tr>
                 <th>Id</th>
                 <th>Funcionário</th>
                 <th>Descrição</th>
-                <th>Qtd Produtos</th>
-                <th>Valor Total</th>
-                <th>Data Compra</th>
+                <th>Qtd produtos</th>
+                <th>Valor total</th>
+                <th>Data</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
               {comprasFiltradas.map((compra) => (
-                <tr
-                  key={compra.id}
-                  onClick={() => handleRowClick(compra.id)}
-                  style={{
-                    backgroundColor:
-                      compraSelecionada === compra.id ? "blue" : "transparent",
-                    color: compraSelecionada === compra.id ? "white" : "black",
-                    cursor: "pointer",
-                  }}
-                >
-                  <td>{compra.id}</td>
-                  <td>
-                    {funcionarios.find((f) => f.id === compra.funcionarioId)
-                      ?.nome || compra.funcionarioId}
-                  </td>
+                <tr key={compra.id}>
+                  <td>#{compra.id}</td>
+                  <td>{funcionarios.find((f) => f.id === compra.funcionarioId)?.nome || "—"}</td>
                   <td>{compra.descricao}</td>
                   <td>{compra.quantidadeDeProduto}</td>
+                  <td>{Number(compra.valorDaCompra || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td>
+                  <td>{compra.dataCompra ? new Date(compra.dataCompra).toLocaleDateString("pt-BR") : "—"}</td>
                   <td>
-                    {compra.valorDaCompra?.toLocaleString("pt-BR", {
-                      style: "currency",
-                      currency: "BRL",
-                    })}
-                  </td>
-                  <td>
-                    {compra.dataCompra
-                      ? new Date(compra.dataCompra).toLocaleDateString("pt-BR")
-                      : "N/A"}
+                    <div className="pdv-table-actions">
+                      <button type="button" className="pdv-icon-btn" title="Ver detalhes" onClick={() => navigate(`/Compra/DetalhesCompra/${compra.id}`)}>
+                        <Eye size={16} />
+                      </button>
+                      <button type="button" className="pdv-icon-btn" title="Editar compra" onClick={() => navigate(`/Compra/EditarCompra/${compra.id}`)}>
+                        <Pencil size={16} />
+                      </button>
+                      <button type="button" className="pdv-icon-btn pdv-icon-btn--danger" title="Excluir compra" onClick={() => handleDelete(compra)}>
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          {!carregando && comprasFiltradas.length === 0 && (
+            <p className="pdv-empty">
+              {compras.length === 0 ? "Nenhuma compra registrada ainda." : "Nenhuma compra encontrada para essa busca."}
+            </p>
+          )}
         </div>
       </div>
     </div>

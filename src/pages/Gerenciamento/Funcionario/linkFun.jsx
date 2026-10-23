@@ -1,1 +1,2 @@
-export const linkFun = ("http://localhost:7172/api/Funcionario");
+import { API_BASE } from "../../../utils/apiFetch";
+export const linkFun = `${API_BASE}/api/funcionario`;

@@ -1,310 +1,286 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { HeaderCaixa } from "../../components/Caixa/HeaderCaixa/HeaderCaixa";
+import { ShoppingCart, CreditCard, Truck, Plus, Minus, Lock, Unlock } from "lucide-react";
 import "./HomeCaixa.css";
+import { apiFetch } from "../../utils/apiFetch";
 import { useRequireAuth } from "../../hooks/RequireAuth/useRequireAuth.jsx";
+
+function somarMovimentos(movimentos) {
+  return (movimentos || []).reduce((acc, m) => {
+    const valor = Number(m.valor ?? 0);
+    return m.tipo === "Saída" ? acc - valor : acc + valor;
+  }, 0);
+}
+
+const formatMoney = (v) =>
+  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(v) || 0);
+
+const MENU_ITEMS = [
+  {
+    title: "Vendas",
+    icon: ShoppingCart,
+    description: "Gerenciar vendas e pagamentos",
+    links: [
+      { to: "/Venda/CadastroVenda", text: "Nova venda" },
+      { to: "/Venda/ListagemVenda", text: "Ver vendas" },
+    ],
+  },
+  {
+    title: "Pagamentos",
+    icon: CreditCard,
+    description: "Controle de pagamentos e parcelas",
+    links: [
+      { to: "/Pagamento/CadastroPagamento", text: "Novo pagamento" },
+      { to: "/Pagamento/ListagemPagamento", text: "Ver pagamentos" },
+      { to: "/Pagamento/ListagemPagamentoDevedor", text: "Devedores" },
+    ],
+  },
+  {
+    title: "Compras",
+    icon: Truck,
+    description: "Registro de compras e fornecedores",
+    links: [
+      { to: "/Compra/CadastroCompra", text: "Nova compra" },
+      { to: "/Compra/ListagemCompra", text: "Ver compras" },
+    ],
+  },
+];
+
+/** Formulário compacto usado para abrir caixa e registrar entrada/saída, substituindo os antigos prompt() do navegador. */
+function MovimentoForm({ titulo, pedirDescricao, onCancelar, onConfirmar }) {
+  const [valor, setValor] = useState("");
+  const [descricao, setDescricao] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const numero = parseFloat(valor.replace(",", "."));
+    if (isNaN(numero) || numero <= 0) {
+      alert("Informe um valor válido.");
+      return;
+    }
+    if (pedirDescricao && !descricao.trim()) {
+      alert("Informe uma descrição.");
+      return;
+    }
+    onConfirmar(numero, descricao.trim());
+  };
+
+  return (
+    <form className="caixa-inline-form" onSubmit={handleSubmit}>
+      <div className="caixa-inline-form-title">{titulo}</div>
+      <div className="caixa-inline-form-row">
+        <input
+          type="number"
+          step="0.01"
+          min="0"
+          className="hp-inp"
+          placeholder="Valor (R$)"
+          autoFocus
+          value={valor}
+          onChange={(e) => setValor(e.target.value)}
+        />
+        {pedirDescricao && (
+          <input
+            type="text"
+            className="hp-inp"
+            placeholder="Descrição"
+            value={descricao}
+            onChange={(e) => setDescricao(e.target.value)}
+          />
+        )}
+      </div>
+      <div className="caixa-inline-form-actions">
+        <button type="button" className="pdv-btn pdv-btn--ghost pdv-btn--sm" onClick={onCancelar}>Cancelar</button>
+        <button type="submit" className="pdv-btn pdv-btn--primary pdv-btn--sm">Confirmar</button>
+      </div>
+    </form>
+  );
+}
+
 export function HomeCaixa() {
   useRequireAuth("Funcionario");
   document.title = "Caixa - Home";
   const [mensagemCaixa, setMensagemCaixa] = useState("");
-  const [caixa, setCaixa] = useState({
-    aberto: false,
-    valorAtual: 0,
-    valorAbertura: 0,
-    totalMovimentacoes: 0,
-  });
-  const [detalhesVisiveis, setDetalhesVisiveis] = useState(false);
-  const baseUrl = "http://localhost:7172/api/Caixa";
-
-  const formatMoney = (v) =>
-    new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(Number(v) || 0);
+  const [caixa, setCaixa] = useState({ aberto: false, valorAtual: 0, valorAbertura: 0, totalMovimentacoes: 0 });
+  const [formularioAtivo, setFormularioAtivo] = useState(null); // "abrir" | "entrada" | "saida" | null
 
   const consultarCaixa = async () => {
     try {
-      const res = await fetch(`${baseUrl}/aberto`);
+      const res = await apiFetch("/api/caixa/aberto");
       if (res.status === 404) {
-        setCaixa({
-          aberto: false,
-          valorAtual: 0,
-          valorAbertura: 0,
-          totalMovimentacoes: 0,
-        });
-        setMensagemCaixa("Nenhum caixa aberto.");
+        setCaixa({ aberto: false, valorAtual: 0, valorAbertura: 0, totalMovimentacoes: 0 });
         return;
       }
       if (!res.ok) throw new Error(`Status ${res.status}`);
       const data = await res.json();
+      const valorAbertura = Number(data.valorAbertura ?? 0);
+      const totalMovimentacoes = somarMovimentos(data.movimentos);
       setCaixa({
         aberto: true,
-        id: data.id ?? data.Id,
-        dataAbertura: data.dataAbertura ?? data.DataAbertura,
-        valorAbertura: Number(data.valorAbertura ?? data.ValorAbertura ?? 0),
-        totalMovimentacoes: Number(
-          data.totalMovimentacoes ?? data.TotalMovimentacoes ?? 0
-        ),
-        valorAtual: Number(data.valorAtual ?? data.ValorAtual ?? 0),
+        id: data.id,
+        dataAbertura: data.dataAbertura,
+        valorAbertura,
+        totalMovimentacoes,
+        valorAtual: valorAbertura + totalMovimentacoes,
       });
-      setMensagemCaixa("");
     } catch (err) {
       console.error("Erro ao consultar caixa:", err);
-      setCaixa({
-        aberto: false,
-        valorAtual: 0,
-        valorAbertura: 0,
-        totalMovimentacoes: 0,
-      });
-      setMensagemCaixa("Erro ao verificar o caixa.");
+      setMensagemCaixa("Não foi possível verificar o status do caixa.");
     }
   };
 
   useEffect(() => {
     consultarCaixa();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleAbrirCaixa = async () => {
-    const valorStr = prompt("Valor de abertura:");
-    const valor = parseFloat(valorStr);
-    if (isNaN(valor)) {
-      setMensagemCaixa("Valor inválido.");
-      return;
-    }
+  const handleAbrirCaixa = async (valor) => {
     try {
-      const res = await fetch(`${baseUrl}/abrir`, {
+      const res = await apiFetch("/api/caixa/abrir", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ valorAbertura: valor }),
       });
       if (!res.ok) {
-        const txt = await res.text().catch(() => null);
-        setMensagemCaixa(`Erro: ${txt || res.status}`);
+        const body = await res.json().catch(() => null);
+        setMensagemCaixa(body?.message || "Erro ao abrir o caixa.");
         return;
       }
+      setFormularioAtivo(null);
+      setMensagemCaixa("Caixa aberto com sucesso.");
       await consultarCaixa();
-      setMensagemCaixa("Caixa aberto.");
     } catch (err) {
       console.error(err);
-      setMensagemCaixa("Falha ao abrir caixa.");
+      setMensagemCaixa("Falha ao abrir o caixa.");
     }
   };
 
   const handleFecharCaixa = async () => {
+    if (!window.confirm("Tem certeza que deseja fechar o caixa?")) return;
     try {
-      const valorFechamento = caixa.valorAtual ?? 0;
-      const res = await fetch(`${baseUrl}/fechar`, {
+      const res = await apiFetch("/api/caixa/fechar", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ valorFechamento }),
+        body: JSON.stringify({ valorFechamento: caixa.valorAtual ?? 0 }),
       });
       if (!res.ok) {
-        const txt = await res.text().catch(() => null);
-        setMensagemCaixa(`Erro: ${txt || res.status}`);
+        const body = await res.json().catch(() => null);
+        setMensagemCaixa(body?.message || "Erro ao fechar o caixa.");
         return;
       }
-      await consultarCaixa();
       setMensagemCaixa("Caixa fechado.");
+      await consultarCaixa();
     } catch (err) {
       console.error(err);
-      setMensagemCaixa("Falha ao fechar caixa.");
+      setMensagemCaixa("Falha ao fechar o caixa.");
     }
   };
 
-  const handleEntrada = async () => {
-    const valorStr = prompt("Valor da entrada:");
-    const descricao = prompt("Descrição:");
-    const valor = parseFloat(valorStr);
-    if (isNaN(valor) || !descricao) {
-      setMensagemCaixa("Entrada inválida.");
-      return;
-    }
+  const registrarMovimento = async (tipo, valor, descricao) => {
     try {
-      const res = await fetch(`${baseUrl}/entrada`, {
+      const res = await apiFetch("/api/caixa/entrada", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ valor, descricao, tipo: "Entrada" }),
+        body: JSON.stringify({ valor, descricao, tipo }),
       });
       if (!res.ok) {
-        const txt = await res.text().catch(() => null);
-        setMensagemCaixa(`Erro: ${txt || res.status}`);
+        const body = await res.json().catch(() => null);
+        setMensagemCaixa(body?.message || `Erro ao registrar ${tipo.toLowerCase()}.`);
         return;
       }
+      setFormularioAtivo(null);
+      setMensagemCaixa(tipo === "Entrada" ? "Entrada registrada." : "Saída registrada.");
       await consultarCaixa();
-      setMensagemCaixa("Entrada registrada.");
     } catch (err) {
       console.error(err);
-      setMensagemCaixa("Falha ao registrar entrada.");
+      setMensagemCaixa(`Falha ao registrar ${tipo.toLowerCase()}.`);
     }
   };
-
-  const handleSaida = async () => {
-    const valorStr = prompt("Valor da saída:");
-    const descricao = prompt("Descrição:");
-    const valor = parseFloat(valorStr);
-    if (isNaN(valor) || !descricao) {
-      setMensagemCaixa("Saída inválida.");
-      return;
-    }
-    try {
-      const res = await fetch(`${baseUrl}/saida`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ valor, descricao, tipo: "Saída" }),
-      });
-      if (!res.ok) {
-        const txt = await res.text().catch(() => null);
-        setMensagemCaixa(`Erro: ${txt || res.status}`);
-        return;
-      }
-      await consultarCaixa();
-      setMensagemCaixa("Saída registrada.");
-    } catch (err) {
-      console.error(err);
-      setMensagemCaixa("Falha ao registrar saída.");
-    }
-  };
-
-  const menuItems = [
-    {
-      title: "Vendas",
-      icon: "💰",
-      description: "Gerenciar vendas e pagamentos",
-      links: [
-        { to: "/Venda/CadastroVenda", text: "Nova Venda" },
-        { to: "/Venda/ListagemVenda", text: "Ver Vendas" },
-      ],
-      highlight: true,
-    },
-    {
-      title: "Pagamentos",
-      icon: "💳",
-      description: "Controle de pagamentos e parcelas",
-      links: [
-        { to: "/Pagamento/CadastroPagamento", text: "Novo Pagamento" },
-        { to: "/Pagamento/ListagemPagamento", text: "Ver Pagamentos" },
-        { to: "/Pagamento/ListagemPagamentoDevedor", text: "Devedores" },
-      ],
-    },
-    {
-      title: "Compras",
-      icon: "🛍️",
-      description: "Registro de compras e fornecedores",
-      links: [
-        { to: "/Compra/CadastroCompra", text: "Nova Compra" },
-        { to: "/Compra/ListagemCompra", text: "Ver Compras" },
-      ],
-    },
-  ];
 
   return (
-    <div className="home-caixa-clean">
-      <HeaderCaixa />
-    
-      <div className="center-wrapper">
-        <div/>
-        <div className={`card-main ${caixa.aberto ? "open" : "closed"}`}>
-          <div className="top-row">
-            <div className="status-dot" aria-hidden />
-            <div className="status-info">
-              <div className="status-label">
-                {caixa.aberto ? "Caixa Aberto" : "Caixa Fechado"}
-              </div>
-              <div className="status-sub">
-                {caixa.aberto && caixa.dataAbertura
-                  ? new Date(caixa.dataAbertura).toLocaleString()
-                  : "—"}
-              </div>
-            </div>
-            <div className="actions-small">
-              {caixa.aberto ? (
-                <>
-                  <button className="btn small" onClick={handleEntrada}>
-                    + Entrada
-                  </button>
-                  <button className="btn small outline" onClick={handleSaida}>
-                    - Saída
-                  </button>
-                </>
-              ) : (
-                <button className="btn small" onClick={handleAbrirCaixa}>
-                  Abrir Caixa
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="main-value">
-            <div className="value-label">Valor Atual</div>
-            <div className="value-amount">{formatMoney(caixa.valorAtual)}</div>
-          </div>
-
-          <div className="footer-row">
-            <div className="footer-left">
-              <button
-                className="btn ghost"
-                onClick={() => setDetalhesVisiveis((v) => !v)}
-              >
-                {detalhesVisiveis ? "Ocultar detalhes" : "Ver detalhes"}
-              </button>
-            </div>
-            <div className="footer-right">
-              {caixa.aberto ? (
-                <button className="btn danger" onClick={handleFecharCaixa}>
-                  Fechar Caixa
-                </button>
-              ) : (
-                <Link to="/Venda/CadastroVenda" className="btn primary">
-                  Registrar Venda
-                </Link>
-              )}
-            </div>
-          </div>
-
-          {detalhesVisiveis && (
-            <div className="details-panel">
-              <div className="detail-item">
-                <div className="d-title">Abertura</div>
-                <div className="d-value">
-                  {formatMoney(caixa.valorAbertura)}
-                </div>
-              </div>
-              <div className="detail-item">
-                <div className="d-title">Movimentações</div>
-                <div className="d-value">
-                  {formatMoney(caixa.totalMovimentacoes)}
-                </div>
-              </div>
-              <div className="detail-item muted">
-                <div className="d-title">ID do Caixa</div>
-                <div className="d-value">{caixa.id ?? "—"}</div>
-              </div>
-            </div>
-          )}
-
-          {mensagemCaixa && <div className="toast">{mensagemCaixa}</div>}
+    <div className="pdv-page">
+      <div className="pdv-header">
+        <div>
+          <h1 className="pdv-title">Caixa</h1>
+          <p className="pdv-subtitle">Abra o caixa, registre entradas/saídas e acompanhe o saldo do dia.</p>
         </div>
-         <div/>
       </div>
 
-      <div
-        className="cards-grid"
-        style={{ maxWidth: 980, margin: "1.25rem auto", padding: "0 1rem" }}
-      >
-        {menuItems.map((item, index) => (
-          <div
-            key={index}
-            className={`card ${item.highlight ? "highlight" : ""}`}
-          >
-            <div className="card-header">
-              <span className="card-icon">{item.icon}</span>
+      <div className={`caixa-status-card ${caixa.aberto ? "aberto" : "fechado"}`}>
+        <div className="caixa-status-top">
+          <span className="caixa-status-dot" />
+          <div>
+            <div className="caixa-status-label">{caixa.aberto ? "Caixa aberto" : "Caixa fechado"}</div>
+            <div className="caixa-status-sub">
+              {caixa.aberto && caixa.dataAbertura ? new Date(caixa.dataAbertura).toLocaleString("pt-BR") : "Nenhum caixa aberto no momento"}
+            </div>
+          </div>
+          {caixa.aberto ? (
+            <div className="caixa-status-actions">
+              <button type="button" className="pdv-btn pdv-btn--ghost pdv-btn--sm" onClick={() => setFormularioAtivo("entrada")}>
+                <Plus size={14} /> Entrada
+              </button>
+              <button type="button" className="pdv-btn pdv-btn--ghost pdv-btn--sm" onClick={() => setFormularioAtivo("saida")}>
+                <Minus size={14} /> Saída
+              </button>
+            </div>
+          ) : (
+            <button type="button" className="pdv-btn pdv-btn--primary pdv-btn--sm" onClick={() => setFormularioAtivo("abrir")}>
+              <Unlock size={14} /> Abrir caixa
+            </button>
+          )}
+        </div>
+
+        <div className="caixa-valor">
+          <div className="caixa-valor-label">Valor atual</div>
+          <div className="caixa-valor-amount">{formatMoney(caixa.valorAtual)}</div>
+        </div>
+
+        {formularioAtivo === "abrir" && (
+          <MovimentoForm
+            titulo="Abrir caixa"
+            pedirDescricao={false}
+            onCancelar={() => setFormularioAtivo(null)}
+            onConfirmar={(valor) => handleAbrirCaixa(valor)}
+          />
+        )}
+        {formularioAtivo === "entrada" && (
+          <MovimentoForm
+            titulo="Registrar entrada"
+            pedirDescricao
+            onCancelar={() => setFormularioAtivo(null)}
+            onConfirmar={(valor, descricao) => registrarMovimento("Entrada", valor, descricao)}
+          />
+        )}
+        {formularioAtivo === "saida" && (
+          <MovimentoForm
+            titulo="Registrar saída"
+            pedirDescricao
+            onCancelar={() => setFormularioAtivo(null)}
+            onConfirmar={(valor, descricao) => registrarMovimento("Saída", valor, descricao)}
+          />
+        )}
+
+        {caixa.aberto && (
+          <div className="caixa-detalhes">
+            <div><span>Abertura</span><strong>{formatMoney(caixa.valorAbertura)}</strong></div>
+            <div><span>Movimentações</span><strong>{formatMoney(caixa.totalMovimentacoes)}</strong></div>
+            <button type="button" className="pdv-btn pdv-btn--danger pdv-btn--sm" onClick={handleFecharCaixa}>
+              <Lock size={14} /> Fechar caixa
+            </button>
+          </div>
+        )}
+
+        {mensagemCaixa && <div className="caixa-toast">{mensagemCaixa}</div>}
+      </div>
+
+      <div className="caixa-menu-grid">
+        {MENU_ITEMS.map((item) => (
+          <div key={item.title} className="pdv-card caixa-menu-card">
+            <div className="caixa-menu-header">
+              <item.icon size={20} />
               <h2>{item.title}</h2>
             </div>
             <p>{item.description}</p>
-            <div className="card-actions">
-              {item.links.map((link, linkIndex) => (
-                <Link key={linkIndex} to={link.to} className="action-button">
+            <div className="caixa-menu-actions">
+              {item.links.map((link) => (
+                <Link key={link.to} to={link.to} className="pdv-btn pdv-btn--ghost pdv-btn--sm">
                   {link.text}
                 </Link>
               ))}

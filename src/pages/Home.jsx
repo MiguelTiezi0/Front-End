@@ -1,93 +1,78 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import { Package, Wallet, ShoppingCart, Truck, CreditCard, BarChart3, ArrowUpRight, Plus } from 'lucide-react';
+import { useRequireAuth } from '../hooks/RequireAuth/useRequireAuth.jsx';
+import './Home.css';
 
-import "./Pages.css";
+const MODULES = [
+  { title: 'Gerenciamento', desc: 'Produtos, categorias e fornecedores', icon: Package,      tint: '#FCF3D6', color: '#C99700', to: '/Gerenciamento/HomeGerenciamento' },
+  { title: 'Caixa',         desc: 'Abrir, fechar e movimentar o caixa', icon: Wallet,       tint: '#E6F3EC', color: '#2F8F5B', to: '/Caixa/HomeCaixa' },
+  { title: 'Vendas',        desc: 'Registrar e consultar vendas',        icon: ShoppingCart, tint: '#FCF3D6', color: '#C99700', to: '/Venda/ListagemVenda' },
+  { title: 'Compras',       desc: 'Reposição e entrada de estoque',      icon: Truck,        tint: '#F0ECE3', color: '#57534C', to: '/Compra/ListagemCompra' },
+  { title: 'Pagamentos',    desc: 'Recebimentos e crediário',            icon: CreditCard,   tint: '#E6F3EC', color: '#2F8F5B', to: '/Pagamento/ListagemPagamento' },
+  { title: 'Relatórios',    desc: 'Indicadores e exportações',           icon: BarChart3,    tint: '#F0ECE3', color: '#57534C', to: '/Relatorio' },
+];
 
-import { HeaderGeral } from "../components/Geral/HeaderGeral/HeaderGeral.jsx";
-import { useRequireAuth } from "../hooks/RequireAuth/useRequireAuth.jsx";
-
+function getUserName() {
+  try {
+    const u = JSON.parse(localStorage.getItem('user') || '{}');
+    const nome = u.nome || u.usuario || '';
+    return nome.split(' ')[0] || 'Funcionário';
+  } catch { return 'Funcionário'; }
+}
 
 export function Home() {
-  document.title = "Home";
-
-  useRequireAuth("Funcionario");
-
-  const menuItems = [
-    {
-      title: "Gerenciamento",
-      icon: "⚙️",
-      description: "Produtos, categorias, fornecedores",
-      to: "/Gerenciamento/HomeGerenciamento",
-    },
-    {
-      title: "Caixa",
-      icon: "💵",
-      description: "Abrir/fechar caixa, entradas/saídas",
-      to: "/Caixa/HomeCaixa",
-    },
-    {
-      title: "Vendas",
-      icon: "🧾",
-      description: "Registrar vendas e gerenciar clientes",
-      to: "/Venda/ListagemVenda",
-    },
-    {
-      title: "Compras",
-      icon: "📦",
-      description: "Registrar compras e controlar fornecedores",
-      to: "/Compra/ListagemCompra",
-    },
-    {
-      title: "Pagamentos",
-      icon: "💳",
-      description: "Registrar pagamentos e contas a pagar",
-      to: "/Pagamento/ListagemPagamento",
-    },
-    {
-      title: "Relatórios",
-      icon: "📊",
-      description: "Relatórios rápidos do sistema",
-      to: "/Relatorio",
-    },
-  ];
+  document.title = 'Início — Hello People PDV';
+  useRequireAuth('Funcionario');
+  const firstName = useMemo(getUserName, []);
 
   return (
-    <div >
-      <HeaderGeral />
-    <div className="homeContainer home-geral">
-      <main className="home-main">
-        <section className="hero">
-          <div>
-            <h1>Bem-vindo ao Sistema de Gestão</h1>
-            <p className="lead">
-              Acesse rapidamente as áreas principais usando os atalhos abaixo.
-            </p>
-          </div>
-          <div className="hero-actions">
-            <Link to="/Venda/CadastroVenda" className="btn primary">
-              Nova Venda
+    <div className="home-page">
+      {/* Welcome banner */}
+      <div className="home-banner">
+        <div className="home-banner-text">
+          <div className="home-banner-label">PAINEL DO FUNCIONÁRIO</div>
+          <h1 className="home-banner-title">Boa tarde, {firstName} 👋</h1>
+          <p className="home-banner-sub">
+            Tudo pronto para operar a loja. Comece registrando uma venda ou cadastrando um novo produto.
+          </p>
+          <div className="home-banner-actions">
+            <Link to="/Venda/CadastroVenda" className="home-btn--yellow">
+              <ShoppingCart size={18} /> Nova venda
             </Link>
-            <Link to="/Produto/CadastroProduto" className="btn outline">
-              Novo Produto
+            <Link to="/Produto/CadastroProduto" className="home-btn--outline">
+              <Plus size={18} /> Novo produto
             </Link>
           </div>
-        </section>
+        </div>
+        <div className="home-kpis">
+          <div className="home-kpi">
+            <div className="home-kpi-label">Vendas hoje</div>
+            <div className="home-kpi-value">—</div>
+          </div>
+          <div className="home-kpi">
+            <div className="home-kpi-label">Pedidos</div>
+            <div className="home-kpi-value">—</div>
+          </div>
+        </div>
+      </div>
 
-        <section className="cards-grid home-cards">
-          {menuItems.map((item) => (
-            <Link key={item.title} to={item.to} className="home-card">
-              <div className="card-top">
-                <div className="card-icon">{item.icon}</div>
-                <h3>{item.title}</h3>
-              </div>
-              <p className="card-desc">{item.description}</p>
-              <div className="card-footer">Abrir →</div>
-            </Link>
-          ))}
-        </section>
-      </main>
+      {/* Modules grid */}
+      <h2 className="home-section-title">Módulos</h2>
+      <div className="home-modules">
+        {MODULES.map(({ title, desc, icon: Icon, tint, color, to }) => (
+          <Link key={title} to={to} className="home-module-card">
+            <div className="home-module-icon" style={{ background: tint }}>
+              <Icon size={23} color={color} />
+            </div>
+            <div className="home-module-row">
+              <span className="home-module-title">{title}</span>
+              <ArrowUpRight size={17} color="#c4bdb0" />
+            </div>
+            <div className="home-module-desc">{desc}</div>
+          </Link>
+        ))}
+      </div>
     </div>
-    </div>
-   
   );
 }

@@ -1,345 +1,146 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import lixo from "../../../assets/icons/lixo.svg";
-import olhosAbertos from "../../../assets/icons/olhosAbertos.svg";
-import edit from "../../../assets/icons/edit.svg";
-import "./Funcionario.css";
+import { ArrowLeft, Pencil } from "lucide-react";
 import { linkFun } from "./linkFun";
 import { linkVen } from "../../Caixa/Venda/linkVen";
 import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
 
+function formatarData(dataISO) {
+  if (!dataISO) return "—";
+  return new Date(dataISO).toLocaleDateString("pt-BR");
+}
+
+function formatarMoeda(valor) {
+  return Number(valor || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
 export function DetalhesFuncionario() {
   useRequireAuth("Funcionario");
   const { id } = useParams();
+  const navigate = useNavigate();
   const [funcionario, setFuncionario] = useState(null);
   const [vendas, setVendas] = useState([]);
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
-  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchFuncionarioDetalhes = async () => {
+    const carregar = async () => {
       try {
-        const response = await fetch(`${linkFun}/${id}`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
+        const response = await fetch(`${linkFun}/${id}`);
+        if (!response.ok) throw new Error("Erro ao buscar detalhes do funcionário");
+        setFuncionario(await response.json());
 
-        if (!response.ok)
-          throw new Error("Erro ao buscar detalhes do funcionário");
-
-        const data = await response.json();
-        setFuncionario(data);
+        const vendasResp = await fetch(linkVen);
+        if (vendasResp.ok) {
+          const todasVendas = await vendasResp.json();
+          setVendas(
+            Array.isArray(todasVendas)
+              ? todasVendas.filter((v) => Number(v.funcionarioId) === Number(id))
+              : []
+          );
+        }
       } catch (error) {
         console.error(error);
-        alert("Erro ao carregar os detalhes do funcionário");
+        alert("Não foi possível carregar os detalhes do funcionário.");
       }
     };
-
-    const fetchVendasFuncionario = async () => {
-      try {
-        const response = await fetch(linkVen, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
-
-        if (!response.ok)
-          throw new Error("Erro ao buscar vendas do funcionário");
-
-        const data = await response.json();
-        const vendasDoFuncionario = data.filter(
-          (v) => Number(v.funcionarioId ?? v.FuncionarioId) === Number(id)
-        );
-        setVendas(vendasDoFuncionario);
-      } catch (error) {
-        console.error(error);
-        alert("Erro ao carregar as vendas do funcionário");
-      }
-    };
-
-    fetchFuncionarioDetalhes();
-    fetchVendasFuncionario();
+    carregar();
   }, [id]);
 
-  if (!funcionario) return <p>Carregando detalhes do funcionário...</p>;
+  if (!funcionario) {
+    return <p className="pdv-empty">Carregando detalhes do funcionário…</p>;
+  }
 
-  const formatarData = (dataISO) => {
-    if (!dataISO) return "";
-    const data = new Date(dataISO);
-    return data.toLocaleDateString("pt-BR");
-  };
+  const vendasFiltradas = vendas
+    .slice()
+    .sort((a, b) => new Date(b.dataVenda) - new Date(a.dataVenda))
+    .filter((v) => {
+      if (!dataInicio || !dataFim) return true;
+      const dataVenda = new Date(v.dataVenda);
+      return dataVenda >= new Date(`${dataInicio}T00:00:00`) && dataVenda <= new Date(`${dataFim}T23:59:59`);
+    });
 
-  const handleVoltar = () => navigate("/Funcionario/ListagemFuncionario");
-  const handleEditar = () => navigate(`/Funcionario/EditarFuncionario/${id}`);
-  const handleDelete = async () => {
-    const confirmDelete = window.confirm(
-      "Tem certeza que deseja deletar este funcionário?"
-    );
-    if (!confirmDelete) return;
-
-    try {
-      const response = await fetch(`${linkFun}/${id}`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-      });
-      if (!response.ok) throw new Error("Erro ao deletar o funcionário");
-      alert("Funcionário deletado com sucesso!");
-      navigate("/Funcionario/ListagemFuncionario");
-    } catch (error) {
-      console.error(error);
-      alert("Erro ao deletar o funcionário");
-    }
-  };
-
-  const totalVendas = vendas.reduce(
-    (acc, v) => acc + Number(v.valorTotal ?? v.ValorTotal ?? 0),
-    0
-  );
-
-  const vendasOrdenadas = [...vendas].sort(
-    (a, b) =>
-      new Date(b.dataVenda ?? b.DataVenda) -
-      new Date(a.dataVenda ?? a.DataVenda)
-  );
-
-  const vendasFiltradas = vendasOrdenadas.filter((v) => {
-    const dataVenda = new Date(v.dataVenda ?? v.DataVenda);
-    if (dataInicio && dataFim) {
-      const ini = new Date(`${dataInicio}T00:00:00`);
-      const fim = new Date(`${dataFim}T23:59:59`);
-      return dataVenda >= ini && dataVenda <= fim;
-    }
-    return true;
-  });
-
-  const totalVendasFiltradas = vendasFiltradas.reduce(
-    (acc, v) => acc + Number(v.valorTotal ?? v.ValorTotal ?? 0),
-    0
-  );
+  const totalVendasFiltradas = vendasFiltradas.reduce((acc, v) => acc + Number(v.valorTotal || 0), 0);
 
   return (
-    <div className="centroDetalhesFuncionario">
-      <div className="top-nav">
-        <div className="top-nav-buttons">
-          <button
-            type="button"
-            className="top-nav-button lixo"
-            onClick={handleDelete}
-          >
-            <img src={lixo} className="top-nav-img" alt="Lixo" />
-          </button>
-          <button
-            type="button"
-            className="top-nav-button olhoFechado"
-            onClick={handleVoltar}
-          >
-            <img src={olhosAbertos} className="top-nav-img" alt="Detalhar" />
-          </button>
-          <button
-            type="button"
-            className="top-nav-button editar"
-            onClick={handleEditar}
-          >
-            <img src={edit} className="top-nav-img" alt="Editar" />
-          </button>
+    <div className="pdv-page">
+      <div className="pdv-header">
+        <div>
+          <Link to="/Funcionario/ListagemFuncionario" className="pdv-btn pdv-btn--ghost pdv-btn--sm" style={{ marginBottom: 10 }}>
+            <ArrowLeft size={14} /> Voltar para funcionários
+          </Link>
+          <h1 className="pdv-title">{funcionario.nome}</h1>
+          <p className="pdv-subtitle">Funcionário #{funcionario.id} · {funcionario.nivelAcesso}</p>
         </div>
+        <button type="button" className="pdv-btn pdv-btn--primary" onClick={() => navigate(`/Funcionario/EditarFuncionario/${id}`)}>
+          <Pencil size={16} /> Editar funcionário
+        </button>
       </div>
 
-      <div className="contentDetalhesFuncionario">
-        <div className="DetalhesFuncionario">
-          <h1 className="DetalhesFuncTitulo">
-            Detalhes do Funcionário: {funcionario.nome}
-          </h1>
-          <div className="divDetalhesFuncionario">
-            <input
-              className="inputDetalhesFuncionario"
-              type="text"
-              disabled
-              value={`ID: ${funcionario.id}`}
-            />
-            <input
-              className="inputDetalhesFuncionario"
-              type="text"
-              disabled
-              value={`Nome: ${funcionario.nome}`}
-            />
-            <input
-              className="inputDetalhesFuncionario"
-              type="text"
-              disabled
-              value={`CPF: ${funcionario.cpf}`}
-            />
-            <input
-              className="inputDetalhesFuncionario"
-              type="text"
-              disabled
-              value={`Endereço: ${funcionario.endereço}`}
-            />
+      <div className="pdv-card" style={{ padding: 22 }}>
+        <dl className="pdv-detail-grid">
+          <div className="pdv-detail-item"><dt>CPF</dt><dd>{funcionario.cpf || "—"}</dd></div>
+          <div className="pdv-detail-item"><dt>Telefone</dt><dd>{funcionario.telefone || "—"}</dd></div>
+          <div className="pdv-detail-item"><dt>Endereço</dt><dd>{funcionario.endereco || "—"}</dd></div>
+          <div className="pdv-detail-item"><dt>Data de nascimento</dt><dd>{formatarData(funcionario.dataNascimento)}</dd></div>
+          <div className="pdv-detail-item"><dt>Data de contratação</dt><dd>{formatarData(funcionario.dataContratacao)}</dd></div>
+          <div className="pdv-detail-item"><dt>Salário</dt><dd>{formatarMoeda(funcionario.salario)}</dd></div>
+          <div className="pdv-detail-item"><dt>Usuário</dt><dd>{funcionario.usuario || "—"}</dd></div>
+          <div className="pdv-detail-item">
+            <dt>Status</dt>
+            <dd>
+              <span className={`pdv-pill ${funcionario.ativo ? "pdv-pill--success" : "pdv-pill--neutral"}`}>
+                {funcionario.ativo ? "Ativo" : "Inativo"}
+              </span>
+            </dd>
+          </div>
+        </dl>
+      </div>
 
-            <input
-              className="inputDetalhesFuncionario"
-              type="text"
-              disabled
-              value={`Telefone: ${funcionario.telefone}`}
-            />
-            <input
-              className="inputDetalhesFuncionario"
-              type="text"
-              disabled
-              value={`Salário: ${
-                typeof funcionario.salário === "number"
-                  ? funcionario.salário.toLocaleString("pt-BR", {
-                      style: "currency",
-                      currency: "BRL",
-                    })
-                  : ""
-              }`}
-            />
-            <input
-              className="inputDetalhesFuncionario"
-              type="text"
-              disabled
-              value={`Data de Contratação: ${formatarData(
-                funcionario.dataContratação
-              )}`}
-            />
-            <input
-              className="inputDetalhesFuncionario"
-              type="text"
-              disabled
-              value={`Data de Nascimento: ${formatarData(
-                funcionario.dataDeNascimento
-              )}`}
-            />
-            <input
-              className="inputDetalhesFuncionario"
-              type="text"
-              disabled
-              value={`Ativo: ${funcionario.ativo ? "Sim" : "Não"}`}
-            />
-
-            {/* Novos campos */}
-            <input
-              className="inputDetalhesFuncionario"
-              type="text"
-              disabled
-              value={`Usuário: ${funcionario.usuario}`}
-            />
-            <input
-              className="inputDetalhesFuncionario"
-              type="text"
-              disabled
-              value={`Senha: ${funcionario.senha}`}
-            />
-            <input
-              className="inputDetalhesFuncionario"
-              type="text"
-              disabled
-              value={`Nível de Acesso: ${funcionario.nivelAcesso}`}
-            />
-
-            <div className="buttonsGroupDetalhesFuncionario">
-              <button
-                type="button"
-                className="btnDetalhesFuncionario btnVoltarFuncionario"
-                onClick={handleVoltar}
-              >
-                <Link
-                  to="/Funcionario/ListagemFuncionario"
-                  className="linkEditarFunc"
-                >
-                  Voltar
-                </Link>
-              </button>
-              <button
-                type="button"
-                className="btnDetalhesFuncionario btnEditarFuncionario"
-                onClick={handleEditar}
-              >
-                <Link
-                  to={`/Funcionario/EditarFuncionario/${funcionario.id}`}
-                  className="linkEditarFunc"
-                >
-                  Editar
-                </Link>
-              </button>
-            </div>
+      <div>
+        <h2 className="pdv-section-title">Vendas realizadas</h2>
+        <div className="pdv-toolbar" style={{ marginBottom: 12 }}>
+          <div className="pdv-toolbar-dates">
+            <label>De</label>
+            <input type="date" value={dataInicio} max={dataFim || undefined} onChange={(e) => setDataInicio(e.target.value)} />
+            <label>até</label>
+            <input type="date" value={dataFim} min={dataInicio || undefined} onChange={(e) => setDataFim(e.target.value)} />
           </div>
         </div>
-
-        <div className="VendasFuncionario">
-          <h2>Vendas Realizadas</h2>
-          <div style={{ display: "flex", gap: 16, margin: "16px 0" }}>
-            <div>
-              <label>Data Inicial: </label>
-              <input
-                type="date"
-                value={dataInicio}
-                max={dataFim || undefined}
-                onChange={(e) => setDataInicio(e.target.value)}
-              />
-            </div>
-            <div>
-              <label>Data Final: </label>
-              <input
-                type="date"
-                value={dataFim}
-                min={dataInicio || undefined}
-                onChange={(e) => setDataFim(e.target.value)}
-              />
-            </div>
-          </div>
-          <table className="detalhesFuncionarioTabela">
-            <thead>
-              <tr>
-                <th>ID Venda</th>
-                <th>Total</th>
-                <th>Data</th>
-                <th>Detalhar Venda</th>
-              </tr>
-            </thead>
-            <tbody>
-              {vendas.length === 0 ? (
+        <div className="pdv-card">
+          <div className="pdv-table-scroll">
+            <table className="pdv-table">
+              <thead>
                 <tr>
-                  <td colSpan={4} style={{ textAlign: "center" }}>
-                    Nenhuma venda encontrada
-                  </td>
+                  <th>Venda</th>
+                  <th>Data</th>
+                  <th>Total</th>
+                  <th></th>
                 </tr>
-              ) : (
-                vendasFiltradas.map((v) => (
+              </thead>
+              <tbody>
+                {vendasFiltradas.map((v) => (
                   <tr key={v.id}>
-                    <td>{v.id}</td>
+                    <td>#{v.id}</td>
+                    <td>{formatarData(v.dataVenda)}</td>
+                    <td>{formatarMoeda(v.valorTotal)}</td>
                     <td>
-                      R$ {Number(v.valorTotal ?? v.ValorTotal).toFixed(2)}
-                    </td>
-                    <td>{(v.dataVenda ?? v.DataVenda)?.slice(0, 10)}</td>
-                    <td>
-                      <button className="btnDetalharVendaFuncionario">
-                        <Link
-                          to={`/Venda/DetalhesVenda/${v.id}`}
-                          className="btnDetalharVendaFuncionarioLink"
-                        >
-                          Detalhar venda
-                        </Link>
-                      </button>
+                      <Link to={`/Venda/DetalhesVenda/${v.id}`} className="pdv-btn pdv-btn--ghost pdv-btn--sm">
+                        Ver venda
+                      </Link>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-            <tfoot className="detalhesFuncionarioTotal">
-              <tr>
-                <th colSpan={2}>
-                  {dataInicio && dataFim
-                    ? "Total das Vendas filtradas"
-                    : "Total de Todas as Vendas"}
-                </th>
-                <td colSpan={2}>
-                  <strong>R$ {totalVendasFiltradas.toFixed(2)}</strong>
-                </td>
-              </tr>
-            </tfoot>
-          </table>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th colSpan={2}>{dataInicio && dataFim ? "Total filtrado" : "Total geral"}</th>
+                  <th colSpan={2}>{formatarMoeda(totalVendasFiltradas)}</th>
+                </tr>
+              </tfoot>
+            </table>
+            {vendasFiltradas.length === 0 && <p className="pdv-empty">Nenhuma venda encontrada.</p>}
+          </div>
         </div>
       </div>
     </div>

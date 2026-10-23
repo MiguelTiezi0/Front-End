@@ -5,7 +5,6 @@ import { linkCli } from "./Gerenciamento/Cliente/linkCli";
 import { linkPro } from "./Gerenciamento/Produto/linkPro";
 
 
-import { HeaderGeral } from "../components/Geral/HeaderGeral/HeaderGeral.jsx";
 import { useRequireAuth } from "../hooks/RequireAuth/useRequireAuth.jsx";
 function formatBR(n) {
   return Number(n || 0).toLocaleString("pt-BR", {
@@ -160,8 +159,7 @@ export default function Relatorio() {
   if (error) return <div className="rel-error">{error}</div>;
 
   return (
-    <div >
-      <HeaderGeral />
+    <div>
       <div className="rel-container">
       <header className="rel-header">
         <div className="rel-header-left">

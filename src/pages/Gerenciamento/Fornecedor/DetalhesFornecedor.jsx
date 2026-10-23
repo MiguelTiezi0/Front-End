@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import lixo from "../../../assets/icons/lixo.svg";
-import olhoFechado from "../../../assets/icons/olhoFechado.svg";
-import edit from "../../../assets/icons/edit.svg";
-import "./Fornecedor.css";
+import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import { linkFor } from "./linkFor";
 import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
+
 export function DetalhesFornecedor() {
   useRequireAuth("Funcionario");
   const { id } = useParams();
@@ -15,150 +13,60 @@ export function DetalhesFornecedor() {
   useEffect(() => {
     const fetchFornecedorDetalhes = async () => {
       try {
-        const response = await fetch(`${linkFor}/${id}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Erro ao buscar detalhes do fornecedor");
-        }
-
-        const data = await response.json();
-        setFornecedor(data);
+        const response = await fetch(`${linkFor}/${id}`);
+        if (!response.ok) throw new Error("Erro ao buscar detalhes do fornecedor");
+        setFornecedor(await response.json());
       } catch (error) {
         console.error(error);
-        alert("Erro ao carregar os detalhes do fornecedor");
+        alert("Não foi possível carregar os detalhes do fornecedor.");
       }
     };
-
     fetchFornecedorDetalhes();
   }, [id]);
 
   if (!fornecedor) {
-    return <p>Carregando detalhes do fornecedor...</p>;
+    return <p className="pdv-empty">Carregando detalhes do fornecedor…</p>;
   }
 
-  const handleVoltar = () => {
-    navigate("/Fornecedor/ListagemFornecedor");
-  };
-
-  const handleEditar = () => {
-    navigate(`/Fornecedor/EditarFornecedor/${id}`);
-  };
-
   const handleDelete = async () => {
-    const confirmDelete = window.confirm(
-      "Tem certeza que deseja deletar este fornecedor?"
-    );
+    const confirmDelete = window.confirm("Tem certeza que deseja excluir este fornecedor?");
     if (!confirmDelete) return;
 
     try {
-      const response = await fetch(`${linkFor}/${id}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Erro ao deletar o fornecedor");
-      }
-
-      alert("Fornecedor deletado com sucesso!");
+      const response = await fetch(`${linkFor}/${id}`, { method: "DELETE" });
+      if (!response.ok) throw new Error("Erro ao deletar o fornecedor");
       navigate("/Fornecedor/ListagemFornecedor");
     } catch (error) {
       console.error(error);
-      alert("Erro ao deletar o fornecedor");
+      alert("Não foi possível excluir este fornecedor.");
     }
   };
 
   return (
-    <div className="centroDetalhesFornecedor">
-      <div className="top-nav">
-        <div className="top-nav-buttons">
-          <button
-            type="button"
-            className="top-nav-button lixo"
-            onClick={handleDelete}
-          >
-            <img src={lixo} className="top-nav-img" alt="Lixo" />
+    <div className="pdv-page">
+      <div className="pdv-header">
+        <div>
+          <Link to="/Fornecedor/ListagemFornecedor" className="pdv-btn pdv-btn--ghost pdv-btn--sm" style={{ marginBottom: 10 }}>
+            <ArrowLeft size={14} /> Voltar para fornecedores
+          </Link>
+          <h1 className="pdv-title">{fornecedor.nome}</h1>
+          <p className="pdv-subtitle">Fornecedor #{fornecedor.id}</p>
+        </div>
+        <div style={{ display: "flex", gap: 10 }}>
+          <button type="button" className="pdv-btn pdv-btn--danger" onClick={handleDelete}>
+            <Trash2 size={16} /> Excluir
           </button>
-          <button
-            type="button"
-            className="top-nav-button olhoFechado"
-            onClick={() => navigate(`/Fornecedor/DetalhesFornecedor/${id}`)}
-          >
-            <img src={olhoFechado} className="top-nav-img" alt="Detalhar" />
-          </button>
-          <button
-            type="button"
-            className="top-nav-button editar"
-            onClick={handleEditar}
-          >
-            <img src={edit} className="top-nav-img" alt="Editar" />
+          <button type="button" className="pdv-btn pdv-btn--primary" onClick={() => navigate(`/Fornecedor/EditarFornecedor/${id}`)}>
+            <Pencil size={16} /> Editar
           </button>
         </div>
       </div>
-      <div className="contentDetalhesFornecedor">
-        <div className="DetalhesFornecedor">
-          <h1>Detalhes do Fornecedor: {fornecedor.nome}</h1>
-          <div className="divDetalhesFornecedor">
-            <input
-              type="text"
-              disabled
-              placeholder="ID"
-              className="inputDetalhesFornecedor"
-              value={`ID: ${fornecedor.id}`}
-            />
-            <input
-              type="text"
-              disabled
-              placeholder="Nome"
-              className="inputDetalhesFornecedor"
-              value={`Nome: ${fornecedor.nome}`}
-            />
-            <input
-              type="text"
-              disabled
-              placeholder="CNPJ"
-              className="inputDetalhesFornecedor"
-              value={`CNPJ: ${fornecedor.cnpj}`}
-            />
-            <input
-              type="text"
-              disabled
-              placeholder="Telefone"
-              className="inputDetalhesFornecedor"
-              value={`Telefone: ${fornecedor.numTelefone}`}
-            />
-          </div>
-          <div className="buttonsGroupDetalhesFornecedor">
-            <button
-              type="button"
-              className="btnDetalhesFornecedor btnVoltarFornecedor"
-              onClick={handleVoltar}
-            >
-              <Link to="/Fornecedor/ListagemFornecedor" className="linkCadastro">
-                Voltar
-              </Link>
-            </button>
-            <button
-              type="button"
-              className="btnDetalhesFornecedor btnEditarFornecedor"
-              onClick={handleEditar}
-            >
-              <Link
-                to={`/Fornecedor/EditarFornecedor/${fornecedor.id}`}
-                className="linkCadastro"
-              >
-                Editar
-              </Link>
-            </button>
-          </div>
-        </div>
+
+      <div className="pdv-card" style={{ padding: 22 }}>
+        <dl className="pdv-detail-grid">
+          <div className="pdv-detail-item"><dt>CNPJ</dt><dd>{fornecedor.cnpj}</dd></div>
+          <div className="pdv-detail-item"><dt>Telefone</dt><dd>{fornecedor.numTelefone || "—"}</dd></div>
+        </dl>
       </div>
     </div>
   );

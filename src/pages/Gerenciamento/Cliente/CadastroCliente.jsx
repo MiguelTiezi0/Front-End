@@ -1,16 +1,13 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import "./Cliente.css";
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { linkCli } from "./linkCli";
 import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
+
 function validarCPF(cpf) {
   cpf = cpf.replace(/[^\d]+/g, "");
   if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
   const calcularDV = (cpfArray, pesoInicial) => {
-    let soma = cpfArray.reduce(
-      (acc, num, idx) => acc + num * (pesoInicial - idx),
-      0
-    );
+    let soma = cpfArray.reduce((acc, num, idx) => acc + num * (pesoInicial - idx), 0);
     let resto = soma % 11;
     return resto < 2 ? 0 : 11 - resto;
   };
@@ -20,25 +17,10 @@ function validarCPF(cpf) {
   return dv1 === numeros[9] && dv2 === numeros[10];
 }
 
-function formatDateInput(value) {
-  let v = value.replace(/\D/g, "");
-  if (v.length > 8) v = v.slice(0, 8);
-  if (v.length > 4) return v.replace(/(\d{2})(\d{2})(\d{1,4})/, "$1/$2/$3");
-  else if (v.length > 2) return v.replace(/(\d{2})(\d{1,2})/, "$1/$2");
-  return v;
-}
-
-function toISODate(dateStr) {
-  if (!dateStr) return "";
-  const [dd, mm, yyyy] = dateStr.split("/");
-  if (!dd || !mm || !yyyy) return dateStr;
-  return `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
-}
-
 function formatTelefoneInput(value) {
   return value
-  .replace(/\D/g, "")
-  .replace(/^(\d{2})(\d)/g, "($1) $2")
+    .replace(/\D/g, "")
+    .replace(/^(\d{2})(\d)/g, "($1) $2")
     .replace(/(\d{5})(\d)/, "$1-$2")
     .replace(/(-\d{4})\d+?$/, "$1");
 }
@@ -46,8 +28,8 @@ function formatTelefoneInput(value) {
 export function CadastroCliente() {
   useRequireAuth("Funcionario");
   document.title = "Cadastro de Clientes";
-  
-  const [id, setId] = useState("");
+  const navigate = useNavigate();
+
   const [nome, setNome] = useState("");
   const [cpf, setCpf] = useState("");
   const [endereco, setEndereco] = useState("");
@@ -56,202 +38,158 @@ export function CadastroCliente() {
   const [limiteDeCredito, setLimiteDeCredito] = useState("");
   const [usuario, setUsuario] = useState("");
   const [senha, setSenha] = useState("");
-
-  const [nivelAcesso] = useState("Cliente"); // Sempre funcionário
-  useEffect(() => {
-    const fetchClientes = async () => {
-      try {
-        const response = await fetch(linkCli, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
-        if (!response.ok) throw new Error("Erro ao buscar clientes");
-        const clientes = await response.json();
-        const maiorId = clientes.reduce(
-          (max, cliente) => Math.max(max, cliente.id),
-          0
-        );
-        setId(maiorId + 1);
-      } catch (error) {
-        console.error(error);
-        alert("Erro ao carregar os clientes");
-      }
-    };
-    fetchClientes();
-  }, []);
+  const [salvando, setSalvando] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    let camposFaltando = [];
-    if (!nome) camposFaltando.push("Nome");
-    if (!cpf) camposFaltando.push("CPF");
-    if (!endereco) camposFaltando.push("Endereço");
-    if (!telefone) camposFaltando.push("Telefone");
-    if (!dataNascimento) camposFaltando.push("Data de Nascimento");
-    if (!limiteDeCredito) camposFaltando.push("Limite de Crédito");
-    if (!usuario) camposFaltando.push("Usuário");
-    if (!senha) camposFaltando.push("Senha");
-
-    if (camposFaltando.length > 0) {
-      const confirmar = window.confirm(
-        `Os seguintes campos não foram preenchidos: ${camposFaltando.join(
-          ", "
-        )}.\nDeseja continuar mesmo assim?`
-      );
-      if (!confirmar) return;
-    }
-
-    if (cpf && !validarCPF(cpf)) {
-      alert("CPF inválido!");
+    if (!validarCPF(cpf)) {
+      alert("CPF inválido. Confira os números digitados.");
       return;
     }
 
     const cliente = {
-      id: parseInt(id),
-      nome: nome || "não informado",
-      cpf: cpf || "não informado",
-      endereço: endereco || "não informado",
-      telefone: telefone || "não informado",
-      dataNascimento: dataNascimento ? toISODate(dataNascimento) : "",
-      limiteDeCrédito: limiteDeCredito ? parseFloat(limiteDeCredito) : 0,
-      usuario: usuario || "não informado",
-      senha: senha || "123456",
-      nivelAcesso: 3, // sempre Cliente
+      nome,
+      cpf,
+      endereco,
+      telefone,
+      dataNascimento: dataNascimento ? `${dataNascimento}T00:00:00` : null,
+      limiteDeCredito: limiteDeCredito ? parseFloat(limiteDeCredito) : 0,
+      usuario,
+      senha,
+      nivelAcesso: "CLIENTE",
     };
 
+    setSalvando(true);
     try {
       const response = await fetch(linkCli, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(cliente),
       });
-      if (!response.ok) throw new Error("Erro ao cadastrar o cliente");
-
-      const responseClientes = await fetch(linkCli, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      });
-      const clientes = await responseClientes.json();
-      const maiorId = clientes.reduce(
-        (max, cliente) => Math.max(max, cliente.id),
-        0
-      );
-      setId(maiorId + 1);
-
-      // Limpa os campos
-      setNome("");
-      setCpf("");
-      setEndereco("");
-      setTelefone("");
-      setDataNascimento("");
-      setLimiteDeCredito("");
-      setUsuario("");
-      setSenha("");
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        throw new Error(body?.message || "Erro ao cadastrar o cliente.");
+      }
+      navigate("/Cliente/ListagemCliente");
     } catch (error) {
-      console.error(error);
-      alert("Erro ao cadastrar o cliente");
+      alert(error.message || "Erro ao cadastrar o cliente.");
+    } finally {
+      setSalvando(false);
     }
   };
 
   return (
-    <div className="centroCliente">
-      <div className="CadastroCliente">
-        <h1>Cadastro de Clientes</h1>
-        <form className="formCadastroCliente" onSubmit={handleSubmit}>
-          <div className="divCadastroCliente">
+    <div className="pdv-page">
+      <div className="pdv-header">
+        <div>
+          <h1 className="pdv-title">Novo cliente</h1>
+          <p className="pdv-subtitle">Preencha os dados para cadastrar um cliente na loja.</p>
+        </div>
+      </div>
+
+      <form className="pdv-form-card" onSubmit={handleSubmit}>
+        <div className="pdv-form-grid">
+          <div className="pdv-form-col-full">
+            <label className="hp-lb">Nome completo *</label>
             <input
               type="text"
-              name="id"
-              readOnly
-              value={id}
-              placeholder="Id"
-              className="inputCadastroCliente"
-            />
-            <input
-              type="text"
-              placeholder="Nome"
-              className="inputCadastroCliente"
+              className="hp-inp"
+              placeholder="Nome do cliente"
+              required
               value={nome}
               onChange={(e) => setNome(e.target.value)}
             />
+          </div>
+
+          <div>
+            <label className="hp-lb">CPF *</label>
             <input
               type="text"
-              placeholder="CPF"
-              className="inputCadastroCliente"
+              className="hp-inp"
+              placeholder="000.000.000-00"
+              required
               value={cpf}
               onChange={(e) => setCpf(e.target.value)}
             />
+          </div>
+          <div>
+            <label className="hp-lb">Telefone</label>
             <input
               type="text"
-              placeholder="Endereço"
-              className="inputCadastroCliente"
+              className="hp-inp"
+              placeholder="(00) 00000-0000"
+              value={telefone}
+              maxLength={15}
+              onChange={(e) => setTelefone(formatTelefoneInput(e.target.value))}
+            />
+          </div>
+
+          <div className="pdv-form-col-full">
+            <label className="hp-lb">Endereço</label>
+            <input
+              type="text"
+              className="hp-inp"
+              placeholder="Rua, número, bairro, cidade"
               value={endereco}
               onChange={(e) => setEndereco(e.target.value)}
             />
+          </div>
 
+          <div>
+            <label className="hp-lb">Data de nascimento</label>
             <input
-              type="text"
-              placeholder="Telefone"
-              className="inputCadastroCliente"
-              value={telefone}
-              onChange={(e) => setTelefone(formatTelefoneInput(e.target.value))}
-              maxLength={15}
-            />
-
-            <input
-              type="text"
-              placeholder="Data de Nascimento (dd/mm/aaaa)"
-              className="inputCadastroCliente"
+              type="date"
+              className="hp-inp"
               value={dataNascimento}
-              onChange={(e) =>
-                setDataNascimento(formatDateInput(e.target.value))
-              }
-              maxLength={10}
+              onChange={(e) => setDataNascimento(e.target.value)}
             />
+          </div>
+          <div>
+            <label className="hp-lb">Limite de crédito</label>
             <input
               type="number"
-              placeholder="Limite de Crédito"
-              className="inputCadastroCliente"
+              step="0.01"
+              min="0"
+              className="hp-inp"
+              placeholder="0,00"
               value={limiteDeCredito}
               onChange={(e) => setLimiteDeCredito(e.target.value)}
             />
+          </div>
 
-            {/* Novos campos de usuário e senha */}
+          <div>
+            <label className="hp-lb">Usuário de acesso *</label>
             <input
               type="text"
-              placeholder="Usuário"
-              className="inputCadastroCliente"
+              className="hp-inp"
+              placeholder="usuario.cliente"
+              required
               value={usuario}
               onChange={(e) => setUsuario(e.target.value)}
             />
+            <p className="pdv-hint">O cliente vai usar isso para entrar no site.</p>
+          </div>
+          <div>
+            <label className="hp-lb">Senha *</label>
             <input
               type="password"
-              placeholder="Senha"
-              className="inputCadastroCliente"
+              className="hp-inp"
+              placeholder="••••••••"
+              required
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
             />
-            {/* <input
-            type="text"
-            readOnly
-            placeholder="Nível de Acesso"
-            className="inputCadastroCliente"
-            value={nivelAcesso}
-          /> */}
           </div>
-          <div className="buttonsGroupCliente">
-            <button type="button" className="btnCliente btnVoltarCliente">
-              <Link to="/Cliente/ListagemCliente" className="linkCadastroCliente">
-                Voltar
-              </Link>
-            </button>
-            <button type="submit" className="btnCliente btnSalvarCliente">
-              Salvar
-            </button>
-          </div>
-        </form>
-      </div>
+        </div>
+
+        <div className="pdv-form-actions">
+          <Link to="/Cliente/ListagemCliente" className="pdv-btn pdv-btn--ghost">Cancelar</Link>
+          <button type="submit" className="pdv-btn pdv-btn--primary" disabled={salvando}>
+            {salvando ? "Salvando…" : "Salvar cliente"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

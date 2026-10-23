@@ -1,382 +1,137 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import lixo from "../../../assets/icons/lixo.svg";
-import olhoFechado from "../../../assets/icons/olhoFechado.svg";
-import edit from "../../../assets/icons/edit.svg";
-import "./Cliente.css";
+import { ArrowLeft, Pencil } from "lucide-react";
 import { linkCli } from "./linkCli";
 import { linkVen } from "../../Caixa/Venda/linkVen";
 import { useRequireAuth } from "../../../hooks/RequireAuth/useRequireAuth.jsx";
+
+function formatarData(dataISO) {
+  if (!dataISO) return "—";
+  return new Date(dataISO).toLocaleDateString("pt-BR");
+}
+
+function formatarMoeda(valor) {
+  return Number(valor || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function statusVenda(venda) {
+  const total = Number(venda.valorTotal || 0);
+  const pago = Number(venda.totalPago || 0);
+  if (total > 0 && pago >= total) return { label: "Paga", className: "pdv-pill--success" };
+  if (pago > 0) return { label: "Parcial", className: "pdv-pill--warning" };
+  return { label: "Em aberto", className: "pdv-pill--danger" };
+}
+
 export function DetalhesCliente() {
   useRequireAuth("Funcionario");
   const { id } = useParams();
+  const navigate = useNavigate();
   const [cliente, setCliente] = useState(null);
   const [vendas, setVendas] = useState([]);
-  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchClienteDetalhes = async () => {
+    const carregar = async () => {
       try {
-        const response = await fetch(`${linkCli}/${id}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        // Mantém os totais do cliente em dia com as vendas registradas.
+        const recalculo = await fetch(`${linkCli}/${id}/recalcular-totais`, { method: "PATCH" });
+        const clienteAtualizado = recalculo.ok ? await recalculo.json() : null;
 
-        if (!response.ok) {
-          throw new Error("Erro ao buscar detalhes do cliente");
-        }
+        const clienteResp = clienteAtualizado
+          ? clienteAtualizado
+          : await (await fetch(`${linkCli}/${id}`)).json();
+        setCliente(clienteResp);
 
-        const data = await response.json();
-        setCliente(data);
-      } catch (error) {
-        console.error(error);
-        alert("Erro ao carregar os detalhes do cliente");
-      }
-    };
-
-    const fetchVendasCliente = async () => {
-      try {
-        const response = await fetch(linkVen, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
-
-        if (!response.ok) throw new Error("Erro ao buscar vendas do cliente");
-
-        const data = await response.json();
-        const vendasDoCliente = data.filter(
-          (v) => Number(v.clienteId ?? v.ClienteId) === Number(id)
-        );
-        setVendas(vendasDoCliente);
-
-        // Calcule os totais e atualize o cliente no backend
-        const totalGasto = vendasDoCliente.reduce(
-          (acc, v) => acc + Number(v.valorTotal ?? v.ValorTotal ?? 0),
-          0
-        );
-        const totalPago = vendasDoCliente.reduce(
-          (acc, v) => acc + Number(v.totalPago ?? v.TotalPago ?? 0),
-          0
-        );
-        const totalDevido = vendasDoCliente.reduce(
-          (acc, v) =>
-            acc +
-            (Number(v.valorTotal ?? v.ValorTotal ?? 0) -
-              Number(v.totalPago ?? v.TotalPago ?? 0)),
-          0
-        );
-
-        // Atualize o cliente no backend com os novos totais
-        if (cliente) {
-          // Só faz o PUT se cliente já foi carregado
-          await fetch(`${linkCli}/${id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              id: cliente.id,
-              nome: cliente.nome,
-              cpf: cliente.cpf,
-              endereço: cliente.endereço,
-
-              telefone: cliente.telefone,
-
-              dataNascimento: cliente.dataNascimento,
-              limiteDeCrédito: cliente.limiteDeCrédito,
-              totalGasto: totalGasto,
-              totalPago: totalPago,
-              totalDevido: totalDevido,
-            }),
-          });
+        const vendasResp = await fetch(linkVen);
+        if (vendasResp.ok) {
+          const todasVendas = await vendasResp.json();
+          setVendas(
+            Array.isArray(todasVendas)
+              ? todasVendas.filter((v) => Number(v.clienteId) === Number(id))
+              : []
+          );
         }
       } catch (error) {
         console.error(error);
-        alert("Erro ao carregar as vendas do cliente");
+        alert("Não foi possível carregar os detalhes do cliente.");
       }
     };
-
-    fetchClienteDetalhes();
-    fetchVendasCliente();
+    carregar();
   }, [id]);
 
   if (!cliente) {
-    return <p>Carregando detalhes do cliente...</p>;
+    return <p className="pdv-empty">Carregando detalhes do cliente…</p>;
   }
 
-  const formatarData = (dataISO) => {
-    if (!dataISO) return "";
-    const data = new Date(dataISO);
-    return data.toLocaleDateString("pt-BR");
-  };
-
-  const handleVoltar = () => {
-    navigate("/Cliente/ListagemCliente");
-  };
-
-  const handleEditar = () => {
-    navigate(`/Cliente/EditarCliente/${id}`);
-  };
-
-  const handleDelete = async () => {
-    const confirmDelete = window.confirm(
-      "Tem certeza que deseja deletar este cliente?"
-    );
-    if (!confirmDelete) return;
-
-    try {
-      const response = await fetch(`${linkCli}/${id}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Erro ao deletar o cliente");
-      }
-
-      alert("Cliente deletado com sucesso!");
-      navigate("/Cliente/ListagemCliente");
-    } catch (error) {
-      console.error(error);
-      alert("Erro ao deletar o cliente");
-    }
-  };
-
-  function getRowColor(venda) {
-    const total = Number(venda.valorTotal ?? venda.ValorTotal ?? 0);
-    const pago = Number(venda.totalPago ?? venda.TotalPago ?? 0);
-
-    if (pago === total && total > 0) return "#ccffcc"; // Verde: totalmente paga
-    if (pago < total && pago > 0) return "#fff7b2"; // Amarelo: parcialmente paga
-    if (pago < total && pago === 0) return "#ffcccc"; // Vermelho: não paga
-
-    return ""; // Sem cor se não se encaixar em nenhum caso
-  }
-  console.table(cliente);
   return (
-    <div className="centroDetalhesCliente">
-      <div className="top-nav">
-        <div className="top-nav-buttons">
-          <button
-            type="button"
-            className="top-nav-button lixo"
-            onClick={handleDelete}
-          >
-            <img src={lixo} className="top-nav-img" alt="Lixo" />
-          </button>
-          <button
-            type="button"
-            className="top-nav-button olhoFechado"
-            onClick={() => navigate(`/Cliente/DetalhesCliente/${id}`)}
-          >
-            <img src={olhoFechado} className="top-nav-img" alt="Detalhar" />
-          </button>
-          <button
-            type="button"
-            className="top-nav-button editar"
-            onClick={handleEditar}
-          >
-            <img src={edit} className="top-nav-img" alt="Editar" />
-          </button>
+    <div className="pdv-page">
+      <div className="pdv-header">
+        <div>
+          <Link to="/Cliente/ListagemCliente" className="pdv-btn pdv-btn--ghost pdv-btn--sm" style={{ marginBottom: 10 }}>
+            <ArrowLeft size={14} /> Voltar para clientes
+          </Link>
+          <h1 className="pdv-title">{cliente.nome}</h1>
+          <p className="pdv-subtitle">Cliente #{cliente.id}</p>
         </div>
+        <button type="button" className="pdv-btn pdv-btn--primary" onClick={() => navigate(`/Cliente/EditarCliente/${id}`)}>
+          <Pencil size={16} /> Editar cliente
+        </button>
       </div>
-      <div className="contentDetalhesCliente">
-        <div className="DetalhesCliente">
-          <h1>Detalhes do Cliente: {cliente.nome}</h1>
 
-          <div className="divDetalhesCliente">
-            <input
-              type="text"
-              disabled
-              placeholder="ID"
-              className="inputDetalhesCliente inputIdDetalhesCliente"
-              value={`ID: ${cliente.id}`}
-            />
-            <input
-              type="text"
-              disabled
-              placeholder="Nome"
-              className="inputDetalhesCliente"
-              value={`Nome: ${cliente.nome}`}
-            />
-            <input
-              type="text"
-              disabled
-              placeholder="CPF"
-              className="inputDetalhesCliente"
-              value={`CPF: ${cliente.cpf}`}
-            />
-            <input
-              type="text"
-              disabled
-              placeholder="Endereço"
-              className="inputDetalhesCliente"
-              value={`Endereço: ${cliente.endereço}`}
-            />
+      <div className="pdv-card" style={{ padding: 22 }}>
+        <dl className="pdv-detail-grid">
+          <div className="pdv-detail-item"><dt>CPF</dt><dd>{cliente.cpf || "—"}</dd></div>
+          <div className="pdv-detail-item"><dt>Telefone</dt><dd>{cliente.telefone || "—"}</dd></div>
+          <div className="pdv-detail-item"><dt>Endereço</dt><dd>{cliente.endereco || "—"}</dd></div>
+          <div className="pdv-detail-item"><dt>Data de nascimento</dt><dd>{formatarData(cliente.dataNascimento)}</dd></div>
+          <div className="pdv-detail-item"><dt>Usuário</dt><dd>{cliente.usuario || "—"}</dd></div>
+          <div className="pdv-detail-item"><dt>Limite de crédito</dt><dd>{formatarMoeda(cliente.limiteDeCredito)}</dd></div>
+        </dl>
+      </div>
 
-            <input
-              type="text"
-              disabled
-              placeholder="Telefone"
-              className="inputDetalhesCliente"
-              value={`Telefone: ${cliente.telefone}`}
-            />
+      <div className="pdv-stat-row">
+        <dl className="pdv-stat"><dt>Total gasto</dt><dd>{formatarMoeda(cliente.totalGasto)}</dd></dl>
+        <dl className="pdv-stat"><dt>Total pago</dt><dd>{formatarMoeda(cliente.totalPago)}</dd></dl>
+        <dl className="pdv-stat"><dt>Total devido</dt><dd>{formatarMoeda(cliente.totalDevido)}</dd></dl>
+      </div>
 
-            <input
-              type="text"
-              disabled
-              placeholder="Data de Nascimento"
-              className="inputDetalhesCliente"
-              value={`Data de Nascimento: ${formatarData(
-                cliente.dataNascimento
-              )}`}
-            />
-            <input
-              type="text"
-              disabled
-              placeholder="Limite de Crédito"
-              className="inputDetalhesCliente"
-              value={`Limite de Crédito: ${
-                typeof cliente.limiteDeCrédito === "number"
-                  ? cliente.limiteDeCrédito.toLocaleString("pt-BR", {
-                      style: "currency",
-                      currency: "BRL",
-                    })
-                  : ""
-              }`}
-            />
-            {/* NOVOS CAMPOS */}
-            <input
-              type="text"
-              disabled
-              placeholder="Usuário"
-              className="inputDetalhesCliente"
-              value={`Usuário: ${cliente.usuario || ""}`}
-            />
-            <input
-              type="text"
-              disabled
-              placeholder="Nível de Acesso"
-              className="inputDetalhesCliente"
-              value={`Nível de Acesso: ${cliente.nivelAcesso || "Cliente"}`}
-            />
-          </div>
-
-          <div className="buttonsGroupDetalhesCliente">
-            <button
-              type="button"
-              className="btnDetalhesCliente btnVoltarCliente"
-              onClick={handleVoltar}
-            >
-              <Link to="/Cliente/ListagemCliente" className="linkCadastro">
-                Voltar
-              </Link>
-            </button>
-            <button
-              type="button"
-              className="btnDetalhesCliente btnEditarCliente"
-              onClick={handleEditar}
-            >
-              <Link
-                to={`/Cliente/EditarCliente/${cliente.id}`}
-                className="linkCadastro"
-              >
-                Editar
-              </Link>
-            </button>
-          </div>
-        </div>
-        <div className="VendasCliente">
-          <h2>Compras do Cliente</h2>
-          <table className="detalhesClienteTabela tabelaScroll">
-            <thead>
-              <tr>
-                <th>ID Venda</th>
-                <th>Total</th>
-                <th>Data</th>
-                <th>Detalhar Venda</th>
-              </tr>
-            </thead>
-            <tbody>
-              {vendas.length === 0 ? (
+      <div>
+        <h2 className="pdv-section-title">Compras do cliente</h2>
+        <div className="pdv-card">
+          <div className="pdv-table-scroll">
+            <table className="pdv-table">
+              <thead>
                 <tr>
-                  <td colSpan={3} style={{ textAlign: "center" }}>
-                    Nenhuma venda encontrada
-                  </td>
+                  <th>Venda</th>
+                  <th>Data</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                  <th></th>
                 </tr>
-              ) : (
-                <>
-                  {vendas
-                    .slice() // faz uma cópia para não alterar o original
-                    .sort(
-                      (a, b) =>
-                        new Date(b.dataVenda ?? b.DataVenda) -
-                        new Date(a.dataVenda ?? a.DataVenda)
-                    )
-                    .map((v) => (
-                      <tr key={v.id} style={{ background: getRowColor(v) }}>
-                        <td>{v.id}</td>
+              </thead>
+              <tbody>
+                {vendas
+                  .slice()
+                  .sort((a, b) => new Date(b.dataVenda) - new Date(a.dataVenda))
+                  .map((v) => {
+                    const status = statusVenda(v);
+                    return (
+                      <tr key={v.id}>
+                        <td>#{v.id}</td>
+                        <td>{formatarData(v.dataVenda)}</td>
+                        <td>{formatarMoeda(v.valorTotal)}</td>
+                        <td><span className={`pdv-pill ${status.className}`}>{status.label}</span></td>
                         <td>
-                          R$ {Number(v.valorTotal ?? v.ValorTotal).toFixed(2)}
-                        </td>
-                        <td>
-                          {(() => {
-                            const data = v.dataVenda ?? v.DataVenda;
-                            if (!data) return "";
-                            const d = new Date(data);
-                            return d.toLocaleDateString("pt-BR");
-                          })()}
-                        </td>
-                        <td>
-                          <button className="btnDetalharVendaCliente">
-                            <Link
-                              to={`/Venda/DetalhesVenda/${v.id}`}
-                              className="btnDetalharVendaClienteLink"
-                            >
-                              Detalhar venda
-                            </Link>
-                          </button>
+                          <Link to={`/Venda/DetalhesVenda/${v.id}`} className="pdv-btn pdv-btn--ghost pdv-btn--sm">
+                            Ver venda
+                          </Link>
                         </td>
                       </tr>
-                    ))}
-                </>
-              )}
-            </tbody>
-            <td></td>
-            <tfoot
-              style={{ position: "relative" }}
-              className="detalhesClienteTotal"
-            >
-              <tr>
-                <th>Total Gasto</th>
-                <th>Total Pago</th>
-                <th>Total Devido</th>
-                <th>Pagar</th>
-              </tr>
-              <tr>
-                <td>
-                  Total Gasto:{" "}
-                  <strong>R$ {cliente.totalGasto.toFixed(2)}</strong>
-                </td>
-                <td>
-                  Total Pago: <strong>R$ {cliente.totalPago.toFixed(2)}</strong>
-                </td>
-
-                <td>
-                  Total Devido:{" "}
-                  <strong>R$ {cliente.totalDevido.toFixed(2)}</strong>
-                </td>
-
-                <td>
-                  <button className="PagarDetalhesCliente">
-                    <Link className="PagarDetalhesClienteLink">Pagar</Link>
-                  </button>
-                </td>
-              </tr>
-            </tfoot>
-          </table>
+                    );
+                  })}
+              </tbody>
+            </table>
+            {vendas.length === 0 && <p className="pdv-empty">Este cliente ainda não tem compras registradas.</p>}
+          </div>
         </div>
       </div>
     </div>
